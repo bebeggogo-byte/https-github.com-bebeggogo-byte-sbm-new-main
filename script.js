@@ -134,14 +134,58 @@ const lazyLoadImages = () => {
     images.forEach(img => imageObserver.observe(img));
 };
 
+// Drip Lines subscribe form
+// - data-endpoint이 있으면 해당 URL로 fetch POST (Formspree 등)
+// - 없으면 기본 mailto action 사용 (사용자 메일 클라이언트 열기)
+const initDripSubscribe = () => {
+    const form = document.getElementById('drip-subscribe');
+    if (!form) return;
+
+    const endpoint = form.dataset.endpoint && form.dataset.endpoint.trim();
+    if (!endpoint) return; // mailto 폴백 그대로 사용
+
+    const submit = form.querySelector('.drip-form-submit');
+    const fallback = form.querySelector('.drip-form-fallback');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const originalLabel = submit.textContent;
+        submit.disabled = true;
+        submit.textContent = '전송 중…';
+
+        try {
+            const data = new FormData(form);
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: data
+            });
+            if (!res.ok) throw new Error('network');
+
+            form.innerHTML = `
+                <div class="drip-form-success">
+                    <h3>구독이 접수되었습니다 ☕</h3>
+                    <p>곧 Drip Lines 첫 통을 보내드립니다. 천천히, 한 줄씩.</p>
+                </div>`;
+        } catch (err) {
+            submit.disabled = false;
+            submit.textContent = originalLabel;
+            if (fallback) {
+                fallback.style.color = '#d78c3a';
+                fallback.innerHTML = '전송이 실패했어요. 아래 이메일로 직접 보내주세요 — ' + fallback.innerHTML;
+            }
+        }
+    });
+};
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Nedabah Way website loaded');
-    
-    // Add any initialization code here
+
     lazyLoadImages();
-    
+    initDripSubscribe();
+
     // Optional: Add Easter egg
     console.log('%c네다바웨이에 오신 것을 환영합니다', 'color: #8b7355; font-size: 16px; font-weight: bold;');
-    console.log('%c자발성으로 시작되는 거룩을 향한 공동체의 길', 'color: #5a4a3a; font-size: 12px;');
+    console.log('%c자발성으로 시작되는 거룩을 향한 공동체의 길 · Drip Lines', 'color: #5a4a3a; font-size: 12px;');
 });

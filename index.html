@@ -257,7 +257,30 @@
             </div>
 
             <div class="drip-cta">
-                <p>오늘의 한 줄을 받아보시려면 <a href="mailto:[email protected]">[email protected]</a>으로 <strong>"Drip Lines 구독"</strong>이라고 보내주세요. 무료입니다.</p>
+                <form class="drip-form" id="drip-subscribe" action="mailto:[email protected]" method="post" enctype="text/plain" data-endpoint="">
+                    <div class="drip-form-head">
+                        <h3>오늘의 한 줄, 이메일로 받기</h3>
+                        <p>매달 한 통. 무료. 언제든 구독 취소 가능합니다.</p>
+                    </div>
+                    <div class="drip-form-row">
+                        <label class="drip-form-field">
+                            <span>이름 (선택)</span>
+                            <input type="text" name="name" placeholder="예: 홍길동" autocomplete="name">
+                        </label>
+                        <label class="drip-form-field">
+                            <span>이메일</span>
+                            <input type="email" name="email" required placeholder="[email protected]" autocomplete="email">
+                        </label>
+                    </div>
+                    <label class="drip-form-consent">
+                        <input type="checkbox" name="consent" required>
+                        <span>Drip Lines 발송을 위해 이메일 수집에 동의합니다.</span>
+                    </label>
+                    <button type="submit" class="drip-form-submit">구독하기</button>
+                    <p class="drip-form-fallback">
+                        전송이 안 되면 <a href="mailto:[email protected]?subject=Drip%20Lines%20구독">[email protected]</a>으로 <strong>"Drip Lines 구독"</strong>이라 적어 직접 보내주셔도 됩니다.
+                    </p>
+                </form>
             </div>
         </div>
     </section>

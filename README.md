@@ -39,6 +39,17 @@ nedabaway/
 2. 커밋 + `main` 브랜치에 push
 3. **약 1~2분 후 nedabah.org에 자동 반영** (Actions 탭에서 진행 상황 확인 가능)
 
+### Drip Lines 구독 폼 연결 (선택)
+
+`#drip-subscribe` 폼은 기본적으로 `mailto:` 로 동작합니다(사용자 메일 클라이언트가 열림). 진짜 자동 구독 접수를 원하면:
+
+1. [Formspree](https://formspree.io) 등에서 무료 폼 엔드포인트 발급 (예: `https://formspree.io/f/xxxxxx`)
+2. `index.html`에서 해당 폼의 `data-endpoint` 값에 붙여넣기:
+   ```html
+   <form id="drip-subscribe" ... data-endpoint="https://formspree.io/f/xxxxxx">
+   ```
+3. 커밋·푸시 후 자동 반영. 스크립트가 fetch POST로 전송하고, 성공 시 "구독 접수" UI로 바뀝니다.
+
 ### 업데이트가 안 보일 때 체크리스트
 
 - [ ] Actions 탭에서 워크플로우가 **success**인지
