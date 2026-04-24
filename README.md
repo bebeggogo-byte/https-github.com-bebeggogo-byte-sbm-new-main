@@ -16,43 +16,46 @@ nedabaway/
 └── README.md          # 프로젝트 문서
 ```
 
-## 🚀 GitHub Pages 배포 방법
+## 🚀 배포 (GitHub Pages + nedabah.org)
 
-### 1. GitHub 저장소 생성
+이 저장소는 **`main` 브랜치에 푸시되는 즉시** GitHub Actions(`.github/workflows/pages.yml`)가 자동으로 GitHub Pages에 배포합니다. 별도 명령 불필요.
 
-1. GitHub에 로그인
-2. 새 저장소 생성 (예: `nedabaway-website`)
-3. Public으로 설정
+### 최초 1회 설정 (이미 했다면 건너뛰기)
 
-### 2. 파일 업로드
+1. **저장소 Settings → Pages**
+   - Source: **GitHub Actions** 선택 (Deploy from a branch 아님)
+2. **저장소 Settings → Pages → Custom domain**
+   - `nedabah.org` 입력 → Save
+   - "Enforce HTTPS" 체크
+   - 저장소 루트의 `CNAME` 파일이 자동 인식됩니다
+3. **DNS 레코드** (도메인 등록업체 관리 페이지에서 한 번만)
+   - `A` 레코드 4개 → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+   - `www` 서브도메인 → `CNAME` → `<github-username>.github.io`
+4. 첫 배포 후 `Settings → Pages`에서 "Your site is published at https://nedabah.org" 확인
 
-**방법 A: GitHub 웹 인터페이스 사용**
-1. 저장소 페이지에서 "Add file" > "Upload files" 클릭
-2. `index.html`, `styles.css`, `script.js` 파일을 드래그 앤 드롭
-3. "Commit changes" 클릭
+### 평소 업데이트 흐름
 
-**방법 B: Git 명령어 사용**
-```bash
-git init
-git add .
-git commit -m "Initial commit: Nedabaway website"
-git branch -M main
-git remote add origin https://github.com/사용자명/저장소명.git
-git push -u origin main
-```
+1. `index.html` (텍스트/프로그램/로드맵), `styles.css`, `script.js` 중 필요한 파일 수정
+2. 커밋 + `main` 브랜치에 push
+3. **약 1~2분 후 nedabah.org에 자동 반영** (Actions 탭에서 진행 상황 확인 가능)
 
-### 3. GitHub Pages 활성화
+### Drip Lines 구독 폼 연결 (선택)
 
-1. 저장소 Settings 이동
-2. 왼쪽 메뉴에서 "Pages" 선택
-3. Source에서 "Deploy from a branch" 선택
-4. Branch를 "main"으로 설정하고 폴더는 "/ (root)" 선택
-5. "Save" 클릭
+`#drip-subscribe` 폼은 기본적으로 `mailto:` 로 동작합니다(사용자 메일 클라이언트가 열림). 진짜 자동 구독 접수를 원하면:
 
-### 4. 웹사이트 접속
+1. [Formspree](https://formspree.io) 등에서 무료 폼 엔드포인트 발급 (예: `https://formspree.io/f/xxxxxx`)
+2. `index.html`에서 해당 폼의 `data-endpoint` 값에 붙여넣기:
+   ```html
+   <form id="drip-subscribe" ... data-endpoint="https://formspree.io/f/xxxxxx">
+   ```
+3. 커밋·푸시 후 자동 반영. 스크립트가 fetch POST로 전송하고, 성공 시 "구독 접수" UI로 바뀝니다.
 
-- 약 1-2분 후 `https://사용자명.github.io/저장소명/` 에서 웹사이트 확인 가능
-- Settings > Pages에서 배포된 URL 확인 가능
+### 업데이트가 안 보일 때 체크리스트
+
+- [ ] Actions 탭에서 워크플로우가 **success**인지
+- [ ] Settings → Pages 의 Source가 **GitHub Actions**로 설정돼 있는지
+- [ ] 도메인이 다른 호스팅(Wix/Imweb/Cargo 등)을 가리키고 있지는 않은지 (DNS 점검)
+- [ ] 브라우저 강제 새로고침 (Ctrl+Shift+R) 또는 시크릿 창에서 확인
 
 ## 🎨 디자인 특징
 

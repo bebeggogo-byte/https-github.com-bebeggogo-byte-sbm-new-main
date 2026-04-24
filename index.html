@@ -3,8 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nedabah Way - 자발성으로 시작되는 거룩을 향한 공동체의 길</title>
-    <meta name="description" content="은혜를 누리고, 인내로 걸으며, 함께 성숙하는 여정">
+    <title>Nedabah Way · Drip Lines — 한 방울씩 스며드는 공동체의 길</title>
+    <meta name="description" content="네다바웨이(Nedabah Way)는 제주 기반 신앙 공동체이며, 간행물 'Drip Lines'를 통해 매달 한 방울씩 스며드는 말씀과 삶의 리듬을 나눕니다.">
+    <meta name="keywords" content="네다바웨이, Nedabah Way, Drip Lines, 드립라인즈, 제주, 신앙공동체, 말씀 저널, 청소년 리더십, 기관 워크숍">
+    <meta name="author" content="Nedabah Way">
+    <link rel="canonical" href="https://nedabah.org/">
+
+    <!-- Open Graph / Facebook / KakaoTalk -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Nedabah Way">
+    <meta property="og:url" content="https://nedabah.org/">
+    <meta property="og:title" content="Nedabah Way · Drip Lines — 한 방울씩 스며드는 공동체의 길">
+    <meta property="og:description" content="천천히 내린 한 줄이 오래 남습니다. 네다바웨이가 한 달에 한 번 건네는 묵상 간행물 Drip Lines.">
+    <meta property="og:locale" content="ko_KR">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Nedabah Way · Drip Lines">
+    <meta name="twitter:description" content="천천히 내린 한 줄이 오래 남습니다.">
+
+    <!-- Theme -->
+    <meta name="theme-color" content="#6b4423">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Nedabah Way",
+      "alternateName": "네다바웨이",
+      "url": "https://nedabah.org",
+      "description": "자발성으로 시작되는 거룩을 향한 공동체의 길",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "일주동로 9141, 2층(법환동)",
+        "addressLocality": "서귀포시",
+        "addressRegion": "제주특별자치도",
+        "addressCountry": "KR"
+      },
+      "email": "[email protected]"
+    }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -17,6 +60,7 @@
             <a href="#" class="logo">NEDABAH WAY</a>
             <div class="nav-links">
                 <a href="#programs">프로그램</a>
+                <a href="#drip-lines">Drip Lines</a>
                 <a href="#roadmap">2026 계획</a>
                 <a href="#support">후원</a>
                 <a href="#contact" class="nav-cta">함께하기</a>
@@ -26,14 +70,22 @@
 
     <!-- Hero Section -->
     <section class="hero">
+        <div class="hero-drip" aria-hidden="true">
+            <span class="drip-dot drip-dot-1"></span>
+            <span class="drip-dot drip-dot-2"></span>
+            <span class="drip-dot drip-dot-3"></span>
+        </div>
         <div class="hero-content">
-            <div class="hero-badge">2026 New Year Brochure</div>
+            <div class="hero-badge">DRIP LINES · VOL. 01 · 2026</div>
             <h1 class="hero-title">
-                자발성으로 시작되는<br>
+                한 방울씩 스며드는<br>
                 거룩을 향한 공동체의 길
             </h1>
-            <p class="hero-subtitle">은혜를 누리고, 인내로 걸으며, 함께 성숙하는 여정</p>
-            <a href="#programs" class="hero-button">함께 걷는 방법 더 알아보기</a>
+            <p class="hero-subtitle">드립 커피가 한 방울씩 배어들듯 — 은혜를 누리고, 인내로 걸으며, 함께 성숙하는 여정</p>
+            <div class="hero-actions">
+                <a href="#drip-lines" class="hero-button">Drip Lines 읽어보기</a>
+                <a href="#programs" class="hero-link">프로그램 더 보기 →</a>
+            </div>
         </div>
         <div class="hero-decoration"></div>
     </section>
@@ -91,9 +143,17 @@
                     <h3>SBM 모임</h3>
                     <p>매주 수요일, 말씀 묵상-나눔-실천을 한 흐름으로 운영하여 삶의 변화를 이끌어냅니다.</p>
                 </div>
-                <div class="program-card">
-                    <h3>말씀 저널/워크시트</h3>
-                    <p>개인의 묵상 루틴을 돕는 체계적인 자료를 제작하고 무료로 배포합니다.</p>
+                <div class="program-card program-card-featured">
+                    <svg class="program-mark" viewBox="0 0 64 72" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M32 6 C 28 14, 26 18, 32 22 C 38 18, 36 14, 32 6 Z" fill="currentColor" stroke="none" class="drip-mark-drop"/>
+                        <path d="M14 30 H50 L46 58 Q46 62 42 62 H22 Q18 62 18 58 Z"/>
+                        <path d="M50 36 Q60 38 60 44 Q60 50 50 52"/>
+                        <line x1="10" y1="68" x2="54" y2="68" stroke-width="1.6"/>
+                    </svg>
+                    <div class="program-tag">간행물</div>
+                    <h3>Drip Lines</h3>
+                    <p>좋은 글귀를 한 줄씩 내려 드리는 월간 간행물. 말씀·묵상·워크시트를 한 잔의 리듬으로 배달합니다.</p>
+                    <a href="#drip-lines" class="program-link">자세히 보기 →</a>
                 </div>
                 <div class="program-card">
                     <h3>리더십 프로젝트</h3>
@@ -129,46 +189,155 @@
         </div>
     </section>
 
+    <!-- Drip Lines Section -->
+    <section id="drip-lines" class="drip-lines">
+        <div class="container">
+            <div class="drip-head">
+                <svg class="drip-mark" viewBox="0 0 64 72" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M32 6 C 28 14, 26 18, 32 22 C 38 18, 36 14, 32 6 Z" fill="currentColor" stroke="none" class="drip-mark-drop"/>
+                    <path d="M14 30 H50 L46 58 Q46 62 42 62 H22 Q18 62 18 58 Z"/>
+                    <path d="M50 36 Q60 38 60 44 Q60 50 50 52"/>
+                    <line x1="10" y1="68" x2="54" y2="68" stroke-width="1.6"/>
+                </svg>
+                <span class="drip-kicker">— NEDABAH PUBLICATION —</span>
+                <h2 class="drip-title">Drip Lines</h2>
+                <p class="drip-subtitle">한 줄씩 내려 드리는 문장</p>
+                <p class="drip-tagline"><em>One line, slowly brewed — for the reader who lingers.</em><br>천천히 내린 한 줄을, 머무는 사람에게 건넵니다.</p>
+            </div>
+
+            <div class="drip-cards">
+                <figure class="drip-card">
+                    <header class="drip-card-head">
+                        <span class="drip-card-logo">Drip Lines</span>
+                        <span class="drip-card-sub">한 줄씩 내려 드리는 문장</span>
+                    </header>
+                    <blockquote>
+                        인내는 빠르게 지나가는 감정을<br>
+                        천천히 데우는 방식이다.
+                    </blockquote>
+                    <figcaption>Vol.01 · 인내의 리듬</figcaption>
+                </figure>
+                <figure class="drip-card">
+                    <header class="drip-card-head">
+                        <span class="drip-card-logo">Drip Lines</span>
+                        <span class="drip-card-sub">한 줄씩 내려 드리는 문장</span>
+                    </header>
+                    <blockquote>
+                        자발성은 강요 없이 피어난<br>
+                        가장 오래 가는 불씨다.
+                    </blockquote>
+                    <figcaption>Vol.01 · 자발성의 향</figcaption>
+                </figure>
+                <figure class="drip-card">
+                    <header class="drip-card-head">
+                        <span class="drip-card-logo">Drip Lines</span>
+                        <span class="drip-card-sub">한 줄씩 내려 드리는 문장</span>
+                    </header>
+                    <blockquote>
+                        공동체는 서로의 속도를 존중하며<br>
+                        같이 내리는 한 잔이다.
+                    </blockquote>
+                    <figcaption>Vol.01 · 함께의 온도</figcaption>
+                </figure>
+            </div>
+
+            <div class="drip-features">
+                <div class="drip-feature">
+                    <h4>매달 한 통</h4>
+                    <p>이메일로 도착하는 한 줄 묵상과 말씀 워크시트</p>
+                </div>
+                <div class="drip-feature">
+                    <h4>한 줄의 힘</h4>
+                    <p>긴 글 대신 곱씹을 수 있는 문장 중심의 편집</p>
+                </div>
+                <div class="drip-feature">
+                    <h4>종이의 온도</h4>
+                    <p>수첩 옆에 둘 수 있는 인쇄 카드를 분기별로 발행</p>
+                </div>
+            </div>
+
+            <div class="drip-cta">
+                <form class="drip-form" id="drip-subscribe" action="mailto:[email protected]" method="post" enctype="text/plain" data-endpoint="">
+                    <div class="drip-form-head">
+                        <h3>오늘의 한 줄, 이메일로 받기</h3>
+                        <p>매달 한 통. 무료. 언제든 구독 취소 가능합니다.</p>
+                    </div>
+                    <div class="drip-form-row">
+                        <label class="drip-form-field">
+                            <span>이름 (선택)</span>
+                            <input type="text" name="name" placeholder="예: 홍길동" autocomplete="name">
+                        </label>
+                        <label class="drip-form-field">
+                            <span>이메일</span>
+                            <input type="email" name="email" required placeholder="[email protected]" autocomplete="email">
+                        </label>
+                    </div>
+                    <label class="drip-form-consent">
+                        <input type="checkbox" name="consent" required>
+                        <span>Drip Lines 발송을 위해 이메일 수집에 동의합니다.</span>
+                    </label>
+                    <button type="submit" class="drip-form-submit">구독하기</button>
+                    <p class="drip-form-fallback">
+                        전송이 안 되면 <a href="mailto:[email protected]?subject=Drip%20Lines%20구독">[email protected]</a>으로 <strong>"Drip Lines 구독"</strong>이라 적어 직접 보내주셔도 됩니다.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </section>
+
     <!-- Roadmap Section -->
     <section id="roadmap" class="roadmap">
         <div class="container">
             <h2 class="section-label">2026 ROADMAP</h2>
+            <p class="section-subtitle">진행상황 · 2026년 4월 기준</p>
 
             <div class="timeline">
-                <div class="timeline-item">
+                <div class="timeline-item is-done">
                     <div class="timeline-quarter">Q1</div>
                     <div class="timeline-content">
-                        <h3>기반 다지기</h3>
+                        <div class="timeline-head">
+                            <h3>기반 다지기</h3>
+                            <span class="status-badge status-done">완료</span>
+                        </div>
                         <ul>
-                            <li>정기 모임 운영 안정화</li>
-                            <li>핵심 교재 정리 및 배포</li>
+                            <li class="done">정기 모임 운영 안정화</li>
+                            <li class="done">핵심 교재 정리 및 배포</li>
                         </ul>
                     </div>
                 </div>
-                <div class="timeline-item">
+                <div class="timeline-item is-active">
                     <div class="timeline-quarter">Q2</div>
                     <div class="timeline-content">
-                        <h3>확장 실행</h3>
+                        <div class="timeline-head">
+                            <h3>확장 실행</h3>
+                            <span class="status-badge status-active">진행중</span>
+                        </div>
                         <ul>
                             <li>청소년 프로젝트 고도화</li>
                             <li>기관 프로그램 라인업 강화</li>
                         </ul>
                     </div>
                 </div>
-                <div class="timeline-item">
+                <div class="timeline-item is-upcoming">
                     <div class="timeline-quarter">Q3</div>
                     <div class="timeline-content">
-                        <h3>연결 강화</h3>
+                        <div class="timeline-head">
+                            <h3>연결 강화</h3>
+                            <span class="status-badge status-upcoming">예정</span>
+                        </div>
                         <ul>
                             <li>지역 파트너십 모델 구축</li>
                             <li>학교·기관·교회 협력 확장</li>
                         </ul>
                     </div>
                 </div>
-                <div class="timeline-item">
+                <div class="timeline-item is-upcoming">
                     <div class="timeline-quarter">Q4</div>
                     <div class="timeline-content">
-                        <h3>임팩트 정리</h3>
+                        <div class="timeline-head">
+                            <h3>임팩트 정리</h3>
+                            <span class="status-badge status-upcoming">예정</span>
+                        </div>
                         <ul>
                             <li>성과 리포트 제작</li>
                             <li>다음 해 비전 공유</li>
@@ -238,8 +407,14 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
+                    <svg class="footer-mark" viewBox="0 0 64 72" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M32 6 C 28 14, 26 18, 32 22 C 38 18, 36 14, 32 6 Z" fill="currentColor" stroke="none" class="drip-mark-drop"/>
+                        <path d="M14 30 H50 L46 58 Q46 62 42 62 H22 Q18 62 18 58 Z"/>
+                        <path d="M50 36 Q60 38 60 44 Q60 50 50 52"/>
+                        <line x1="10" y1="68" x2="54" y2="68" stroke-width="1.6"/>
+                    </svg>
                     <h3>NEDABAH WAY</h3>
-                    <p>자발성으로 시작되는 거룩을 향한 공동체의 길</p>
+                    <p>자발성으로 시작되는<br>거룩을 향한 공동체의 길</p>
                 </div>
                 <div class="footer-info">
                     <h4>ADDRESS</h4>
@@ -247,11 +422,11 @@
                 </div>
                 <div class="footer-info">
                     <h4>CONTACT</h4>
-                    <p>010-XXXX-XXXX<br>[email protected]</p>
+                    <p>운영진 직접 문의<br><a href="mailto:[email protected]">[email protected]</a></p>
                 </div>
                 <div class="footer-info">
                     <h4>BANK ACCOUNT</h4>
-                    <p>OO은행<br>XXX-XXXXXX-XXXX</p>
+                    <p>후원 계좌는 메일로 안내드립니다<br><a href="mailto:[email protected]?subject=후원%20문의">[email protected]</a></p>
                 </div>
             </div>
             <div class="footer-bottom">
