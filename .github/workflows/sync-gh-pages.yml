@@ -1,0 +1,42 @@
+name: Sync main → gh-pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-gh-pages
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Build publish tree
+        run: |
+          rm -rf _publish
+          mkdir _publish
+          cp -R index.html styles.css script.js favicon.svg CNAME robots.txt sitemap.xml _publish/ || true
+          echo "Published tree:"; ls -la _publish
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_publish
+          publish_branch: gh-pages
+          cname: nedabah.org
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'deploy: sync from main ${{ github.sha }}'
