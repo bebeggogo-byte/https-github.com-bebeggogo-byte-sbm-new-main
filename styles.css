@@ -1,11 +1,20 @@
 :root {
-    --color-sand: #f4ede4;
-    --color-clay: #d4c4b0;
-    --color-earth: #8b7355;
-    --color-stone: #5a4a3a;
-    --color-night: #2a2018;
-    --color-accent: #a67c52;
-    --color-light: #faf8f5;
+    /* Drip Lines palette — 교보 라운지 무드: 벽돌·앰버·크라프트 종이 */
+    --color-cream: #f7f1e8;        /* steamed milk */
+    --color-sand: #f4ede4;         /* latte foam */
+    --color-latte: #e8d5b7;        /* latte */
+    --color-clay: #d4c4b0;         /* light roast */
+    --color-kraft: #e3c7a4;        /* kraft paper */
+    --color-crema: #c89b6b;        /* crema */
+    --color-accent: #a67c52;       /* caramel */
+    --color-terracotta: #b85c3c;   /* brick red / 벽돌 */
+    --color-amber: #d78c3a;        /* lamp amber */
+    --color-mocha: #6b4423;        /* mocha */
+    --color-earth: #8b7355;        /* brewed body */
+    --color-stone: #5a4a3a;        /* dark roast */
+    --color-espresso: #3a2817;     /* espresso */
+    --color-night: #2a2018;        /* ink */
+    --color-light: #faf8f5;        /* paper */
     
     --font-serif: 'Noto Serif KR', 'Crimson Pro', serif;
     --font-display: 'Crimson Pro', serif;
@@ -786,6 +795,394 @@ body {
     
     .nav-links {
         flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+/* ============================================
+   Drip Lines — coffee & terracotta mood
+   ============================================ */
+
+/* Hero drip animation */
+.hero {
+    background: radial-gradient(ellipse at top, var(--color-sand) 0%, var(--color-cream) 60%, var(--color-latte) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-drip {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 140px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.drip-dot {
+    position: absolute;
+    left: 50%;
+    width: 10px;
+    height: 14px;
+    margin-left: -5px;
+    background: var(--color-mocha);
+    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+    opacity: 0;
+    animation: dripFall 3.6s ease-in infinite;
+    filter: drop-shadow(0 2px 3px rgba(58, 40, 23, 0.25));
+}
+
+.drip-dot-1 { animation-delay: 0s; }
+.drip-dot-2 { animation-delay: 1.2s; }
+.drip-dot-3 { animation-delay: 2.4s; }
+
+@keyframes dripFall {
+    0%   { top: -6px; opacity: 0; transform: scaleY(0.6); }
+    15%  { opacity: 1; transform: scaleY(0.9); }
+    70%  { top: 110px; opacity: 1; transform: scaleY(1.15); }
+    85%  { top: 128px; opacity: 0.5; transform: scaleY(0.5); }
+    100% { top: 138px; opacity: 0; transform: scaleY(0.3); }
+}
+
+.hero-badge {
+    background: var(--color-espresso);
+    color: var(--color-kraft);
+    border: 1px solid var(--color-mocha);
+    letter-spacing: 0.18em;
+}
+
+.hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.hero-link {
+    color: var(--color-mocha);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+    transition: border-color 0.2s ease;
+    text-decoration: none;
+}
+
+.hero-link:hover {
+    border-bottom-color: var(--color-mocha);
+}
+
+/* Featured program card — Drip Lines callout */
+.program-card-featured {
+    background: linear-gradient(160deg, var(--color-kraft) 0%, var(--color-latte) 100%);
+    border: 1px solid var(--color-crema);
+    position: relative;
+    overflow: hidden;
+}
+
+.program-card-featured::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(215, 140, 58, 0.35) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(6px);
+}
+
+.program-tag {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-espresso);
+    background: var(--color-cream);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    margin-bottom: 0.75rem;
+}
+
+.program-card-featured h3 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    color: var(--color-espresso);
+    letter-spacing: 0.02em;
+}
+
+.program-link {
+    display: inline-block;
+    margin-top: 0.8rem;
+    color: var(--color-mocha);
+    font-family: var(--font-display);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-crema);
+    padding-bottom: 1px;
+}
+
+.program-link:hover {
+    color: var(--color-espresso);
+    border-bottom-color: var(--color-mocha);
+}
+
+/* Drip Lines section */
+.drip-lines {
+    padding: var(--spacing-xl) 0;
+    background:
+        radial-gradient(ellipse at 15% 20%, rgba(215, 140, 58, 0.18) 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 80%, rgba(184, 92, 60, 0.12) 0%, transparent 50%),
+        linear-gradient(180deg, var(--color-sand) 0%, var(--color-kraft) 100%);
+    position: relative;
+}
+
+.drip-head {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto var(--spacing-lg);
+}
+
+.drip-kicker {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    letter-spacing: 0.3em;
+    color: var(--color-mocha);
+    margin-bottom: 1.2rem;
+}
+
+.drip-title {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 7vw, 5rem);
+    font-weight: 600;
+    color: var(--color-espresso);
+    letter-spacing: -0.01em;
+    margin: 0 0 0.4rem;
+    line-height: 1;
+}
+
+.drip-subtitle {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    color: var(--color-mocha);
+    margin: 0 0 1.2rem;
+    letter-spacing: 0.02em;
+}
+
+.drip-tagline {
+    font-family: var(--font-serif);
+    color: var(--color-stone);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.drip-tagline em {
+    font-family: var(--font-display);
+    font-style: italic;
+    color: var(--color-terracotta);
+    letter-spacing: 0.01em;
+}
+
+/* Hanging quote cards — ticket/bookmark feel */
+.drip-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--spacing-md);
+    margin: var(--spacing-lg) 0;
+    padding-top: 30px;
+    position: relative;
+}
+
+.drip-card {
+    background: var(--color-cream);
+    border: 1px solid var(--color-clay);
+    padding: 2rem 1.5rem 1.5rem;
+    margin: 0;
+    position: relative;
+    box-shadow:
+        0 1px 0 rgba(58, 40, 23, 0.04),
+        0 18px 30px -20px rgba(58, 40, 23, 0.35);
+    transform: rotate(-0.6deg);
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.drip-card:nth-child(2) { transform: rotate(0.5deg); margin-top: -12px; }
+.drip-card:nth-child(3) { transform: rotate(-0.3deg); margin-top: 6px; }
+
+.drip-card:hover {
+    transform: translateY(-4px) rotate(0deg);
+    box-shadow:
+        0 2px 0 rgba(58, 40, 23, 0.06),
+        0 24px 40px -18px rgba(58, 40, 23, 0.45);
+}
+
+/* paper punch hole + string (hanging effect) */
+.drip-card::before {
+    content: '';
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background: var(--color-light);
+    border: 1.5px solid var(--color-stone);
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) inset;
+    z-index: 2;
+}
+
+.drip-card::after {
+    content: '';
+    position: absolute;
+    top: -34px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 32px;
+    background: var(--color-earth);
+    opacity: 0.6;
+    z-index: 1;
+}
+
+.drip-card-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    padding-bottom: 0.8rem;
+    margin-bottom: 1.1rem;
+    border-bottom: 1px dashed var(--color-clay);
+}
+
+.drip-card-logo {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 0.01em;
+    color: var(--color-espresso);
+}
+
+.drip-card-sub {
+    font-family: var(--font-serif);
+    font-size: 0.75rem;
+    color: var(--color-earth);
+    letter-spacing: 0.02em;
+}
+
+.drip-card blockquote {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    line-height: 1.85;
+    color: var(--color-night);
+    margin: 0 0 1.4rem;
+    quotes: "\201C" "\201D";
+    position: relative;
+    padding-left: 0.5rem;
+}
+
+.drip-card blockquote::before {
+    content: open-quote;
+    font-family: var(--font-display);
+    font-size: 2.8rem;
+    color: var(--color-crema);
+    position: absolute;
+    left: -0.3rem;
+    top: -1.4rem;
+    line-height: 1;
+}
+
+.drip-card figcaption {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    color: var(--color-mocha);
+    text-align: right;
+    padding-top: 0.5rem;
+    border-top: 1px dotted var(--color-clay);
+}
+
+.drip-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-md);
+    margin: var(--spacing-lg) 0 var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(247, 241, 232, 0.7);
+    border: 1px solid var(--color-clay);
+    border-radius: var(--border-radius);
+}
+
+.drip-feature h4 {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--color-espresso);
+    margin: 0 0 0.4rem;
+    letter-spacing: 0.02em;
+}
+
+.drip-feature h4::before {
+    content: '●';
+    display: inline-block;
+    margin-right: 0.5rem;
+    color: var(--color-amber);
+    font-size: 0.6rem;
+    vertical-align: middle;
+}
+
+.drip-feature p {
+    color: var(--color-stone);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.drip-cta {
+    text-align: center;
+    margin-top: var(--spacing-md);
+    padding: 1.4rem 1.5rem;
+    background: var(--color-espresso);
+    color: var(--color-kraft);
+    border-radius: var(--border-radius);
+}
+
+.drip-cta p {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.7;
+}
+
+.drip-cta a {
+    color: var(--color-amber);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-amber);
+}
+
+.drip-cta a:hover {
+    color: var(--color-kraft);
+    border-bottom-color: var(--color-kraft);
+}
+
+.drip-cta strong {
+    color: var(--color-light);
+}
+
+/* Responsive tweaks */
+@media (max-width: 640px) {
+    .drip-cards {
+        padding-top: 22px;
+    }
+    .drip-card,
+    .drip-card:nth-child(2),
+    .drip-card:nth-child(3) {
+        transform: none;
+        margin-top: 0;
+    }
+    .hero-actions {
         justify-content: center;
     }
 }
