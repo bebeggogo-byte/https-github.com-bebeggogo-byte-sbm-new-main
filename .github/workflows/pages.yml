@@ -24,6 +24,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Show repository state
+        run: |
+          echo "::group::Files at repo root"
+          ls -la
+          echo "::endgroup::"
+          echo "::group::CNAME content"
+          cat CNAME 2>/dev/null || echo "(no CNAME)"
+          echo "::endgroup::"
+          echo "::group::Latest commit"
+          git log -1 --pretty=fuller
+          echo "::endgroup::"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
@@ -37,3 +49,8 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Echo deployment URL
+        run: |
+          echo "Deployed to: ${{ steps.deployment.outputs.page_url }}"
+          echo "Custom domain (if CNAME present): https://nedabah.org"
