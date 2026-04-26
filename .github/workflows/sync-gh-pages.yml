@@ -27,6 +27,7 @@ jobs:
           rm -rf _publish
           mkdir _publish
           cp -R index.html styles.css script.js favicon.svg CNAME robots.txt sitemap.xml _publish/ || true
+          touch _publish/.nojekyll
           echo "Published tree:"; ls -la _publish
 
       - name: Publish to gh-pages
