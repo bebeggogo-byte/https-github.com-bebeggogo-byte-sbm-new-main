@@ -15,12 +15,17 @@
     <meta property="og:url" content="https://nedabah.org/">
     <meta property="og:title" content="Nedabah Way · Drip Lines — 한 방울씩 스며드는 공동체의 길">
     <meta property="og:description" content="천천히 내린 한 줄이 오래 남습니다. 네다바웨이가 한 달에 한 번 건네는 묵상 간행물 Drip Lines.">
+    <meta property="og:image" content="https://nedabah.org/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Nedabah Way · Drip Lines — 한 방울씩 스며드는 공동체의 길">
     <meta property="og:locale" content="ko_KR">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Nedabah Way · Drip Lines">
     <meta name="twitter:description" content="천천히 내린 한 줄이 오래 남습니다.">
+    <meta name="twitter:image" content="https://nedabah.org/og-image.png">
 
     <!-- Theme -->
     <meta name="theme-color" content="#6b4423">
@@ -32,19 +37,48 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Nedabah Way",
-      "alternateName": "네다바웨이",
-      "url": "https://nedabah.org",
-      "description": "자발성으로 시작되는 거룩을 향한 공동체의 길",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "일주동로 9141, 2층(법환동)",
-        "addressLocality": "서귀포시",
-        "addressRegion": "제주특별자치도",
-        "addressCountry": "KR"
-      },
-      "email": "[email protected]"
+      "@graph": [
+        {
+          "@type": "NGO",
+          "@id": "https://nedabah.org/#org",
+          "name": "Nedabah Way",
+          "alternateName": "네다바웨이",
+          "url": "https://nedabah.org/",
+          "logo": "https://nedabah.org/favicon.svg",
+          "image": "https://nedabah.org/og-image.png",
+          "description": "자발성으로 시작되는 거룩을 향한 공동체의 길",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "일주동로 9141, 2층(법환동)",
+            "addressLocality": "서귀포시",
+            "addressRegion": "제주특별자치도",
+            "addressCountry": "KR"
+          },
+          "email": "[email protected]",
+          "areaServed": "제주특별자치도",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "[email protected]",
+            "contactType": "customer support"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://nedabah.org/#website",
+          "url": "https://nedabah.org/",
+          "name": "Nedabah Way · Drip Lines",
+          "inLanguage": "ko-KR",
+          "publisher": { "@id": "https://nedabah.org/#org" }
+        },
+        {
+          "@type": "CreativeWorkSeries",
+          "name": "Drip Lines",
+          "alternateName": "드립라인즈",
+          "description": "매달 한 방울씩 스며드는 말씀과 삶의 리듬을 나누는 묵상 간행물",
+          "inLanguage": "ko-KR",
+          "publisher": { "@id": "https://nedabah.org/#org" }
+        }
+      ]
     }
     </script>
 
