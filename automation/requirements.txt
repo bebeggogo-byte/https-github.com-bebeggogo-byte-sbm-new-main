@@ -18,3 +18,6 @@ playwright>=1.40
 #   시스템에 tesseract + tesseract-ocr-kor 도 설치 필요
 pytesseract>=0.3
 pillow>=10.0
+
+# 선택: 강의 녹음 전사 (transcribe.py)  — 시스템에 ffmpeg 필요
+faster-whisper>=1.0

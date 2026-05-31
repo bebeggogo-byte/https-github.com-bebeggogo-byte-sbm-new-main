@@ -150,6 +150,31 @@ python connectors/notebooklm_browser.py ask "핵심만 골라 슬라이드 개�
 ```
 > 본인 계정·본인 자료 대상의 개인 자동화 용도입니다. 약관 저촉 소지가 있으니 본인 책임 하에 사용하세요.
 
+## 🎙️ 강의 자동 녹음 → 전사 → 강의보고서(HTML)
+
+강의 시작 시각에 자동 녹음 → 강의 시간만큼 녹음 → 종료 시 자동 정지·저장 →
+전사 → **강의보고서 HTML**(핵심요약·주요내용·통찰·이슈·Q&A·액션)까지 한 번에.
+
+```bash
+# 0) 시스템에 ffmpeg 설치 (brew/apt/choco install ffmpeg), pip install faster-whisper
+
+# 1) 예정 강의 확인
+python connectors/record_scheduler.py output/events.json --list
+
+# 2) 다음 강의 시작까지 대기 → 자동 녹음 → 전사 → 보고서까지
+python connectors/record_scheduler.py output/events.json --next --then-report
+
+# (개별 단계)
+python transcribe.py recordings/2026-06-12_강의.m4a -o recordings/2026-06-12_강의.txt
+python lecture_report.py recordings/2026-06-12_강의.txt \
+       --event output/events.json --index 0 -o output/report_00.html
+```
+
+- 보고서는 **고객사 테마**(색·폰트·출처)를 그대로 입어 슬라이드/워크지와 통일된 룩입니다.
+- `ANTHROPIC_API_KEY` 설정 시 Claude 가 전사본을 읽어 요약·통찰·이슈를 도출하고,
+  없으면 휴리스틱으로 사용 가능한 보고서 골격을 만듭니다.
+- 마이크 입력은 OS별로 자동 추정(`--input` 으로 덮어쓰기). 첫 실행 시 OS 마이크 권한 허용 필요.
+
 ## 🔌 MCP 자동화 / 수동 단계 (정직한 안내)
 
 `.mcp.json.example` 을 `.mcp.json` 으로 복사하고 자격증명을 채우면 Claude Code 가 MCP 서버를 띄웁니다.
