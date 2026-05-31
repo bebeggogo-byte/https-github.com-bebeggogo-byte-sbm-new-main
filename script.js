@@ -178,12 +178,59 @@ const initDripSubscribe = () => {
     });
 };
 
+// 공유 바: 카테고리/노트 페이지(.cat-hero)에 자동 주입 — 전달형 확산 자산
+const initShareBar = () => {
+    const hero = document.querySelector('.cat-hero');
+    if (!hero || document.querySelector('.share-bar')) return;
+
+    const url = location.href.split('#')[0];
+    const title = document.title;
+    const enc = encodeURIComponent;
+
+    const bar = document.createElement('div');
+    bar.className = 'share-bar';
+    bar.setAttribute('aria-label', '이 페이지 공유');
+    bar.innerHTML = `
+        <span class="share-label">이 글이 떠오르는 사람에게 전해주세요</span>
+        <div class="share-actions">
+            <button type="button" class="share-btn" data-act="native" hidden>공유</button>
+            <a class="share-btn" data-act="x" href="https://twitter.com/intent/tweet?text=${enc(title)}&url=${enc(url)}" target="_blank" rel="noopener">X</a>
+            <a class="share-btn" data-act="fb" href="https://www.facebook.com/sharer/sharer.php?u=${enc(url)}" target="_blank" rel="noopener">페이스북</a>
+            <a class="share-btn" data-act="mail" href="mailto:?subject=${enc(title)}&body=${enc(url)}">메일</a>
+            <button type="button" class="share-btn" data-act="copy">링크 복사</button>
+        </div>`;
+    hero.insertAdjacentElement('afterend', bar);
+
+    // 네이티브 공유(모바일/카카오톡 등 OS 공유 시트)
+    const nativeBtn = bar.querySelector('[data-act="native"]');
+    if (navigator.share) {
+        nativeBtn.hidden = false;
+        nativeBtn.addEventListener('click', () => {
+            navigator.share({ title, url }).catch(() => {});
+        });
+    }
+
+    // 링크 복사
+    bar.querySelector('[data-act="copy"]').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        try {
+            await navigator.clipboard.writeText(url);
+            const prev = btn.textContent;
+            btn.textContent = '복사됨 ✓';
+            setTimeout(() => { btn.textContent = prev; }, 1600);
+        } catch (_) {
+            window.prompt('아래 링크를 복사하세요', url);
+        }
+    });
+};
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Nedabah Way website loaded');
 
     lazyLoadImages();
     initDripSubscribe();
+    initShareBar();
 
     // Optional: Add Easter egg
     console.log('%c네다바웨이에 오신 것을 환영합니다', 'color: #8b7355; font-size: 16px; font-weight: bold;');

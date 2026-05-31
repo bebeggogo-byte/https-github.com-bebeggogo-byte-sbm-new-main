@@ -195,6 +195,32 @@
 .sibling-card strong { display: block; color: var(--color-espresso); margin-bottom: 0.2rem; }
 .sibling-card span { font-size: 0.9rem; color: var(--color-earth); }
 
+/* 공유 바 (script.js가 .cat-hero 뒤에 주입) */
+.share-bar {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-md) var(--spacing-sm);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+}
+.share-label { font-size: 0.9rem; color: var(--color-earth); }
+.share-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.share-btn {
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--color-mocha);
+    background: var(--color-sand);
+    border: 1px solid var(--color-latte);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.share-btn:hover { border-color: var(--color-accent); background: var(--color-kraft); }
+
 /* 카테고리 푸터 간소화 */
 .cat-foot {
     border-top: 1px solid var(--color-clay);
