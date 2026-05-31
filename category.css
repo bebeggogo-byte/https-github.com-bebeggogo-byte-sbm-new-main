@@ -1,0 +1,206 @@
+/* ============================================================
+   category.css — 카테고리 개별 랜딩 페이지 공용 스타일
+   styles.css(루트 변수/내비)를 상속하고, 카테고리 페이지 전용
+   레이아웃(브레드크럼·페르소나·FAQ·교차링크)만 추가한다.
+   ============================================================ */
+
+/* 페이지 상단 여백(고정 내비 보정) */
+.cat-main {
+    padding-top: 84px;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--spacing-sm) var(--spacing-md) 0;
+    font-size: 0.85rem;
+    color: var(--color-earth);
+    letter-spacing: 0.02em;
+}
+.breadcrumb a { color: var(--color-accent); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb span[aria-current] { color: var(--color-stone); }
+
+/* 카테고리 히어로 */
+.cat-hero {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
+}
+.cat-kicker {
+    display: inline-block;
+    font-family: var(--font-display);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--color-terracotta);
+    border: 1px solid var(--color-clay);
+    border-radius: 999px;
+    padding: 0.3rem 0.9rem;
+    margin-bottom: var(--spacing-sm);
+}
+.cat-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 1.18;
+    font-weight: 700;
+    color: var(--color-espresso);
+    margin-bottom: var(--spacing-sm);
+}
+.cat-lead {
+    font-size: 1.15rem;
+    color: var(--color-stone);
+    max-width: 46rem;
+}
+.cat-hero-actions {
+    margin-top: var(--spacing-md);
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+.btn-primary, .btn-ghost {
+    display: inline-block;
+    padding: 0.85rem 1.6rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+.btn-primary {
+    background: var(--color-mocha);
+    color: var(--color-light);
+    border: 1px solid var(--color-mocha);
+}
+.btn-primary:hover { background: var(--color-espresso); transform: translateY(-2px); }
+.btn-ghost {
+    background: transparent;
+    color: var(--color-mocha);
+    border: 1px solid var(--color-clay);
+}
+.btn-ghost:hover { border-color: var(--color-accent); }
+
+/* 본문 섹션 */
+.cat-section {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--spacing-md);
+}
+.cat-section h2 {
+    font-size: 1.6rem;
+    color: var(--color-espresso);
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--color-latte);
+}
+.cat-section h3 { color: var(--color-stone); margin: var(--spacing-sm) 0 0.4rem; }
+.cat-section p { color: var(--color-stone); margin-bottom: var(--spacing-sm); }
+.cat-prose ul { margin: 0 0 var(--spacing-sm) 1.2rem; color: var(--color-stone); }
+.cat-prose li { margin-bottom: 0.4rem; }
+
+/* 페르소나 / 대상 카드 */
+.persona-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+.persona-card {
+    background: var(--color-sand);
+    border: 1px solid var(--color-latte);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm);
+}
+.persona-card h4 { color: var(--color-terracotta); margin-bottom: 0.3rem; }
+.persona-card p { font-size: 0.95rem; margin: 0; }
+
+/* 단계/흐름 리스트 */
+.flow-steps { counter-reset: step; list-style: none; margin-top: var(--spacing-sm); }
+.flow-steps li {
+    position: relative;
+    padding: 0.6rem 0 0.6rem 2.6rem;
+    border-bottom: 1px dashed var(--color-clay);
+    color: var(--color-stone);
+}
+.flow-steps li::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute; left: 0; top: 0.55rem;
+    width: 1.8rem; height: 1.8rem;
+    background: var(--color-kraft);
+    color: var(--color-espresso);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 0.9rem;
+}
+
+/* FAQ */
+.faq { margin-top: var(--spacing-sm); }
+.faq details {
+    border: 1px solid var(--color-latte);
+    border-radius: var(--border-radius);
+    padding: 0.4rem 1rem;
+    margin-bottom: 0.6rem;
+    background: var(--color-light);
+}
+.faq summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--color-espresso);
+    padding: 0.5rem 0;
+    list-style: none;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::before { content: "＋ "; color: var(--color-terracotta); }
+.faq details[open] summary::before { content: "－ "; }
+.faq details p { padding-bottom: 0.6rem; margin: 0; }
+
+/* CTA 박스 */
+.cat-cta {
+    max-width: var(--max-width);
+    margin: var(--spacing-md) auto;
+    padding: var(--spacing-lg) var(--spacing-md);
+    background: linear-gradient(135deg, var(--color-mocha), var(--color-espresso));
+    color: var(--color-light);
+    border-radius: var(--border-radius);
+    text-align: center;
+}
+.cat-cta h2 { color: var(--color-light); border: none; }
+.cat-cta p { color: var(--color-kraft); margin-bottom: var(--spacing-md); }
+.cat-cta .btn-primary { background: var(--color-amber); border-color: var(--color-amber); color: var(--color-espresso); }
+.cat-cta .btn-primary:hover { background: var(--color-kraft); }
+
+/* 형제 카테고리 교차 링크 */
+.cat-siblings {
+    max-width: var(--max-width);
+    margin: 0 auto var(--spacing-xl);
+    padding: var(--spacing-md);
+}
+.cat-siblings h2 { font-size: 1.3rem; color: var(--color-espresso); margin-bottom: var(--spacing-sm); }
+.sibling-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-sm);
+}
+.sibling-card {
+    display: block;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-latte);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    color: var(--color-stone);
+    background: var(--color-light);
+    transition: all 0.2s ease;
+}
+.sibling-card:hover { border-color: var(--color-accent); transform: translateY(-2px); }
+.sibling-card strong { display: block; color: var(--color-espresso); margin-bottom: 0.2rem; }
+.sibling-card span { font-size: 0.9rem; color: var(--color-earth); }
+
+/* 카테고리 푸터 간소화 */
+.cat-foot {
+    border-top: 1px solid var(--color-clay);
+    padding: var(--spacing-md);
+    text-align: center;
+    color: var(--color-earth);
+    font-size: 0.85rem;
+}
+.cat-foot a { color: var(--color-accent); text-decoration: none; }

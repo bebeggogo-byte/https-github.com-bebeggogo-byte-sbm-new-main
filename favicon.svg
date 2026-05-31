@@ -1,10 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" fill="none" stroke="#3a2817" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-  <!-- drip drop -->
-  <path d="M32 6 C 28 14, 26 18, 32 22 C 38 18, 36 14, 32 6 Z" fill="#b85c3c" stroke="none"/>
-  <!-- cup body -->
-  <path d="M14 30 H50 L46 58 Q46 62 42 62 H22 Q18 62 18 58 Z"/>
-  <!-- handle -->
-  <path d="M50 36 Q60 38 60 44 Q60 50 50 52"/>
-  <!-- saucer / line -->
-  <line x1="10" y1="68" x2="54" y2="68" stroke-width="1.8"/>
+  <!-- sprout: 자발성으로 자라는 공동체 -->
+  <path d="M32 60 V30" stroke="#6b4423"/>
+  <path d="M32 38 C 22 38, 16 30, 16 20 C 26 20, 32 28, 32 38 Z" fill="#8b7355" stroke="none"/>
+  <path d="M32 32 C 42 32, 48 24, 48 14 C 38 14, 32 22, 32 32 Z" fill="#b85c3c" stroke="none"/>
+  <line x1="18" y1="60" x2="46" y2="60" stroke-width="1.8"/>
 </svg>

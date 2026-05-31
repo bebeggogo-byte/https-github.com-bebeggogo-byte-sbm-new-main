@@ -187,5 +187,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Optional: Add Easter egg
     console.log('%c네다바웨이에 오신 것을 환영합니다', 'color: #8b7355; font-size: 16px; font-weight: bold;');
-    console.log('%c자발성으로 시작되는 거룩을 향한 공동체의 길 · Drip Lines', 'color: #5a4a3a; font-size: 12px;');
+    console.log('%c자발성으로 시작되는 거룩을 향한 공동체의 길', 'color: #5a4a3a; font-size: 12px;');
 });
