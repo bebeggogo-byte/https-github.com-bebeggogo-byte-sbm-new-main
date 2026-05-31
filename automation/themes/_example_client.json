@@ -1,0 +1,23 @@
+{
+  "_README": "새 고객사 추가 방법: 이 파일을 themes/<영문이름>.json 으로 복사하고 값만 채우세요. 'name'은 파일명과 같게, 'match'에는 그 고객사를 알아볼 키워드(회사명·브랜드·담당자·지역 등)를 넣으면 자동 분류됩니다. 또는: python theme.py new <이름> '<키워드,키워드>' 로 자동 생성.",
+  "name": "example_client",
+  "display_name": "예시 고객사 (Example Corp)",
+  "source_label": "Example Corp",
+  "match": ["example", "예시", "엑사", "exa-corp"],
+  "palette": {
+    "bg": "FFFFFF",
+    "ink": "1A1A1A",
+    "heading": "0B5FFF",
+    "accent": "0B5FFF",
+    "muted": "8A8A8A",
+    "line": "E2E6F0"
+  },
+  "fonts": { "heading": "Pretendard", "body": "Pretendard" },
+  "layout": {
+    "title_pt": 30,
+    "subtitle_pt": 16,
+    "objective_pt": 12,
+    "body_pt": 16,
+    "source_pt": 6
+  }
+}

@@ -49,12 +49,14 @@ python make_worksheet.py --from-events output/events.json --index 0 \
        -o output/worksheet_00.pptx --pdf output/worksheet_00.pdf
 ```
 
-## 🎨 슬라이드 레이아웃 (요청 사양 그대로)
+## 🎨 슬라이드 레이아웃 (고정 사양)
 
 - 배경: **흰색**
 - **제목 / 소제목 / 학습목표: 왼쪽 상단** 배치
 - 본문(핵심내용): 그 아래
-- **출처 "네다바웨이": 오른쪽 하단, 폰트 6pt** (작게)
+- **출처: 오른쪽 하단, 폰트 6pt** (텍스트는 고객사 테마의 `source_label`)
+
+레이아웃 구조는 고정이고, **색·폰트·출처 문구는 고객사 테마**에서 옵니다(아래).
 
 NotebookLM 에서 정리한 슬라이드 개요를 아래 JSON 으로 저장하면 같은 스타일로 굳힙니다:
 
@@ -64,6 +66,47 @@ NotebookLM 에서 정리한 슬라이드 개요를 아래 JSON 으로 저장하�
 ```bash
 python make_slides.py --slides output/slides.json -o output/slides.pptx
 ```
+
+## 🏷️ 고객사 테마 시스템 (어떤 고객사가 와도 자동 분류)
+
+레이아웃은 고정하되 **브랜드 아이덴티티(색·폰트·출처 문구)는 고객사별 토큰**으로 분리했습니다.
+Claude 디자인 철학처럼 — 흰 배경 + 절제된 1 액센트 + 넉넉한 여백이 기본값입니다.
+
+```
+themes/
+├── default.json        # 미분류 시 기본 (Claude-style, 코랄 액센트)
+├── nedabah.json        # 네다바웨이
+└── _example_client.json # 새 고객사 추가 템플릿
+```
+
+각 테마(JSON) 구조:
+```json
+{
+  "name": "acme",
+  "display_name": "ACME 그룹",
+  "source_label": "ACME Inc.",        // 슬라이드 우하단 6pt 문구
+  "match": ["acme", "에이크미", "담당자명"],  // 자동 분류용 키워드
+  "palette": { "bg":"FFFFFF","ink":"1A1A1A","heading":"...","accent":"...","muted":"...","line":"..." },
+  "fonts":   { "heading":"Pretendard", "body":"Pretendard" },
+  "layout":  { "title_pt":30,"subtitle_pt":16,"objective_pt":12,"body_pt":16,"source_pt":6 }
+}
+```
+
+**자동 분류**: 일정/메시지 텍스트와 각 테마의 `match` 키워드 점수로 고객사를 판정합니다.
+명시적으로 지정하려면 `--theme <name>`, 일정 JSON에 `"client":"acme"` 를 넣어도 됩니다.
+
+```bash
+python theme.py list                          # 등록된 고객사 목록
+python theme.py classify output/events.json   # 각 일정이 어느 고객사로 분류되는지
+python theme.py new acme "에이크미,acme,ACME"  # 새 고객사 테마 생성(이후 색/폰트만 수정)
+
+# 산출물 생성 시 테마 적용(미지정=자동분류)
+python pipeline.py inputs/messages.txt --theme acme
+python make_slides.py --from-events output/events.json --index 0 --theme acme -o out.pptx
+```
+
+> 새 고객사가 오면: `theme.py new` 로 토큰 생성 → 브랜드 색/폰트/로고문구만 채우면
+> 슬라이드·워크지·커리큘럼이 모두 그 고객사 룩으로 자동 출력됩니다.
 
 ## ✅ 자동 사실확인(needs_review)
 

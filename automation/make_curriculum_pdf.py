@@ -29,23 +29,26 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.platypus import (Paragraph, SimpleDocTemplate, Spacer, HRFlowable)
 
+import theme as theme_mod
+
 FONT = "HYSMyeongJo-Medium"
 pdfmetrics.registerFont(UnicodeCIDFont(FONT))
 
 
-def styles() -> dict:
+def styles(pal: dict) -> dict:
     base = getSampleStyleSheet()
+    ink = "#" + pal["ink"]
     return {
         "h1": ParagraphStyle("h1", parent=base["Title"], fontName=FONT, fontSize=22,
-                             leading=28, textColor="#3a2e22", spaceAfter=4),
+                             leading=28, textColor="#" + pal["heading"], spaceAfter=4),
         "meta": ParagraphStyle("meta", fontName=FONT, fontSize=10, leading=15,
-                               textColor="#7a6a55"),
+                               textColor="#" + pal["muted"]),
         "h2": ParagraphStyle("h2", fontName=FONT, fontSize=14, leading=20,
-                             textColor="#5b4a36", spaceBefore=14, spaceAfter=6),
+                             textColor="#" + pal["heading"], spaceBefore=14, spaceAfter=6),
         "body": ParagraphStyle("body", fontName=FONT, fontSize=10.5, leading=17,
-                               alignment=TA_LEFT, textColor="#2b2b2b"),
+                               alignment=TA_LEFT, textColor=ink),
         "bullet": ParagraphStyle("bullet", fontName=FONT, fontSize=10.5, leading=17,
-                                 leftIndent=12, bulletIndent=2, textColor="#2b2b2b"),
+                                 leftIndent=12, bulletIndent=2, textColor=ink),
     }
 
 
@@ -110,8 +113,10 @@ def ai_sections(e: dict) -> list[tuple[str, list[str]]]:
     return [(s[0], s[1]) for s in json.loads(txt)]
 
 
-def build_pdf(e: dict, out: str, use_ai: bool) -> None:
-    st = styles()
+def build_pdf(e: dict, out: str, use_ai: bool, th: dict) -> None:
+    pal = th["palette"]
+    line_color = "#" + pal["line"]
+    st = styles(pal)
     sections = ai_sections(e) if use_ai else default_sections(e)
 
     doc = SimpleDocTemplate(out, pagesize=A4,
@@ -127,16 +132,17 @@ def build_pdf(e: dict, out: str, use_ai: bool) -> None:
     if meta:
         flow.append(Paragraph(meta, st["meta"]))
     flow.append(Spacer(1, 6))
-    flow.append(HRFlowable(width="100%", thickness=1, color="#d8c9b0"))
+    flow.append(HRFlowable(width="100%", thickness=1, color=line_color))
 
     for head, bullets in sections:
         flow.append(Paragraph(head, st["h2"]))
         for b in bullets:
             flow.append(Paragraph(f"• {b}", st["bullet"]))
 
+    label = th.get("source_label") or "강의 커리큘럼"
     flow.append(Spacer(1, 16))
-    flow.append(HRFlowable(width="100%", thickness=0.5, color="#d8c9b0"))
-    flow.append(Paragraph("네다바웨이 (Nedabah Way) · nedabah.org", st["meta"]))
+    flow.append(HRFlowable(width="100%", thickness=0.5, color=line_color))
+    flow.append(Paragraph(label, st["meta"]))
 
     doc.build(flow)
 
@@ -146,16 +152,19 @@ def main() -> None:
     ap.add_argument("input", help="events.json")
     ap.add_argument("--index", type=int, default=0, help="대상 강의 인덱스")
     ap.add_argument("-o", "--output", default="output/curriculum.pdf")
+    ap.add_argument("--theme", help="고객사 테마 강제 지정(미지정 시 자동 분류)")
     ap.add_argument("--ai", action="store_true", help="Claude 로 본문 생성")
     args = ap.parse_args()
 
     events = json.load(open(args.input, encoding="utf-8"))
     e = events[args.index]
+    th = theme_mod.resolve(e, forced=args.theme)
+    print(f"🎨 테마: {th['display_name']} — {th.get('_resolved_by','')}")
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
     use_ai = args.ai and os.getenv("ANTHROPIC_API_KEY")
     if args.ai and not use_ai:
         print("⚠️  ANTHROPIC_API_KEY 미설정 — 템플릿 본문으로 대체.")
-    build_pdf(e, args.output, use_ai)
+    build_pdf(e, args.output, use_ai, th)
     print(f"✅ 커리큘럼 PDF 생성 → {args.output}  (NotebookLM 소스로 업로드)")
 
 

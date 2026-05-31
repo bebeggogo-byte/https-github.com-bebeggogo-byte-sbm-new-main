@@ -38,11 +38,13 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="강의 자동화 전체 파이프라인")
     ap.add_argument("input", help="카톡/문자/에이닷 메시지 텍스트 파일")
     ap.add_argument("--ai", action="store_true", help="Claude 정밀 모드 (ANTHROPIC_API_KEY)")
+    ap.add_argument("--theme", help="고객사 테마 강제 지정(미지정 시 일정별 자동 분류)")
     args = ap.parse_args()
 
     os.makedirs(OUT, exist_ok=True)
     events_json = os.path.join(OUT, "events.json")
     ai = ["--ai"] if args.ai else []
+    theme_arg = ["--theme", args.theme] if args.theme else []
 
     # ① 파싱
     run(["parse_schedule.py", args.input, "-o", events_json] + ai)
@@ -58,12 +60,12 @@ def main() -> None:
     for i, e in enumerate(events):
         tag = f"{i:02d}"
         run(["make_curriculum_pdf.py", events_json, "--index", str(i),
-             "-o", os.path.join(OUT, f"curriculum_{tag}.pdf")] + ai)
+             "-o", os.path.join(OUT, f"curriculum_{tag}.pdf")] + ai + theme_arg)
         run(["make_slides.py", "--from-events", events_json, "--index", str(i),
-             "-o", os.path.join(OUT, f"slides_{tag}.pptx")])
+             "-o", os.path.join(OUT, f"slides_{tag}.pptx")] + theme_arg)
         run(["make_worksheet.py", "--from-events", events_json, "--index", str(i),
              "-o", os.path.join(OUT, f"worksheet_{tag}.pptx"),
-             "--pdf", os.path.join(OUT, f"worksheet_{tag}.pdf")])
+             "--pdf", os.path.join(OUT, f"worksheet_{tag}.pdf")] + theme_arg)
 
     review = [e for e in events if e.get("needs_review")]
     print("\n" + "=" * 56)

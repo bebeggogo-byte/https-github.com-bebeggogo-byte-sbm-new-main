@@ -1,0 +1,22 @@
+{
+  "name": "default",
+  "display_name": "Default (Claude-style)",
+  "source_label": "",
+  "match": [],
+  "palette": {
+    "bg": "FFFFFF",
+    "ink": "141413",
+    "heading": "141413",
+    "accent": "D97757",
+    "muted": "73726C",
+    "line": "E8E6DD"
+  },
+  "fonts": { "heading": "Inter", "body": "Inter" },
+  "layout": {
+    "title_pt": 30,
+    "subtitle_pt": 16,
+    "objective_pt": 12,
+    "body_pt": 16,
+    "source_pt": 6
+  }
+}
