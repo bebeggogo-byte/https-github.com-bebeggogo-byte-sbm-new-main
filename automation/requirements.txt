@@ -1,5 +1,20 @@
 python-pptx>=1.0
 reportlab>=4.0
 icalendar>=5.0
-# Optional: only needed if you enable AI parsing/curriculum (ANTHROPIC_API_KEY)
+
+# 선택: AI 정밀 파싱/커리큘럼 (ANTHROPIC_API_KEY 필요)
 anthropic>=0.40
+
+# 선택: 구글 캘린더 무클릭 등록 (connectors/gcal_push.py)
+google-api-python-client>=2.0
+google-auth-oauthlib>=1.0
+google-auth-httplib2>=0.2
+
+# 선택: NotebookLM 브라우저 자동화 (connectors/notebooklm_browser.py)
+#   설치 후: playwright install chromium
+playwright>=1.40
+
+# 선택: 카톡 스크린샷 OCR (connectors/kakao_ingest.py --ocr)
+#   시스템에 tesseract + tesseract-ocr-kor 도 설치 필요
+pytesseract>=0.3
+pillow>=10.0

@@ -9,7 +9,8 @@ output/
 __pycache__/
 *.pyc
 
-# OAuth 비밀키
+# OAuth 비밀키 / 브라우저 세션
 credentials.json
 token.json
 .mcp.json
+connectors/.nblm_profile/

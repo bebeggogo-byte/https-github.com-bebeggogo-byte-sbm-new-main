@@ -117,6 +117,39 @@ python make_slides.py --from-events output/events.json --index 0 --theme acme -o
 
 `events.json` 의 `needs_review` 와 파이프라인 종료 요약에 모두 출력됩니다.
 
+## 🔗 커넥터 — 막히던 3곳 자동화 (`connectors/`)
+
+원래 막히던 3곳을 각각 가장 안정적·합법적인 방식으로 자동화했습니다.
+
+### ① 구글 캘린더 무클릭 등록 — `gcal_push.py` (공식 API, 권장)
+```bash
+# 최초 1회: Google Cloud Console 에서 Calendar API 사용 설정 + OAuth 데스크톱
+#           클라이언트 credentials.json 다운로드 → automation/ 에 두기
+pip install google-api-python-client google-auth-oauthlib google-auth-httplib2
+python connectors/gcal_push.py output/events.json --dry-run   # 미리보기
+python connectors/gcal_push.py output/events.json             # 실제 등록(.ics 불필요)
+```
+
+### ② 카톡/문자/에이닷 수집 — `kakao_ingest.py` (공식 export, 권장)
+브라우저 스크래핑 대신 **카톡 '대화 내용 내보내기(.txt)'** 를 정규화합니다(안정·합법).
+```bash
+python connectors/kakao_ingest.py KakaoTalkChats.txt -o inputs/messages.txt
+python connectors/kakao_ingest.py screenshot.png --ocr -o inputs/messages.txt  # 스크린샷 OCR
+python pipeline.py inputs/messages.txt
+```
+> 자동으로 강의 관련 메시지만 골라내고, 발신자/형식(PC·모바일)을 파싱합니다.
+> 메시지 '전송일'은 강의일로 쓰지 않습니다(본문의 'N월 N일'에서 추출).
+
+### ③ NotebookLM 브라우저 자동화 — `notebooklm_browser.py` (⚠️ best-effort)
+공개 API가 없어 Playwright로 화면을 조작합니다. **로그인은 1회 사람이**, UI 변경 시 셀렉터가 깨질 수 있습니다.
+```bash
+pip install playwright && playwright install chromium
+python connectors/notebooklm_browser.py login                       # 1회 로그인(세션 저장)
+python connectors/notebooklm_browser.py upload output/curriculum_00.pdf
+python connectors/notebooklm_browser.py ask "핵심만 골라 슬라이드 개요로 정리해줘"
+```
+> 본인 계정·본인 자료 대상의 개인 자동화 용도입니다. 약관 저촉 소지가 있으니 본인 책임 하에 사용하세요.
+
 ## 🔌 MCP 자동화 / 수동 단계 (정직한 안내)
 
 `.mcp.json.example` 을 `.mcp.json` 으로 복사하고 자격증명을 채우면 Claude Code 가 MCP 서버를 띄웁니다.
