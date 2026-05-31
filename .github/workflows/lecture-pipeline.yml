@@ -1,0 +1,50 @@
+name: 강의 자동화 파이프라인
+
+# inputs/messages.txt 를 푸시하거나 수동 실행하면
+# 일정 파싱 → .ics + 커리큘럼 PDF + 슬라이드 PPTX + 워크지 를 생성해
+# 아티팩트로 업로드합니다.
+on:
+  workflow_dispatch:
+    inputs:
+      input_file:
+        description: "메시지 텍스트 파일 경로"
+        default: "automation/inputs/sample_messages.txt"
+  push:
+    paths:
+      - "automation/inputs/messages.txt"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 의존성 설치
+        run: pip install -r automation/requirements.txt
+
+      - name: 입력 파일 결정
+        id: pick
+        run: |
+          IN="${{ github.event.inputs.input_file }}"
+          if [ -z "$IN" ]; then
+            if [ -f automation/inputs/messages.txt ]; then
+              IN=automation/inputs/messages.txt
+            else
+              IN=automation/inputs/sample_messages.txt
+            fi
+          fi
+          echo "input=$IN" >> "$GITHUB_OUTPUT"
+
+      - name: 파이프라인 실행
+        run: python automation/pipeline.py "${{ steps.pick.outputs.input }}"
+
+      - name: 산출물 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: lecture-outputs
+          path: automation/output/
+          retention-days: 30

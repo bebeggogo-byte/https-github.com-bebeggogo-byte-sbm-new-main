@@ -1,0 +1,15 @@
+# 개인정보 보호: 실제 메시지/통화 내용은 커밋하지 않음
+inputs/*
+!inputs/sample_messages.txt
+
+# 생성 산출물(강의별 자료)은 로컬에만 — 필요 시 수동 공유
+output/
+
+# 파이썬 캐시
+__pycache__/
+*.pyc
+
+# OAuth 비밀키
+credentials.json
+token.json
+.mcp.json

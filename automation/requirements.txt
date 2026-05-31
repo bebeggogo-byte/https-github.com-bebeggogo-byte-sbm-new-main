@@ -1,0 +1,5 @@
+python-pptx>=1.0
+reportlab>=4.0
+icalendar>=5.0
+# Optional: only needed if you enable AI parsing/curriculum (ANTHROPIC_API_KEY)
+anthropic>=0.40
