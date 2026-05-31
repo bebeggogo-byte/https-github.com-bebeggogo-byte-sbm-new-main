@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 에이전트 팀 대시보드 · 데모</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{
+  --floor:#d9c3a0;     /* 마룻바닥 */
+  --floor2:#cdb591;
+  --wall:#e9ddca;
+  --ink:#2b2622;
+  --panel:#ffffff;
+  --line:#e4dccb;
+  --accent:#5b8def;
+  --green:#3aa564;
+  --amber:#e0a040;
+  --bubble:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'DotGothic16','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  background:#bcae93;
+  color:var(--ink);
+  -webkit-font-smoothing:none;
+  image-rendering:pixelated;
+}
+.app{
+  display:grid;
+  grid-template-columns:1fr 320px;
+  grid-template-rows:auto 1fr;
+  height:100vh;
+}
+/* ===== 상단 바 ===== */
+.topbar{
+  grid-column:1 / -1;
+  display:flex;align-items:center;gap:18px;
+  padding:12px 18px;
+  background:#15110d;color:#fff;
+}
+.topbar .badge{
+  font-size:22px;letter-spacing:1px;
+  background:#000;padding:8px 18px;border-radius:6px;
+  border:2px solid #3a3024;
+}
+.topbar .badge b{color:#ffd66b}
+.topbar .grow{flex:1}
+.topbar button{
+  font-family:inherit;cursor:pointer;
+  background:var(--accent);color:#fff;border:none;
+  padding:9px 16px;border-radius:6px;font-size:14px;
+  box-shadow:0 3px 0 #3a63b8;
+}
+.topbar button:active{transform:translateY(2px);box-shadow:0 1px 0 #3a63b8}
+.topbar button.ghost{background:#2a2218;box-shadow:0 3px 0 #000}
+
+/* ===== 사무실 바닥 ===== */
+.office{
+  position:relative;overflow:hidden;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 39px,rgba(0,0,0,.04) 39px 40px),
+    repeating-linear-gradient(90deg,transparent 0 39px,rgba(0,0,0,.04) 39px 40px),
+    linear-gradient(var(--wall) 0 90px, var(--floor) 90px 100%);
+}
+.zone-label{
+  position:absolute;font-size:13px;color:#8a7a5c;letter-spacing:2px;
+  transform:translateX(-50%);
+}
+
+/* 책상 + 에이전트 */
+.agent{
+  position:absolute;width:96px;transform:translateX(-50%);
+  text-align:center;transition:filter .2s;
+}
+.agent .char{
+  width:46px;height:54px;margin:0 auto;position:relative;
+  image-rendering:pixelated;
+  animation:bob 1.6s ease-in-out infinite;
+}
+.agent.idle .char{animation-duration:3.2s;opacity:.92}
+@keyframes bob{50%{transform:translateY(-3px)}}
+/* 픽셀 캐릭터 (CSS box-shadow 도트아트) */
+.char .head{position:absolute;left:13px;top:0;width:20px;height:18px;border-radius:4px}
+.char .body{position:absolute;left:9px;top:18px;width:28px;height:26px;border-radius:5px 5px 3px 3px}
+.char .arm{position:absolute;top:24px;width:6px;height:14px;border-radius:3px}
+.char .arm.l{left:6px;animation:type .5s steps(2) infinite}
+.char .arm.r{right:6px;animation:type .5s steps(2) infinite .25s}
+.agent.idle .arm{animation:none}
+@keyframes type{50%{transform:translateY(3px)}}
+.char .face{position:absolute;left:18px;top:7px;width:3px;height:3px;background:#2b2622;box-shadow:7px 0 #2b2622}
+
+.desk{
+  width:88px;height:18px;margin:2px auto 0;
+  background:linear-gradient(#7a5a3a,#5e4128);
+  border-radius:3px;box-shadow:0 3px 0 #3d2a17;position:relative;
+}
+.desk::before{ /* 모니터 */
+  content:"";position:absolute;left:50%;top:-15px;transform:translateX(-50%);
+  width:26px;height:16px;background:#23303f;border:2px solid #11171f;border-radius:2px;
+  box-shadow:inset 0 0 0 2px #2f6df0;
+}
+.agent.idle .desk::before{box-shadow:inset 0 0 0 2px #44505f}
+
+.name{
+  margin-top:5px;font-size:12px;background:#fff;border:2px solid #d8cdb6;
+  border-radius:5px;padding:2px 4px;line-height:1.25;color:#2b2622;
+}
+.name small{display:block;color:#9a8a6a;font-size:10px}
+
+/* 말풍선 */
+.bubble{
+  position:absolute;left:50%;top:-22px;transform:translateX(-50%);
+  white-space:nowrap;font-size:11px;color:#2b2622;
+  background:var(--bubble);border:2px solid #cdbf9f;border-radius:8px;
+  padding:3px 7px;box-shadow:0 2px 0 rgba(0,0,0,.08);
+}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--bubble)}
+.bubble.done{color:var(--green)}
+.bubble.work{color:var(--accent)}
+.bubble.idle{color:#9a8a6a}
+.spark{position:absolute;left:-14px;top:-10px;font-size:14px;animation:spin 2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== 오른쪽 패널 ===== */
+.panel{
+  background:var(--panel);border-left:3px solid #cbbd9e;
+  padding:16px;overflow:auto;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+.panel h2{font-size:14px;letter-spacing:1px;color:#7a6c50;margin-bottom:10px;font-family:'DotGothic16',sans-serif}
+.stat-row{display:flex;gap:10px;margin-bottom:14px}
+.stat{flex:1;background:#f7f3ea;border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
+.stat .num{font-size:26px;font-family:'Press Start 2P',monospace;color:var(--ink)}
+.stat .lbl{font-size:11px;color:#9a8a6a;margin-top:6px}
+.meter{margin:4px 0 14px}
+.meter .bar{height:9px;background:#eee6d6;border-radius:5px;overflow:hidden}
+.meter .bar>i{display:block;height:100%;width:14%;background:linear-gradient(90deg,#5b8def,#3aa564);transition:width .6s}
+.meter .cap{display:flex;justify-content:space-between;font-size:11px;color:#9a8a6a;margin-top:4px}
+
+.tok{background:#1d1812;color:#cfe;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-family:'Press Start 2P',monospace;font-size:10px;line-height:1.9}
+.tok span{color:#ffd66b}
+.tok .cost{color:#7CFFB2}
+
+.section{margin-bottom:14px}
+.section h3{font-size:12px;color:#7a6c50;margin-bottom:7px;letter-spacing:1px}
+.task{display:flex;gap:8px;align-items:flex-start;background:#f7f3ea;border:1px solid var(--line);
+  border-radius:8px;padding:8px 9px;margin-bottom:6px;font-size:12px}
+.task .dot{width:9px;height:9px;border-radius:50%;margin-top:3px;flex:none}
+.task .dot.w{background:var(--accent);box-shadow:0 0 0 3px rgba(91,141,239,.2)}
+.task .dot.q{background:var(--amber)}
+.task .meta{color:#9a8a6a;font-size:11px;margin-top:2px}
+.done-item{display:flex;gap:7px;align-items:center;font-size:12px;color:#5b6b55;padding:3px 0}
+.done-item .ck{color:var(--green)}
+.foot{font-size:10px;color:#b3a890;margin-top:8px;text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 상단 -->
+  <header class="topbar">
+    <div class="badge">직원수 : <b id="empCount">14</b>명 / 목표수 : <b>100</b>명</div>
+    <div class="grow"></div>
+    <button id="hireBtn">＋ 직원 채용</button>
+    <button class="ghost" id="assignBtn">태스크 배정</button>
+  </header>
+
+  <!-- 사무실 -->
+  <main class="office" id="office">
+    <div class="zone-label" style="left:30%;top:70px">PM 데스크</div>
+    <div class="zone-label" style="left:55%;top:70px">디자인실</div>
+    <div class="zone-label" style="left:78%;top:70px">광명 스튜디오</div>
+    <div class="zone-label" style="left:10%;top:140px">마케팅실</div>
+  </main>
+
+  <!-- 패널 -->
+  <aside class="panel">
+    <h2>팀 현황</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="num" id="totalNum">14</div><div class="lbl">총 인원</div></div>
+      <div class="stat"><div class="num" id="idleNum">9</div><div class="lbl">대기</div></div>
+    </div>
+
+    <div class="meter">
+      <div class="bar"><i id="goalBar"></i></div>
+      <div class="cap"><span>목표 달성률</span><span id="goalPct">14%</span></div>
+    </div>
+
+    <div class="tok">
+      토큰 입력 <span id="tin">0</span><br>
+      토큰 출력 <span id="tout">0</span><br>
+      예상 비용 <span class="cost" id="cost">$0.00</span>
+    </div>
+
+    <div class="section">
+      <h3>진행중인 태스크</h3>
+      <div id="activeTasks"></div>
+    </div>
+
+    <div class="section">
+      <h3>최근 완료</h3>
+      <div id="doneTasks"></div>
+    </div>
+
+    <p class="foot">⌁ 클로드로 만든 데모 · 코덱스 0% 사용</p>
+  </aside>
+</div>
+
+<script>
+/* ---------- 데이터 ---------- */
+const ROLES = ["PM","퍼블리셔","디자이너","개발자","마케터","매니저","CS","SEO"];
+const SURNAME = ["김","이","박","최","정","강","조","윤","장","임","한","오","서","노","유"];
+const GIVEN = ["민준","서연","도윤","하은","재혁","수아","지호","예린","현우","유진","시우","효진","재원","채원","건우"];
+const COLORS = ["#5b8def","#e57aa0","#7bc47f","#c79bf0","#f0b24a","#5ec9c9","#e08a5a","#9aa6f0"];
+const TASK_POOL = [
+  "블로그 SEO 키워드 리서치","리뷰 이벤트 페이지 제작","결제 플로우 버그 수정",
+  "랜딩페이지 리뉴얼","상세페이지 카피 작성","체험단 모집 공지","부정 결제 의심 건 조사",
+  "인스타 릴스 3건 기획","CS 응대 매크로 정리","A/B 테스트 결과 분석","블로그 포스팅 5건 발행"
+];
+const DONE_SEED = ["체험단 모집 공지","랜딩페이지 리뉴얼","블로그 포스팅 5건 발행","블로그 SEO 키워드 분석","부정 결제 의심 건 조사"];
+
+const GOAL = 100;
+const rand = a => a[Math.floor(Math.random()*a.length)];
+
+/* 책상 좌표 (퍼센트) */
+const SEATS = [
+  [30,30],[55,32],[78,30],[12,46],[24,52],[40,50],[58,52],[70,48],
+  [86,52],[18,70],[34,72],[50,72],[66,72],[82,72],[28,86],[60,86],
+  [44,40],[74,86],[12,86],[90,72]
+];
+
+let agents = [];
+let activeTasks = [];
+let doneTasks = DONE_SEED.slice(0,5);
+let tokIn=0, tokOut=0;
+
+function makeAgent(i){
+  return {
+    id:i,
+    name: rand(SURNAME)+rand(GIVEN),
+    role: i===0 ? "PM" : rand(ROLES),
+    color: COLORS[i%COLORS.length],
+    working: Math.random()<0.5,
+    task: null
+  };
+}
+
+/* 초기 14명 */
+for(let i=0;i<14;i++) agents.push(makeAgent(i));
+activeTasks = [
+  {t:"블로그 SEO 키워드 리서치", who:"은재혁", st:"w"},
+  {t:"리뷰 이벤트 페이지 제작", who:"임재원", st:"w"},
+  {t:"결제 플로우 버그 수정", who:"최수아", st:"q"}
+];
+
+/* ---------- 렌더 ---------- */
+const office = document.getElementById('office');
+
+function charHTML(color){
+  return `<div class="char">
+    <div class="head" style="background:#f1c9a5"></div>
+    <div class="face"></div>
+    <div class="body" style="background:${color}"></div>
+    <div class="arm l" style="background:${color}"></div>
+    <div class="arm r" style="background:${color}"></div>
+  </div>`;
+}
+
+function bubbleFor(a){
+  if(a.task) return `<div class="bubble work"><span class="spark">✦</span>작업중 · ${a.task}</div>`;
+  if(a.working) return `<div class="bubble done">완료 ✓</div>`;
+  return `<div class="bubble idle">대기</div>`;
+}
+
+function renderOffice(){
+  office.querySelectorAll('.agent').forEach(e=>e.remove());
+  agents.forEach((a,i)=>{
+    const seat = SEATS[i % SEATS.length];
+    const jitter = i>=SEATS.length ? (i*7%40-20) : 0;
+    const el = document.createElement('div');
+    el.className = 'agent'+(a.task||a.working?'':' idle');
+    el.style.left = (seat[0]+jitter*0.2)+'%';
+    el.style.top  = (seat[1]+ (i>=SEATS.length?(i%3)*4:0))+'%';
+    el.innerHTML = bubbleFor(a)+charHTML(a.color)+
+      `<div class="desk"></div>
+       <div class="name">${a.name}<small>${a.role}</small></div>`;
+    office.appendChild(el);
+  });
+}
+
+function renderPanel(){
+  const total = agents.length;
+  const idle = agents.filter(a=>!a.task && !a.working).length;
+  document.getElementById('empCount').textContent = total;
+  document.getElementById('totalNum').textContent = total;
+  document.getElementById('idleNum').textContent = idle;
+  const pct = Math.min(100, Math.round(total/GOAL*100));
+  document.getElementById('goalBar').style.width = pct+'%';
+  document.getElementById('goalPct').textContent = pct+'%';
+
+  document.getElementById('activeTasks').innerHTML = activeTasks.map(t=>`
+    <div class="task"><span class="dot ${t.st}"></span>
+      <div><div>${t.t}</div><div class="meta">${t.st==='w'?'진행중':'대기'} · ${t.who}</div></div>
+    </div>`).join('');
+
+  document.getElementById('doneTasks').innerHTML = doneTasks.map(d=>`
+    <div class="done-item"><span class="ck">✔</span>${d}</div>`).join('');
+}
+
+/* ---------- 라이브 토큰 카운터 ---------- */
+function fmt(n){return n.toLocaleString('en-US')}
+setInterval(()=>{
+  const busy = agents.filter(a=>a.task||a.working).length;
+  tokIn  += busy*Math.floor(20+Math.random()*120);
+  tokOut += busy*Math.floor(40+Math.random()*260);
+  document.getElementById('tin').textContent = fmt(tokIn);
+  document.getElementById('tout').textContent = fmt(tokOut);
+  // Claude 가격 가정 (입력 $3 / 출력 $15 per 1M)
+  const cost = tokIn/1e6*3 + tokOut/1e6*15;
+  document.getElementById('cost').textContent = '$'+cost.toFixed(2);
+},700);
+
+/* 에이전트 상태 랜덤 변동 (살아있는 느낌) */
+setInterval(()=>{
+  const a = rand(agents);
+  if(a.task){ // 완료 처리
+    doneTasks.unshift(a.task); doneTasks = doneTasks.slice(0,6);
+    activeTasks = activeTasks.filter(t=>t.t!==a.task);
+    a.task=null; a.working=true;
+  } else {
+    a.working = Math.random()<0.6;
+  }
+  renderOffice(); renderPanel();
+},2600);
+
+/* ---------- 버튼 ---------- */
+document.getElementById('hireBtn').onclick = ()=>{
+  if(agents.length>=GOAL) return;
+  const batch = Math.min(3, GOAL-agents.length);
+  for(let k=0;k<batch;k++) agents.push(makeAgent(agents.length));
+  renderOffice(); renderPanel();
+};
+document.getElementById('assignBtn').onclick = ()=>{
+  const free = agents.find(a=>!a.task);
+  if(!free) return;
+  const t = rand(TASK_POOL);
+  free.task = t; free.working=true;
+  activeTasks.unshift({t, who:free.name, st:'w'});
+  activeTasks = activeTasks.slice(0,5);
+  renderOffice(); renderPanel();
+};
+
+renderOffice(); renderPanel();
+</script>
+</body>
+</html>
