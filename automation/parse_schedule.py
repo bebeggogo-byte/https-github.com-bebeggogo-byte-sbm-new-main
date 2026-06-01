@@ -203,7 +203,9 @@ def check_weekday(block: str, ev: Event) -> None:
 def parse_audience(block: str, ev: Event) -> None:
     m = re.search(r"대상[은는:]?\s*([^\n.,]+)", block)
     if m:
-        ev.audience = _clean(m.group(1))
+        # 대상 뒤에 이어지는 다른 정보(주소/장소/연결어)에서 끊어준다.
+        a = re.split(r"\s*(?:이고|이며|이구|고\s|그리고|주소|장소|에서|입니다)", m.group(1))[0]
+        ev.audience = _clean(a)
 
 
 def is_lecture(block: str) -> bool:
