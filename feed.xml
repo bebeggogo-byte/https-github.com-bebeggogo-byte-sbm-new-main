@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nedabah Way 글</title>
+    <link>https://nedabah.org/notes/</link>
+    <atom:link href="https://nedabah.org/feed.xml" rel="self" type="application/rss+xml"/>
+    <description>네다바웨이가 검증된 자료에 근거해 쓰는 묵상·학습·관점·AI·자동화 글</description>
+    <language>ko</language>
+    <lastBuildDate>Sat, 31 May 2026 00:00:00 +0900</lastBuildDate>
+    <item>
+      <title>나눔이 어색한 사람을 위한 안내 — 솔직함이 정답을 이긴다</title>
+      <link>https://nedabah.org/programs/sbm/honest-sharing/</link>
+      <guid>https://nedabah.org/programs/sbm/honest-sharing/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>나눔에서 중요한 건 정답이 아니라 솔직함입니다. 심리적 안전감을 근거로 안전한 나눔을 만드는 3가지.</description>
+    </item>
+    <item>
+      <title>혼자 하던 묵상이 멈추는 이유, 그리고 함께 읽기</title>
+      <link>https://nedabah.org/programs/sbm/read-together/</link>
+      <guid>https://nedabah.org/programs/sbm/read-together/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>혼자 하던 묵상이 멈추는 이유는 의지가 아니라 구조입니다. 하브루타와 탈무드를 근거로 함께 읽기를 정리합니다.</description>
+    </item>
+    <item>
+      <title>칭찬보다 효과적인 것 — 과정을 비추는 피드백</title>
+      <link>https://nedabah.org/programs/leadership/praise-the-process/</link>
+      <guid>https://nedabah.org/programs/leadership/praise-the-process/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>'똑똑하다'는 칭찬은 도전을 피하게 합니다. 드웩의 마인드셋을 근거로 과정을 비추는 피드백 3가지.</description>
+    </item>
+    <item>
+      <title>아이가 끝까지 해내게 하는 법 — 완주를 만드는 3가지</title>
+      <link>https://nedabah.org/programs/leadership/finish-what-you-start/</link>
+      <guid>https://nedabah.org/programs/leadership/finish-what-you-start/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>자기결정이론(자율성·유능감·관계성)과 그릿을 근거로 부모·교사가 완주를 설계하는 3단계.</description>
+    </item>
+    <item>
+      <title>환경을 바꾸면 의지가 필요 없다 — 습관 쌓기와 환경 설계</title>
+      <link>https://nedabah.org/programs/iden/environment-design/</link>
+      <guid>https://nedabah.org/programs/iden/environment-design/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>의지로 습관을 만들지 마세요. 좋은 건 쉽게·나쁜 건 어렵게 환경을 바꾸고, 기존 습관 뒤에 새 행동을 붙이는 법.</description>
+    </item>
+    <item>
+      <title>작심삼일을 끝내는 법 — 정체성 습관</title>
+      <link>https://nedabah.org/programs/iden/identity-habits/</link>
+      <guid>https://nedabah.org/programs/iden/identity-habits/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>《아주 작은 습관의 힘》과 《Tiny Habits》를 근거로, 정체성에서 시작해 아주 작게 만드는 습관 설계.</description>
+    </item>
+    <item>
+      <title>내 생각이 틀릴 수 있다 — 확증 편향을 이기는 법</title>
+      <link>https://nedabah.org/programs/perspective-notes/confirmation-bias/</link>
+      <guid>https://nedabah.org/programs/perspective-notes/confirmation-bias/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>우리는 믿고 싶은 것만 확인합니다. 카너먼의 시스템1·2와 '반대로 생각하기'로 확증 편향을 줄이는 3단계.</description>
+    </item>
+    <item>
+      <title>관점을 바꾸면 문제가 달라진다 — 리프레이밍</title>
+      <link>https://nedabah.org/programs/perspective-notes/reframing/</link>
+      <guid>https://nedabah.org/programs/perspective-notes/reframing/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>하브루타·탈무드(엘루 베엘루)·카너먼을 근거로 관점을 바꾸는 3가지 질문.</description>
+    </item>
+    <item>
+      <title>한 줄 요약법 — 파인만 기법과 점진적 요약</title>
+      <link>https://nedabah.org/programs/study-notes/one-line-summary/</link>
+      <guid>https://nedabah.org/programs/study-notes/one-line-summary/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>요약은 베끼기가 아닙니다. 파인만 기법으로 쉽게 설명하고, 점진적 요약으로 여러 번에 걸쳐 압축하는 3단계.</description>
+    </item>
+    <item>
+      <title>읽어도 남지 않는 이유와 해결법</title>
+      <link>https://nedabah.org/programs/study-notes/remember-what-you-learn/</link>
+      <guid>https://nedabah.org/programs/study-notes/remember-what-you-learn/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>제텔카스텐·세컨드 브레인·하브루타를 근거로 배운 것을 남기는 3단계 학습 노트.</description>
+    </item>
+    <item>
+      <title>경청이 조언보다 강하다 — 적극적 경청 3단계</title>
+      <link>https://nedabah.org/programs/coaching/active-listening/</link>
+      <guid>https://nedabah.org/programs/coaching/active-listening/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>사람은 잘 들어주면 스스로 답을 찾습니다. 끝까지 듣기·되짚기·열어주기 3단계로 보는 적극적 경청.</description>
+    </item>
+    <item>
+      <title>좋은 질문이 답보다 강하다 — 코칭이 강의와 다른 점</title>
+      <link>https://nedabah.org/programs/coaching/power-of-questions/</link>
+      <guid>https://nedabah.org/programs/coaching/power-of-questions/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>GROW 모델(존 휘트모어)과 하브루타를 근거로, 질문이 답보다 멀리 가는 이유.</description>
+    </item>
+    <item>
+      <title>AI에게 일을 제대로 시키는 법 — 프롬프트의 4가지</title>
+      <link>https://nedabah.org/programs/ai-lab/how-to-prompt/</link>
+      <guid>https://nedabah.org/programs/ai-lab/how-to-prompt/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>AI가 엉뚱한 답을 주는 이유는 지시가 모호하기 때문입니다. 역할·맥락·예시·형식 네 가지로 결과를 바꾸는 법.</description>
+    </item>
+    <item>
+      <title>AI를 처음 쓸 때 첫 과제 고르는 법</title>
+      <link>https://nedabah.org/programs/ai-lab/first-ai-task/</link>
+      <guid>https://nedabah.org/programs/ai-lab/first-ai-task/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>자주 반복하고, 바로 확인되고, 틀려도 안전한 일부터. AI 첫 과제를 고르는 3가지 기준.</description>
+    </item>
+    <item>
+      <title>무엇을 자동화할지 고르는 법 — 시간 가치 계산</title>
+      <link>https://nedabah.org/programs/automation/what-to-automate/</link>
+      <guid>https://nedabah.org/programs/automation/what-to-automate/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>모든 걸 자동화하면 손해입니다. 아끼는 시간과 만드는 시간을 비교해 자동화할 일을 고르는 3가지 질문.</description>
+    </item>
+    <item>
+      <title>코딩 없이 반복 업무 자동화 시작하기</title>
+      <link>https://nedabah.org/programs/automation/start-automation/</link>
+      <guid>https://nedabah.org/programs/automation/start-automation/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>단계 적기부터. 코딩 없이 노코드·AI로 반복 업무를 자동화하는 4단계와 첫 후보.</description>
+    </item>
+    <item>
+      <title>워크숍이 끝난 뒤에 진짜 시작된다 — 실행 의도</title>
+      <link>https://nedabah.org/programs/workshop/make-it-stick/</link>
+      <guid>https://nedabah.org/programs/workshop/make-it-stick/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>배운 것이 사라지는 이유는 '언제·어떻게'를 안 정해서입니다. 골위처의 실행 의도(if-then)로 잇는 3가지.</description>
+    </item>
+    <item>
+      <title>강의보다 워크숍이 남는 이유 — 능동 학습의 증거</title>
+      <link>https://nedabah.org/programs/workshop/why-workshops-stick/</link>
+      <guid>https://nedabah.org/programs/workshop/why-workshops-stick/</guid>
+      <pubDate>Sat, 31 May 2026 00:00:00 +0900</pubDate>
+      <description>225개 연구를 분석한 Freeman(2014)을 근거로, 참여형 워크숍이 강의보다 효과적인 이유.</description>
+    </item>
+  </channel>
+</rss>
