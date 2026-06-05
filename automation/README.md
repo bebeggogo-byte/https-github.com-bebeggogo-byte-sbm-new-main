@@ -12,7 +12,22 @@
                                           └─⑤──▶ worksheet_*.pptx/.pdf (워크지)
 ```
 
-## ⚡ 빠른 시작 (원클릭)
+## 🧭 전체 워크플로우 (인입 → 결과보고, 검수 게이트 포함)
+
+문자·이메일·전화·카톡 인입부터 결과 발송까지 14단계를 하나로 연결하고,
+단계 사이 4곳에 **검수 게이트**를 둡니다. 전체 설계·운영법은 **[PLAN.md](PLAN.md)** 참고.
+
+```bash
+python connectors/kakao_ingest.py chat.txt -o inputs/messages.txt  # 인입
+python workflow.py init inputs/messages.txt   # 등록(인입+파싱)
+python workflow.py status                     # 진행판 (●완료 ◍대기 ○예정)
+python workflow.py run                         # 검수 게이트 직전까지 자동 진행
+python workflow.py approve <강의id>            # 검수 통과 → 다시 run
+python workflow.py attach-transcript <id> transcript.txt   # 녹음 후 전사본 연결
+```
+각 강의는 `workspace/<id>/` 에 calendar.ics·curriculum.pdf·slides.pptx·worksheet·report.html 로 쌓입니다.
+
+## ⚡ 빠른 시작 (원클릭, 단일 강의 일괄)
 
 ```bash
 cd automation

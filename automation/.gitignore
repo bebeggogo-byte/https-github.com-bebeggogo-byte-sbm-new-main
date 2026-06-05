@@ -8,6 +8,10 @@ output/
 # 녹음 파일 / 전사본 (용량·민감)
 recordings/
 
+# 워크플로우 진행상태 / 강의별 작업폴더 (개인 일정·자료 포함)
+workflow_state.json
+workspace/
+
 # 파이썬 캐시
 __pycache__/
 *.pyc
