@@ -87,9 +87,42 @@ def detect_source(block: str) -> str:
     return tag
 
 
+WEEKDAY_IDX = {"월": 0, "화": 1, "수": 2, "목": 3, "금": 4, "토": 5, "일": 6}
+
+
+def parse_relative_date(block: str, ev: Event) -> bool:
+    """상대 날짜(내일/모레/이번주·다음주 요일)를 오늘 기준으로 해석."""
+    today = datetime.now()
+    if "모레" in block:
+        ev.date = (today + timedelta(days=2)).strftime("%Y-%m-%d")
+    elif "내일" in block:
+        ev.date = (today + timedelta(days=1)).strftime("%Y-%m-%d")
+    else:
+        m = re.search(r"(이번\s*주|다음\s*주|담주|다다음\s*주)?\s*([월화수목금토일])요일", block)
+        if not m:
+            # '셋째 주' 등 모호한 표현은 해석 불가 → 호출측에서 실패 처리
+            return False
+        wk = WEEKDAY_IDX[m.group(2)]
+        base = today + timedelta(days=(wk - today.weekday()) % 7)
+        kind = (m.group(1) or "").replace(" ", "")
+        if kind in ("다음주", "담주"):
+            base += timedelta(days=7)
+        elif kind == "다다음주":
+            base += timedelta(days=14)
+        ev.date = base.strftime("%Y-%m-%d")
+    ev.needs_review.append(f"상대 날짜 해석(오늘 기준) → {ev.date} 확인 필요")
+    return True
+
+
 def parse_date(block: str, ev: Event) -> None:
     # 2026-06-12 / 2026.6.12 / 2026/6/12
     m = re.search(r"(20\d{2})[.\-/](\d{1,2})[.\-/](\d{1,2})", block)
+    if m:
+        y, mo, d = map(int, m.groups())
+        ev.date = f"{y:04d}-{mo:02d}-{d:02d}"
+        return
+    # 2026년 6월 12일 (한글 연도 명시)
+    m = re.search(r"(20\d{2})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일", block)
     if m:
         y, mo, d = map(int, m.groups())
         ev.date = f"{y:04d}-{mo:02d}-{d:02d}"
@@ -108,6 +141,9 @@ def parse_date(block: str, ev: Event) -> None:
         if 1 <= mo <= 12 and 1 <= d <= 31:
             ev.date = f"{DEFAULT_YEAR:04d}-{mo:02d}-{d:02d}"
             ev.needs_review.append("연도 미기재 → 기본 연도 사용 (확인 필요)")
+            return
+    # 절대 날짜가 없으면 상대 날짜(내일/다음주 화요일 등) 시도
+    parse_relative_date(block, ev)
 
 
 def parse_time(block: str, ev: Event) -> None:
@@ -174,9 +210,12 @@ def parse_location(block: str, ev: Event) -> None:
     if m:
         ev.address = _clean(m.group(1))
     # 장소: ...  또는 '~에서' (공백 포함 전체 명칭 포착)
+    JUNK = ("추후", "미정", "문자", "연락", "보내", "알려", "조율", "예정", "정해")
     m = re.search(r"장소[:는은]?\s*([^\n.,]+)", block)
-    if m:
+    if m and not any(j in m.group(1) for j in JUNK):
         ev.location = _clean(m.group(1))
+    elif m:
+        ev.needs_review.append("장소 미정(추후 통보) → 확인 필요")
     else:
         # 시설어로 끝나는 토큰을 만나면 그 토큰까지 포함해 '에서' 앞 전체를 장소로
         m = re.search(
@@ -185,7 +224,8 @@ def parse_location(block: str, ev: Event) -> None:
             block)
         if m:
             ev.location = _clean(m.group(1))
-    if not ev.address and not ev.location:
+    already = any("장소" in r for r in ev.needs_review)
+    if not ev.address and not ev.location and not already:
         ev.needs_review.append("장소/주소 추출 실패 → 확인 필요")
 
 
@@ -206,6 +246,12 @@ def parse_audience(block: str, ev: Event) -> None:
         # 대상 뒤에 이어지는 다른 정보(주소/장소/연결어)에서 끊어준다.
         a = re.split(r"\s*(?:이고|이며|이구|고\s|그리고|주소|장소|에서|입니다)", m.group(1))[0]
         ev.audience = _clean(a)
+        return
+    # '대상' 단어가 없어도 '학부모 50명 / 교사 25명 / 한 40명' 같은 표현 포착
+    m = re.search(r"([가-힣]{2,}\s*)?(?:한\s*)?(\d{1,4})\s*명", block)
+    if m:
+        role = re.sub(r"(인원|총|약|한|모두|대략|예상|정도)\s*", "", (m.group(1) or "")).strip()
+        ev.audience = _clean(f"{role} {m.group(2)}명".strip())
 
 
 def is_lecture(block: str) -> bool:

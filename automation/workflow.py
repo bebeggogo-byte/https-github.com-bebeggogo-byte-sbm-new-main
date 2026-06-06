@@ -163,7 +163,7 @@ def cmd_init(input_file: str, theme: str | None) -> None:
 
 def first_incomplete(lec: dict) -> str | None:
     for s in ORDER:
-        if lec["stages"].get(s, {}).get("status") != "done":
+        if lec["stages"].get(s, {}).get("status") not in ("done", "skipped"):
             return s
     return None
 
@@ -201,6 +201,11 @@ def cmd_run(auto: bool = False, send: bool = False) -> None:
                 print(f"   ⏸ 수동/예약 단계: {STAGE_NAME[s]} "
                       f"(connectors/record_scheduler.py 로 녹음 → attach-transcript)")
                 break
+            # 날짜/시간이 없으면 캘린더는 등록 불가 → '건너뜀'으로 명시하고 다음 단계 계속
+            if s == "CALENDAR" and not (lec["event"].get("date") and lec["event"].get("start_time")):
+                cur["status"] = "skipped"; cur["at"] = now()
+                print("   ⤼ 캘린더 건너뜀: 날짜/시간 미확정 (일정 확정 후 .ics 재생성)")
+                continue
             # 발송은 무인 모드라도 --send 없이는 멈춤(오발송 방지)
             if s == "DELIVER" and auto and not send:
                 cur["status"] = "waiting"
@@ -256,6 +261,8 @@ def bar(lec: dict) -> str:
         stt = lec["stages"].get(s, {}).get("status")
         if stt == "done":
             icons.append("●")
+        elif stt == "skipped":
+            icons.append("⊘")
         elif stt in ("pending_review", "waiting", "blocked"):
             icons.append("◍")
         else:
@@ -268,7 +275,7 @@ def cmd_status() -> None:
     if not st["lectures"]:
         print("등록된 강의가 없습니다. `python workflow.py init <messages.txt>`")
         return
-    print("진행판  (●완료 ◍대기 ○예정)\n" + "=" * 60)
+    print("진행판  (●완료 ◍대기 ⊘건너뜀 ○예정)\n" + "=" * 60)
     for lec in st["lectures"]:
         s = first_incomplete(lec)
         nxt = "🎉 완료" if s is None else f"다음: {STAGE_NAME[s]}"
@@ -291,7 +298,8 @@ def cmd_show(lid: str) -> None:
     for i, s in enumerate(ORDER):
         stt = lec["stages"].get(s, {})
         mark = {"done": "✅", "pending_review": "⛳", "waiting": "⏸",
-                "blocked": "⏸", "approved": "✅", "pending": "·"}.get(stt.get("status"), "·")
+                "blocked": "⏸", "approved": "✅", "skipped": "⤼",
+                "pending": "·"}.get(stt.get("status"), "·")
         at = f"  ({stt['at']})" if stt.get("at") else ""
         print(f"  {mark} {i+1:2}. {STAGE_NAME[s]}{at}")
 
