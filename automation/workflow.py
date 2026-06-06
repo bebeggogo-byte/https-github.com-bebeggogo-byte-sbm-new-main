@@ -168,7 +168,7 @@ def first_incomplete(lec: dict) -> str | None:
     return None
 
 
-def cmd_run() -> None:
+def cmd_run(auto: bool = False, send: bool = False) -> None:
     st = load_state()
     for lec in st["lectures"]:
         print(f"\n▶ {lec['id']}")
@@ -183,14 +183,29 @@ def cmd_run() -> None:
                 if cur.get("status") == "approved":
                     cur["status"] = "done"; cur["at"] = now()
                     continue
+                # 무인 모드: 신뢰 구간은 자동 통과. 단, 일정에 사실확인 경고가
+                # 있으면 '일정 검수'는 사람이 보도록 멈춘다(안전장치).
+                if auto:
+                    risky = s == "REVIEW_SCHEDULE" and lec["event"].get("needs_review")
+                    if not risky:
+                        cur["status"] = "done"; cur["at"] = now()
+                        print(f"   ✅(auto) 검수 통과: {STAGE_NAME[s]}")
+                        continue
                 cur["status"] = "pending_review"
-                print(f"   ⛳ 검수 대기: {STAGE_NAME[s]}  → "
+                tag = " ⚠️경고있음" if lec["event"].get("needs_review") else ""
+                print(f"   ⛳ 검수 대기: {STAGE_NAME[s]}{tag}  → "
                       f"`python workflow.py approve {lec['id']} {s}`")
                 break
             if kind == "manual":
                 cur["status"] = "waiting"
                 print(f"   ⏸ 수동/예약 단계: {STAGE_NAME[s]} "
                       f"(connectors/record_scheduler.py 로 녹음 → attach-transcript)")
+                break
+            # 발송은 무인 모드라도 --send 없이는 멈춤(오발송 방지)
+            if s == "DELIVER" and auto and not send:
+                cur["status"] = "waiting"
+                print("   ⏸ 발송 대기: 안전을 위해 자동 발송 안 함. "
+                      "`python workflow.py run --auto --send` 또는 connectors/deliver.py 로 발송.")
                 break
             # auto / post_record
             print(f"   ⚙️ {STAGE_NAME[s]}")
@@ -286,7 +301,9 @@ def main() -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("init"); p.add_argument("input"); p.add_argument("--theme")
     sub.add_parser("status")
-    sub.add_parser("run")
+    p = sub.add_parser("run")
+    p.add_argument("--auto", action="store_true", help="검수 자동통과(경고 일정은 제외)")
+    p.add_argument("--send", action="store_true", help="무인 모드에서 결과 발송까지 허용")
     p = sub.add_parser("approve"); p.add_argument("id"); p.add_argument("stage", nargs="?")
     p = sub.add_parser("attach-transcript"); p.add_argument("id"); p.add_argument("txt")
     p = sub.add_parser("show"); p.add_argument("id")
@@ -297,7 +314,7 @@ def main() -> None:
     elif args.cmd == "status":
         cmd_status()
     elif args.cmd == "run":
-        cmd_run()
+        cmd_run(auto=args.auto, send=args.send)
     elif args.cmd == "approve":
         cmd_approve(args.id, args.stage)
     elif args.cmd == "attach-transcript":
