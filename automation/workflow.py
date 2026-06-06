@@ -161,6 +161,14 @@ def cmd_init(input_file: str, theme: str | None) -> None:
           "검수 후 `approve`, 그다음 `run`.")
 
 
+# 무인 모드에서 '일정 검수'를 멈춰 세우는 위험 신호(약한 경고는 자동 통과)
+HARD_WARN = ("추출 실패", "불일치", "미정", "상대 날짜")
+
+
+def is_risky(event: dict) -> bool:
+    return any(any(h in r for h in HARD_WARN) for r in event.get("needs_review", []))
+
+
 def first_incomplete(lec: dict) -> str | None:
     for s in ORDER:
         if lec["stages"].get(s, {}).get("status") not in ("done", "skipped"):
@@ -183,10 +191,10 @@ def cmd_run(auto: bool = False, send: bool = False) -> None:
                 if cur.get("status") == "approved":
                     cur["status"] = "done"; cur["at"] = now()
                     continue
-                # 무인 모드: 신뢰 구간은 자동 통과. 단, 일정에 사실확인 경고가
-                # 있으면 '일정 검수'는 사람이 보도록 멈춘다(안전장치).
+                # 무인 모드: 신뢰 구간은 자동 통과. 단, 일정 검수는 '위험한' 경고가
+                # 있을 때만 멈춘다(약한 경고: 연도 미기재 등은 자동 통과).
                 if auto:
-                    risky = s == "REVIEW_SCHEDULE" and lec["event"].get("needs_review")
+                    risky = s == "REVIEW_SCHEDULE" and is_risky(lec["event"])
                     if not risky:
                         cur["status"] = "done"; cur["at"] = now()
                         print(f"   ✅(auto) 검수 통과: {STAGE_NAME[s]}")
@@ -308,6 +316,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="강의업무 워크플로우 오케스트레이터")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("init"); p.add_argument("input"); p.add_argument("--theme")
+    p = sub.add_parser("auto"); p.add_argument("input"); p.add_argument("--theme")
     sub.add_parser("status")
     p = sub.add_parser("run")
     p.add_argument("--auto", action="store_true", help="검수 자동통과(경고 일정은 제외)")
@@ -317,7 +326,12 @@ def main() -> None:
     p = sub.add_parser("show"); p.add_argument("id")
     args = ap.parse_args()
 
-    if args.cmd == "init":
+    if args.cmd == "auto":
+        cmd_init(args.input, args.theme)
+        print("\n— 오토파일럿: 자동 진행 —")
+        cmd_run(auto=True, send=False)
+        cmd_status()
+    elif args.cmd == "init":
         cmd_init(args.input, args.theme)
     elif args.cmd == "status":
         cmd_status()

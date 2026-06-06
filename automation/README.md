@@ -19,7 +19,9 @@
 
 ```bash
 python connectors/kakao_ingest.py chat.txt -o inputs/messages.txt  # 인입
-python workflow.py init inputs/messages.txt   # 등록(인입+파싱)
+python workflow.py auto inputs/messages.txt   # ⭐ 오토파일럿(인입→파싱→자료까지 한 방)
+#   확정 일정은 끝까지 자동, 불확실한 건(상대날짜·추출실패 등)만 검수에서 멈춤
+python workflow.py init inputs/messages.txt   # (수동) 등록만
 python workflow.py status                     # 진행판 (●완료 ◍대기 ○예정)
 python workflow.py run                         # 검수 게이트 직전까지 자동 진행
 python workflow.py approve <강의id>            # 검수 통과 → 다시 run
@@ -122,6 +124,10 @@ python make_slides.py --from-events output/events.json --index 0 --theme acme -o
 
 > 새 고객사가 오면: `theme.py new` 로 토큰 생성 → 브랜드 색/폰트/로고문구만 채우면
 > 슬라이드·워크지·커리큘럼이 모두 그 고객사 룩으로 자동 출력됩니다.
+
+**발신자 자동 매핑** (`themes/contacts.json`): 내용에 고객 키워드가 없어도
+'누가 보냈는지'(이름·전화·이메일·기관명)로 고객 테마를 자동 결정합니다.
+예: `"nedabah": ["한빛교회","이집사","박간사", ...]` → 그 발신자의 메시지는 자동으로 nedabah 룩.
 
 ## ✅ 자동 사실확인(needs_review)
 

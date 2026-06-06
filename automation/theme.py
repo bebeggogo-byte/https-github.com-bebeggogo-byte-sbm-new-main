@@ -30,7 +30,7 @@ def _path(name: str) -> str:
 def list_themes() -> list[dict]:
     out = []
     for fn in sorted(os.listdir(THEME_DIR)):
-        if fn.endswith(".json") and not fn.startswith("_"):
+        if fn.endswith(".json") and not fn.startswith("_") and fn != "contacts.json":
             out.append(json.load(open(os.path.join(THEME_DIR, fn), encoding="utf-8")))
     return out
 
@@ -49,10 +49,24 @@ def event_text(event: dict) -> str:
     return " ".join(str(event.get(k, "")) for k in keys).lower()
 
 
+def load_contacts() -> dict:
+    """발신자 → 고객 테마 매핑표 (themes/contacts.json)."""
+    p = os.path.join(THEME_DIR, "contacts.json")
+    if not os.path.exists(p):
+        return {}
+    raw = json.load(open(p, encoding="utf-8"))
+    return {k: v for k, v in raw.items() if not k.startswith("_")}
+
+
 def classify(event: dict) -> tuple[str, int]:
-    """일정 → (테마이름, 점수). 명시적 event['client'] 가 있으면 우선."""
+    """일정 → (테마이름, 점수). 우선순위: ①event['client'] ②발신자 연락처 ③내용 키워드."""
     forced = (event.get("client") or "").strip().lower()
     text = event_text(event)
+    # ② 발신자 연락처 매핑(강한 신호) — 내용 키워드보다 우선
+    for theme_name, idents in load_contacts().items():
+        for ident in idents:
+            if ident and ident.lower() in text:
+                return theme_name, 100
     best, best_score = "default", 0
     for th in list_themes():
         if th["name"] == "default":
