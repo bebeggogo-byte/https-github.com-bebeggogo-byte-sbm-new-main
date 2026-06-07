@@ -1,0 +1,49 @@
+name: 강의 오토파일럿 (스케줄)
+
+# 매일 정해진 시각에 인입→파싱→자료 생성까지 무인 실행하고 산출물을 올립니다.
+# 이메일 인입을 켜려면 저장소 Secrets 에 IMAP_HOST/EMAIL_USER/EMAIL_PASS 등록.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 22 * * *"   # 매일 07:00 KST (UTC 22:00)
+
+jobs:
+  autopilot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: 의존성
+        run: pip install -r automation/requirements.txt
+
+      - name: 인입 결정 (이메일 시크릿 있으면 메일, 없으면 기존 입력)
+        id: pick
+        env:
+          IMAP_HOST: ${{ secrets.IMAP_HOST }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        run: |
+          cd automation
+          if [ -n "$IMAP_HOST" ] && [ -n "$EMAIL_USER" ]; then
+            python connectors/email_ingest.py -o inputs/messages.txt || true
+            echo "input=inputs/messages.txt" >> "$GITHUB_OUTPUT"
+          elif [ -f inputs/messages.txt ]; then
+            echo "input=inputs/messages.txt" >> "$GITHUB_OUTPUT"
+          else
+            echo "input=inputs/sample_messages.txt" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 오토파일럿 (확정 일정 자동 진행, 불확실 건은 검수 대기)
+        run: |
+          cd automation
+          python workflow.py auto "${{ steps.pick.outputs.input }}"
+          python workflow.py pending || true
+
+      - name: 산출물 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: lecture-autopilot
+          path: automation/workspace/
+          retention-days: 30

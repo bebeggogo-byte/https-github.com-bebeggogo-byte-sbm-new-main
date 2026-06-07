@@ -278,6 +278,39 @@ def bar(lec: dict) -> str:
     return "".join(icons)
 
 
+def cmd_pending() -> None:
+    """지금 '사람'이 해야 할 일만 모아 보여준다(검수 대기 + 다가오는 녹음)."""
+    st = load_state()
+    reviews, records, done = [], [], 0
+    for lec in st["lectures"]:
+        s = first_incomplete(lec)
+        if s is None:
+            done += 1
+            continue
+        if STAGE_KIND[s] == "checkpoint":
+            reviews.append((lec, s))
+        elif STAGE_KIND[s] == "manual":
+            records.append(lec)
+    print("📌 나를 기다리는 일\n" + "=" * 52)
+    if reviews:
+        print("⛳ 검수 필요:")
+        for lec, s in reviews:
+            warn = "  ⚠️" + ", ".join(lec["event"].get("needs_review", [])) \
+                   if lec["event"].get("needs_review") else ""
+            print(f"   • {lec['id']} — {STAGE_NAME[s]}{warn}")
+            print(f"     → python workflow.py approve {lec['id']}")
+    if records:
+        print("\n🎙️ 녹음 예정(예약 등록 가능):")
+        for lec in records:
+            e = lec["event"]
+            print(f"   • {e.get('date','?')} {e.get('start_time','?')} {lec['id']}")
+        print("     → python connectors/schedule_recording.py workflow_state.json")
+    if not reviews and not records:
+        print("✅ 대기 중인 작업 없음.")
+    print("=" * 52)
+    print(f"완료 {done} · 검수대기 {len(reviews)} · 녹음대기 {len(records)}")
+
+
 def cmd_status() -> None:
     st = load_state()
     if not st["lectures"]:
@@ -318,6 +351,7 @@ def main() -> None:
     p = sub.add_parser("init"); p.add_argument("input"); p.add_argument("--theme")
     p = sub.add_parser("auto"); p.add_argument("input"); p.add_argument("--theme")
     sub.add_parser("status")
+    sub.add_parser("pending")
     p = sub.add_parser("run")
     p.add_argument("--auto", action="store_true", help="검수 자동통과(경고 일정은 제외)")
     p.add_argument("--send", action="store_true", help="무인 모드에서 결과 발송까지 허용")
@@ -335,6 +369,8 @@ def main() -> None:
         cmd_init(args.input, args.theme)
     elif args.cmd == "status":
         cmd_status()
+    elif args.cmd == "pending":
+        cmd_pending()
     elif args.cmd == "run":
         cmd_run(auto=args.auto, send=args.send)
     elif args.cmd == "approve":

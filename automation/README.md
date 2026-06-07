@@ -25,8 +25,12 @@ python workflow.py init inputs/messages.txt   # (수동) 등록만
 python workflow.py status                     # 진행판 (●완료 ◍대기 ○예정)
 python workflow.py run                         # 검수 게이트 직전까지 자동 진행
 python workflow.py approve <강의id>            # 검수 통과 → 다시 run
+python workflow.py pending                     # 📌 나를 기다리는 일만 모아보기(검수·녹음)
 python workflow.py attach-transcript <id> transcript.txt   # 녹음 후 전사본 연결
+python connectors/schedule_recording.py workflow_state.json -o register.sh  # 녹음 예약 등록
 ```
+- **무인 운영**: `.github/workflows/daily-autopilot.yml` 가 매일 인입→자료 생성까지 자동 실행(검수 필요 건은 대기).
+- **녹음 예약**: `schedule_recording.py` 가 강의 시작 시각에 자동 녹음되도록 OS 예약(at/schtasks)을 등록.
 각 강의는 `workspace/<id>/` 에 calendar.ics·curriculum.pdf·slides.pptx·worksheet·report.html 로 쌓입니다.
 
 ## ⚡ 빠른 시작 (원클릭, 단일 강의 일괄)
