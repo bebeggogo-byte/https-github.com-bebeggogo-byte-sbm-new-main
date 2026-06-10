@@ -21,3 +21,11 @@ pillow>=10.0
 
 # 선택: 강의 녹음 전사 (transcribe.py)  — 시스템에 ffmpeg 필요
 faster-whisper>=1.0
+
+# 선택: 워터마크/로고 지우개 (tools/erase_watermark.py)
+opencv-python-headless>=4.8
+numpy>=1.24
+pymupdf>=1.23
+
+# 선택: 노트북LM 직접 제어 (로컬 실행) — connectors/nlm_slides.sh
+notebooklm-mcp-cli>=0.7

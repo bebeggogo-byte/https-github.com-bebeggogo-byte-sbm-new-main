@@ -100,26 +100,27 @@ def add_slide(prs, s: dict, th: dict) -> None:
 
 
 def slides_from_event(e: dict) -> list[dict]:
-    """events.json 1건 → 표준 슬라이드 개요 자동 생성."""
+    """events.json 1건 → 대상(공공기관/학생/일반) 맞춤 슬라이드 개요 자동 생성."""
+    import audience as aud
     title = e.get("title", "강의")
     subject = e.get("subject") or title
-    audience = e.get("audience") or "참석자"
-    return [
-        {"title": title, "subtitle": subject,
-         "objective": f"{audience} 대상 · 핵심 개념과 목표 공유",
-         "bullets": ["오늘 함께 다룰 질문", "왜 지금 이 주제인가",
-                     "강의의 흐름: 개념 → 적용 → 결단"]},
-        {"title": "핵심 개념", "subtitle": subject,
-         "objective": "개념의 근거를 설명한다",
-         "bullets": ["핵심 개념 정의", "근거와 출처", "흔한 오해와 바로잡기"]},
-        {"title": "적용과 사례", "subtitle": "현장으로 가져오기",
-         "objective": "주제를 자신의 상황에 적용한다",
-         "bullets": ["현장 사례 / 통계", f"{audience}을 위한 적용 질문",
-                     "조별 나눔: 나의 한 걸음"]},
-        {"title": "통합과 결단", "subtitle": "오늘의 메시지",
-         "objective": "실천 결단문을 작성한다",
-         "bullets": ["오늘의 통합 메시지", "한 줄 결단문 작성", "후속 동행"]},
-    ]
+    who = e.get("audience") or "참석자"
+    name, p = aud.resolve(e)
+    struct = p["structure"]  # 대상별 권장 구성(섹션 제목)
+
+    # 표지 + 구성 단계별 슬라이드
+    slides = [{"title": title, "subtitle": subject,
+               "objective": f"{p['display']} 대상 · {p['objective_style']}",
+               "bullets": [f"오늘 함께 볼 것: {' → '.join(struct)}",
+                           "왜 지금 이 주제인가",
+                           f"진행 방식: {p['interaction']} 상호작용"]}]
+    for sec in struct:
+        slides.append({
+            "title": sec, "subtitle": subject,
+            "objective": p["objective_style"],
+            "bullets": [f"{sec} 핵심 1", f"{sec} 핵심 2",
+                        f"{who} 맞춤: {p['examples']} 활용"]})
+    return slides
 
 
 def main() -> None:
