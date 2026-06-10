@@ -21,3 +21,7 @@ credentials.json
 token.json
 .mcp.json
 connectors/.nblm_profile/
+
+# 노트북LM 세션 쿠키 (비밀번호급 민감정보!)
+cookies.txt
+*.cookies
