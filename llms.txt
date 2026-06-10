@@ -23,6 +23,7 @@
 - [강의보다 워크숍이 남는 이유](https://nedabah.org/programs/workshop/why-workshops-stick/): Freeman(2014) 메타분석
 
 ## 안내 (Info)
+- [소개 About](https://nedabah.org/about/): 단체 정체성·가치·운영 방식
 - [자주 묻는 질문 FAQ](https://nedabah.org/faq/): 참여·비용·온라인 여부·후원
 - [후원·참여·협력](https://nedabah.org/support/)
 - [English](https://nedabah.org/en/): English landing page
