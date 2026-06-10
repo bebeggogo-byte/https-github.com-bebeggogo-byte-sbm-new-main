@@ -31,4 +31,5 @@
 ## Optional
 - [무료 학습 노트 템플릿](https://nedabah.org/notes/templates/study-note/)
 - [RSS](https://nedabah.org/feed.xml)
+- [JSON Feed](https://nedabah.org/feed.json)
 - [Sitemap](https://nedabah.org/sitemap.xml)
