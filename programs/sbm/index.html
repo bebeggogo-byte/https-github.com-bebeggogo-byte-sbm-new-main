@@ -20,6 +20,7 @@
     <meta property="og:locale" content="ko_KR">
     <meta name="theme-color" content="#6b4423">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/manifest.json">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -53,6 +54,35 @@
         {"@type":"Question","name":"성경을 잘 몰라도 괜찮나요?","acceptedAnswer":{"@type":"Answer","text":"괜찮습니다. SBM은 지식 전달이 아니라 한 구절을 함께 곱씹고 삶으로 옮기는 묵상–나눔–실천 흐름입니다. 정답이 아니라 솔직함을 나눕니다."}},
         {"@type":"Question","name":"비용이 드나요?","acceptedAnswer":{"@type":"Answer","text":"정기 모임 참여 자체는 무료입니다. 네다바웨이는 자발적 후원과 협력으로 운영됩니다."}}
       ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "SBM 말씀묵상 모임",
+      "description": "매주 수요일, 말씀 묵상–나눔–실천을 한 흐름으로 진행하는 무료 정기 모임. 누구나 참여할 수 있습니다.",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "isAccessibleForFree": true,
+      "eventSchedule": {
+        "@type": "Schedule",
+        "byDay": "https://schema.org/Wednesday",
+        "repeatFrequency": "P1W",
+        "scheduleTimezone": "Asia/Seoul"
+      },
+      "location": {
+        "@type": "Place",
+        "name": "네다바웨이",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "일주동로 9141, 2층(법환동)",
+          "addressLocality": "서귀포시",
+          "addressRegion": "제주특별자치도",
+          "addressCountry": "KR"
+        }
+      },
+      "organizer": { "@type": "Organization", "name": "Nedabah Way", "url": "https://nedabah.org" }
     }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
