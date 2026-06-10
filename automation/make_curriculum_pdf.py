@@ -113,11 +113,15 @@ def ai_sections(e: dict) -> list[tuple[str, list[str]]]:
     return [(s[0], s[1]) for s in json.loads(txt)]
 
 
-def build_pdf(e: dict, out: str, use_ai: bool, th: dict) -> None:
+def build_pdf(e: dict, out: str, use_ai: bool, th: dict, content: str | None = None) -> None:
     pal = th["palette"]
     line_color = "#" + pal["line"]
     st = styles(pal)
-    sections = ai_sections(e) if use_ai else default_sections(e)
+    if content:
+        # 외부 집필 내용(JSON: [["섹션제목", ["불릿", ...]], ...]) 주입
+        sections = [(s[0], s[1]) for s in json.load(open(content, encoding="utf-8"))]
+    else:
+        sections = ai_sections(e) if use_ai else default_sections(e)
 
     doc = SimpleDocTemplate(out, pagesize=A4,
                             leftMargin=22*mm, rightMargin=22*mm,
@@ -154,6 +158,7 @@ def main() -> None:
     ap.add_argument("-o", "--output", default="output/curriculum.pdf")
     ap.add_argument("--theme", help="고객사 테마 강제 지정(미지정 시 자동 분류)")
     ap.add_argument("--ai", action="store_true", help="Claude 로 본문 생성")
+    ap.add_argument("--content", help="집필된 섹션 JSON([[제목,[불릿...]],...]) 주입")
     args = ap.parse_args()
 
     events = json.load(open(args.input, encoding="utf-8"))
@@ -164,7 +169,7 @@ def main() -> None:
     use_ai = args.ai and os.getenv("ANTHROPIC_API_KEY")
     if args.ai and not use_ai:
         print("⚠️  ANTHROPIC_API_KEY 미설정 — 템플릿 본문으로 대체.")
-    build_pdf(e, args.output, use_ai, th)
+    build_pdf(e, args.output, use_ai, th, content=args.content)
     print(f"✅ 커리큘럼 PDF 생성 → {args.output}  (NotebookLM 소스로 업로드)")
 
 
