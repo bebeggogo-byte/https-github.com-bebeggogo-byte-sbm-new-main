@@ -28,29 +28,55 @@ import numpy as np
 
 def erase_region(img: np.ndarray, corner: str, hf: float, wf: float,
                  thresh: int, pad: int) -> np.ndarray:
-    """corner 영역에서 배경과 다른 픽셀(로고/글자)을 마스킹해 인페인트."""
+    """코너의 '로고 같은' 작고 고립된 덩어리만 골라 인페인트.
+    가로로 길거나(밑줄/박스 가로변) 세로로 긴(박스 세로변) 선은 보존한다."""
     H, W = img.shape[:2]
-    rh, rw = int(H * hf), int(W * wf)
-    y0 = H - rh if "b" in corner else 0
-    y1 = H if "b" in corner else rh
-    x0 = W - rw if "r" in corner else 0
-    x1 = W if "r" in corner else rw
+    # 탐지 밴드: 코너의 세로 범위를 '전체 너비'로 잡아, 가로로 뻗는 박스선을
+    # 하나의 큰 컴포넌트로 인식해 제외할 수 있게 한다.
+    rh = max(8, int(H * hf))
+    by0 = H - rh if "b" in corner else 0
+    by1 = H if "b" in corner else rh
+    band = img[by0:by1, :]
+    gray = cv2.cvtColor(band, cv2.COLOR_BGR2GRAY)
+    # 배경색 = 밴드 좌/우 가장자리(로고 없는 쪽)의 중앙값
+    edge = np.concatenate([gray[:, :3].ravel(), gray[:, -3:].ravel()])
+    bg = int(np.median(edge))
+    fg = (np.abs(gray.astype(int) - bg) > thresh).astype(np.uint8)
+    if fg.sum() == 0:
+        return img
 
-    roi = img[y0:y1, x0:x1]
-    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-    # 배경색 추정: ROI 가장자리(로고가 없는 쪽)의 중앙값
-    border = np.concatenate([gray[0, :], gray[-1, :], gray[:, 0], gray[:, -1]])
-    bg = int(np.median(border))
-    # 배경과 충분히 다른 픽셀 = 로고/글자
-    mask_roi = (np.abs(gray.astype(int) - bg) > thresh).astype(np.uint8) * 255
-    if mask_roi.sum() == 0:
-        return img  # 지울 것 없음
-    # 마스크를 약간 키워 글자 경계까지 확실히 덮기
-    mask_roi = cv2.dilate(mask_roi, np.ones((pad, pad), np.uint8), iterations=1)
+    # 코너 가로 위치 한계(로고가 있어야 할 영역)
+    x_lo = W * (1 - wf) if "r" in corner else 0
+    x_hi = W * wf if "l" in corner else W
+    bh = band.shape[0]
+
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(fg, 8)
+    keep = np.zeros_like(fg)
+    for i in range(1, n):
+        x, y, w, h, area = stats[i]
+        # 1) 너무 넓음 → 가로 선/박스 가로변 → 보존(제외)
+        if w > W * 0.16:
+            continue
+        # 2) 밴드 높이를 거의 꽉 채움 → 세로 선/박스 세로변 → 보존(제외)
+        if h >= bh * 0.85:
+            continue
+        # 3) 코너 영역 밖 → 제외
+        cx = x + w / 2
+        if "r" in corner and cx < x_lo:
+            continue
+        if "l" in corner and cx > x_hi:
+            continue
+        # 4) 면적이 지나치게 작은 잡티(점)는 무시(선택)
+        if area < 3:
+            continue
+        keep[labels == i] = 255
+
+    if keep.sum() == 0:
+        return img
+    keep = cv2.dilate(keep, np.ones((pad, pad), np.uint8), iterations=1)
 
     full_mask = np.zeros((H, W), np.uint8)
-    full_mask[y0:y1, x0:x1] = mask_roi
-    # TELEA 인페인팅: 마스크 영역을 주변 배경으로 복원
+    full_mask[by0:by1, :] = keep
     return cv2.inpaint(img, full_mask, 4, cv2.INPAINT_TELEA)
 
 
@@ -118,8 +144,8 @@ def main() -> None:
     ap.add_argument("input")
     ap.add_argument("-o", "--output", required=True)
     ap.add_argument("--corner", default="br", help="br/bl/tr/tl (기본 br=우하단)")
-    ap.add_argument("--h", type=float, default=0.14, help="코너 높이 비율(기본 0.14)")
-    ap.add_argument("--w", type=float, default=0.32, help="코너 너비 비율(기본 0.32)")
+    ap.add_argument("--h", type=float, default=0.08, help="탐지 밴드 높이 비율(기본 0.08)")
+    ap.add_argument("--w", type=float, default=0.18, help="로고 가로 위치 한계 비율(기본 0.18)")
     ap.add_argument("--thresh", type=int, default=28, help="배경 대비 임계값")
     ap.add_argument("--pad", type=int, default=5, help="마스크 확장(px)")
     args = ap.parse_args()
