@@ -45,7 +45,9 @@ python workflow.py approve <id>               # 검수 통과
 | 커리큘럼 PDF | `make_curriculum_pdf.py --content <집필.json>` |
 | 슬라이드 PPTX(흰배경·좌상단·출처6pt) | `make_slides.py` |
 | 워크지 | `make_worksheet.py` |
+| 구글캘린더 일정 읽기 | `connectors/gcal_pull.py` → events.json |
 | 강의 녹음(예약)→전사→보고서 | `connectors/record_scheduler.py`, `transcribe.py`, `lecture_report.py` |
+| 슬라이드 vs 강사 발화 깊이차이 | `gap_analysis.py --slides deck.pptx --transcript t.txt` |
 | 로고/워터마크 삭제 | `tools/erase_watermark.py` |
 | 대상별 접근(공공기관/학생) | `audience.py` — 자동 분류, 톤·구성 차등 |
 | 고객사 브랜드 테마 | `theme.py`, `themes/`, `themes/contacts.json` |

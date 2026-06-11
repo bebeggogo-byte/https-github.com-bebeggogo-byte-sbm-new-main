@@ -76,19 +76,36 @@ def wait_until(target: datetime) -> None:
         time.sleep(min(delta, 30))
 
 
-def post_process(audio: str, event: dict, events_path: str, index: int) -> None:
-    """녹음 후: 전사 → 강의보고서(HTML) 자동 실행."""
+def post_process(audio: str, event: dict, events_path: str, index: int,
+                 slides: str | None = None, keep_audio: bool = False) -> None:
+    """녹음 후: 전사 → 보고서 → (슬라이드 있으면)깊이차이 분석 → 녹음 자동 삭제."""
     txt = os.path.splitext(audio)[0] + ".txt"
     rep = os.path.join(ROOT, "output", f"report_{index:02d}.html")
+    gap = os.path.join(ROOT, "output", f"gap_{index:02d}.html")
     py = sys.executable
     print("📝 전사 시작…")
     r = subprocess.run([py, os.path.join(ROOT, "transcribe.py"), audio, "-o", txt])
     if r.returncode != 0 or not os.path.exists(txt):
-        print("⚠️ 전사 실패/건너뜀 — 보고서는 전사본이 있어야 생성됩니다.")
+        print("⚠️ 전사 실패/건너뜀 — 녹음은 보존합니다(재시도 가능).")
         return
     print("📄 강의보고서 생성…")
     subprocess.run([py, os.path.join(ROOT, "lecture_report.py"), txt,
                     "--event", events_path, "--index", str(index), "-o", rep])
+    # 슬라이드가 주어지면 '슬라이드 vs 발화 깊이 차이' 분석
+    if slides and os.path.exists(slides):
+        print("🔬 슬라이드 vs 발화 깊이 차이 분석…")
+        subprocess.run([py, os.path.join(ROOT, "gap_analysis.py"),
+                        "--slides", slides, "--transcript", txt,
+                        "--event", events_path, "--index", str(index), "-o", gap])
+    # 전사·보고서가 모두 생성됐으면 큰 녹음파일 자동 삭제
+    if not keep_audio and os.path.exists(txt) and os.path.exists(rep):
+        try:
+            size = os.path.getsize(audio) / 1e6
+            os.remove(audio)
+            print(f"🗑️  녹음 파일 삭제(용량 절약 {size:.0f}MB): {os.path.basename(audio)}")
+            print("    (전사본 .txt 는 보존 — 내용은 남고 용량만 비움)")
+        except OSError as e:
+            print(f"⚠️ 녹음 삭제 실패: {e}")
 
 
 def main() -> None:
@@ -100,6 +117,8 @@ def main() -> None:
     ap.add_argument("--now", type=int, help="즉시 N초 녹음(테스트)")
     ap.add_argument("--input", help='ffmpeg 입력 인자 덮어쓰기(예: "-f pulse -i default")')
     ap.add_argument("--then-report", action="store_true", help="녹음 후 전사+보고서 자동")
+    ap.add_argument("--slides", help="강의 슬라이드 PPTX (깊이 차이 분석용)")
+    ap.add_argument("--keep-audio", action="store_true", help="작업 후 녹음 파일 보존(기본: 자동 삭제)")
     ap.add_argument("-o", "--output", help="출력 경로(--now 용)")
     args = ap.parse_args()
 
@@ -146,7 +165,8 @@ def main() -> None:
         if d > datetime.now():
             wait_until(d)
         if record(out, secs, input_args) and args.then_report:
-            post_process(out, e, args.events, i)
+            post_process(out, e, args.events, i,
+                         slides=args.slides, keep_audio=args.keep_audio)
 
 
 if __name__ == "__main__":
