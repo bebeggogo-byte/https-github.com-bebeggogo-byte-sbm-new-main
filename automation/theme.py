@@ -79,6 +79,10 @@ def classify(event: dict) -> tuple[str, int]:
                 score += 1
         if score > best_score:
             best, best_score = th["name"], score
+    # 단일 키워드 1점은 우연 매칭(예: 지명 '제주')일 수 있어 신뢰하지 않고 default.
+    # 확실히 묶으려면 themes/contacts.json(발신자) 또는 event['client']/--theme 사용.
+    if best_score < 2:
+        return "default", best_score
     return best, best_score
 
 
