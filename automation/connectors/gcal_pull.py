@@ -19,7 +19,7 @@ import os
 import re
 from datetime import datetime, timedelta, timezone
 
-SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
+SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 LECTURE_KW = ["강의", "특강", "세미나", "워크숍", "워크샵", "강연", "수업", "교육", "강좌"]
 KST = timezone(timedelta(hours=9))
 
