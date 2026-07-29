@@ -1,6 +1,8 @@
 # 모든 일반 검색엔진 허용
 User-agent: *
 Allow: /
+# 운영 관제 센터(내부 관리용)는 색인 제외
+Disallow: /manage/
 
 # AI 검색·생성엔진 수집 명시 허용 (GEO/AEO 노출 기반)
 User-agent: GPTBot
