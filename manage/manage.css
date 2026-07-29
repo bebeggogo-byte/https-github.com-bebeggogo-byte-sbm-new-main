@@ -146,6 +146,38 @@ td.wrap,th.wrap{white-space:normal}
 /* 토스트 */
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;z-index:80;box-shadow:var(--shadow)}
 
+/* PIN 잠금 */
+.lock-screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.lock-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:32px;width:100%;max-width:320px;text-align:center}
+.lock-emoji{font-size:34px}
+.lock-box h2{margin:10px 0 2px;font-size:18px}
+.lock-box input{text-align:center;font-size:22px;letter-spacing:8px;margin:16px 0;padding:12px}
+.lock-box .btn{width:100%;justify-content:center}
+.lock-err{color:var(--danger);font-size:12px;margin-top:10px}
+
+/* 금액 */
+.amt{font-variant-numeric:tabular-nums;font-weight:700}
+.amt.neg{color:var(--danger)}
+.amt.pos{color:var(--accent)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.badge.paid{background:var(--accent-2);color:var(--accent)}
+.badge.unpaid{background:#f6e6e6;color:var(--danger)}
+.badge.partial{background:#fbf3d9;color:var(--wait)}
+.badge.exempt{background:#eef1f6;color:#556}
+.badge.new{background:#e6eefb;color:#3a5aa5}
+.badge.progress{background:#fbf3d9;color:var(--wait)}
+.badge.done{background:var(--accent-2);color:var(--accent)}
+.badge.regular{background:var(--accent-2);color:var(--accent)}
+.badge.onetime{background:#eef1f6;color:#556}
+.badge.lapsed{background:#f6e6e6;color:var(--danger)}
+.overdue{color:var(--danger);font-weight:700}
+.todo-done{opacity:.5;text-decoration:line-through}
+.cert-card{border:2px solid var(--brand);border-radius:12px;padding:28px;text-align:center;background:#fffdf9}
+.cert-card .ct{font-size:13px;letter-spacing:4px;color:var(--muted)}
+.cert-card .cn{font-size:26px;font-weight:800;margin:10px 0}
+.cert-card .cb{font-size:14px;line-height:1.9;margin:14px 0}
+.seg-quick{display:flex;gap:6px;flex-wrap:wrap}
+
 /* 메시지 미리보기 */
 .msg-preview{background:#fbf9f5;border:1px solid var(--line);border-radius:10px;padding:12px;white-space:pre-wrap;font-size:13px;line-height:1.6;min-height:80px}
 .var-list{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}

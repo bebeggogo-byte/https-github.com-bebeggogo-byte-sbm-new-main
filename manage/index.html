@@ -26,31 +26,47 @@
       <button data-tab="students">접수·수강생</button>
       <button data-tab="courses">강좌·회차</button>
       <button data-tab="attendance">출석부</button>
+      <button data-tab="certs">수료</button>
       <button data-tab="segments">세그먼트</button>
       <button data-tab="messages">메시지·설문</button>
+      <button data-tab="finance">재무·정산</button>
+      <button data-tab="donors">후원</button>
+      <button data-tab="inbox">문의</button>
+      <button data-tab="todos">할일</button>
       <button data-tab="data">데이터</button>
     </nav>
     <div class="topbar-actions">
+      <button class="icon-btn" id="lockBtn" title="화면 잠금" hidden>🔒</button>
       <span class="savehint" id="saveHint">자동 저장됨</span>
     </div>
   </header>
 
   <main id="views">
-    <!-- 대시보드 -->
     <section class="view" id="view-dashboard"></section>
-    <!-- 접수·수강생 -->
     <section class="view" id="view-students" hidden></section>
-    <!-- 강좌·회차 -->
     <section class="view" id="view-courses" hidden></section>
-    <!-- 출석부 -->
     <section class="view" id="view-attendance" hidden></section>
-    <!-- 세그먼트 -->
+    <section class="view" id="view-certs" hidden></section>
     <section class="view" id="view-segments" hidden></section>
-    <!-- 메시지·설문 -->
     <section class="view" id="view-messages" hidden></section>
-    <!-- 데이터 -->
+    <section class="view" id="view-finance" hidden></section>
+    <section class="view" id="view-donors" hidden></section>
+    <section class="view" id="view-inbox" hidden></section>
+    <section class="view" id="view-todos" hidden></section>
     <section class="view" id="view-data" hidden></section>
   </main>
+</div>
+
+<!-- PIN 잠금 화면 -->
+<div class="lock-screen" id="lockScreen" hidden>
+  <div class="lock-box">
+    <div class="lock-emoji">🔒</div>
+    <h2 id="lockTitle">잠금 해제</h2>
+    <p class="muted" id="lockDesc">PIN을 입력하세요</p>
+    <input type="password" id="lockPin" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off">
+    <button class="btn primary" id="lockSubmit">확인</button>
+    <p class="lock-err" id="lockErr" hidden></p>
+  </div>
 </div>
 
 <!-- 모달 -->

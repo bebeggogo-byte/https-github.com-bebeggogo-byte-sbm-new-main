@@ -20,12 +20,16 @@
 
   function blank() {
     return {
-      meta: { version: 1, seq: 1 },
-      settings: { orgName: '네다바웨이', surveyUrl: '', senderName: '네다바웨이 운영팀' },
+      meta: { version: 2, seq: 1 },
+      settings: { orgName: '네다바웨이', surveyUrl: '', senderName: '네다바웨이 운영팀', pin: '', certThreshold: 80, repName: '' },
       courses: [],
       students: [],
       attendance: {},      // "courseId::date": { studentId: 'present'|... }
-      templates: defaultTemplates()
+      templates: defaultTemplates(),
+      donors: [],          // 후원자
+      inquiries: [],       // 문의 인박스
+      todos: [],           // 할일·리마인더
+      ledger: []           // 수입·지출 장부(수강료 외 항목)
     };
   }
   function defaultTemplates() {
@@ -39,7 +43,11 @@
       { id: 'tpl_absent', name: '결석자 팔로업', channel: 'sms', scene: 'reminder',
         body: '[{기관명}] {이름}님, 지난 회차 함께하지 못해 아쉬웠어요. 자료를 보내드릴까요? 다음 회차에서 뵙겠습니다.' },
       { id: 'tpl_survey', name: '종료 후 설문 요청', channel: 'kakao', scene: 'survey',
-        body: '[{기관명}] {이름}님, 「{강좌목록}」 수고 많으셨습니다. 더 좋은 강의를 위해 설문 부탁드려요 🙏\n{설문링크}' }
+        body: '[{기관명}] {이름}님, 「{강좌목록}」 수고 많으셨습니다. 더 좋은 강의를 위해 설문 부탁드려요 🙏\n{설문링크}' },
+      { id: 'tpl_pay', name: '수강료 입금 안내', channel: 'sms', scene: 'info',
+        body: '[{기관명}] {이름}님, 「{강좌목록}」 수강료 {미납액}원이 확인되지 않았습니다. 입금 부탁드립니다. 감사합니다.' },
+      { id: 'tpl_thanks', name: '후원 감사', channel: 'kakao', scene: 'info',
+        body: '[{기관명}] {이름}님, 소중한 후원에 진심으로 감사드립니다. 보내주신 마음이 공동체를 세우는 데 귀하게 쓰이겠습니다 🙏' }
     ];
   }
 
@@ -48,10 +56,13 @@
       const raw = localStorage.getItem(KEY);
       if (!raw) return blank();
       const d = JSON.parse(raw);
-      d.meta = d.meta || { version: 1, seq: 1 };
-      d.settings = Object.assign({ orgName: '네다바웨이', surveyUrl: '', senderName: '네다바웨이 운영팀' }, d.settings || {});
+      d.meta = d.meta || { version: 2, seq: 1 };
+      d.settings = Object.assign({ orgName: '네다바웨이', surveyUrl: '', senderName: '네다바웨이 운영팀', pin: '', certThreshold: 80, repName: '' }, d.settings || {});
       d.courses = d.courses || []; d.students = d.students || [];
       d.attendance = d.attendance || {}; d.templates = d.templates && d.templates.length ? d.templates : defaultTemplates();
+      d.donors = d.donors || []; d.inquiries = d.inquiries || []; d.todos = d.todos || []; d.ledger = d.ledger || [];
+      // v1 → v2 수강생 재무·동의 필드 backfill
+      d.students.forEach(s => { if (s.feeAmount == null) s.feeAmount = 0; if (s.paidAmount == null) s.paidAmount = 0; if (!s.payStatus) s.payStatus = 'unpaid'; if (s.consent == null) s.consent = false; });
       return d;
     } catch (e) { return blank(); }
   }
@@ -165,13 +176,51 @@
     return limit ? list.slice(0, limit) : list;
   }
 
+  /* ---------- 재무·후원·할일 집계 ---------- */
+  const won = (n) => (Number(n) || 0).toLocaleString('ko-KR') + '원';
+  const feeDue = (s) => Math.max(0, (Number(s.feeAmount) || 0) - (Number(s.paidAmount) || 0));
+  function totalUnpaid() { return activeStudents().reduce((a, s) => a + (s.payStatus === 'exempt' ? 0 : feeDue(s)), 0); }
+  function totalTuitionPaid() { return activeStudents().reduce((a, s) => a + (Number(s.paidAmount) || 0), 0); }
+  function ledgerSum(type, monthPrefix) {
+    return state.ledger.filter(e => e.type === type && (!monthPrefix || (e.date || '').startsWith(monthPrefix))).reduce((a, e) => a + (Number(e.amount) || 0), 0);
+  }
+  function donorMonthly() {
+    // 정기 후원은 월 금액, 일시 후원은 이번 달분만
+    const m = today().slice(0, 7);
+    return state.donors.filter(d => d.status !== 'lapsed').reduce((a, d) => {
+      if (d.type === 'regular') return a + (Number(d.amount) || 0);
+      return a + ((d.date || '').startsWith(m) ? (Number(d.amount) || 0) : 0);
+    }, 0);
+  }
+  function donorLapsedList() {
+    // 정기 후원인데 최근 45일간 기록 없음 → 이탈 의심 (수동 status='lapsed'도 포함)
+    return state.donors.filter(d => d.status === 'lapsed');
+  }
+  const openInquiries = () => state.inquiries.filter(q => q.status !== 'done');
+  function openTodos() {
+    return state.todos.filter(t => !t.done).sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'));
+  }
+  function certResult(studentId, courseId) {
+    // 강좌 회차 중 출결 기록된 회차 기준 출석률
+    const c = courseById(courseId); if (!c) return null;
+    let present = 0, total = 0;
+    (c.sessions || []).forEach(d => {
+      const rec = state.attendance[courseId + '::' + d]; if (!rec || !(studentId in rec)) return;
+      total++; if (rec[studentId] === 'present' || rec[studentId] === 'late' || rec[studentId] === 'excused') present++;
+    });
+    if (!total) return { rate: null, total: 0, pass: false };
+    const rate = Math.round(present / total * 100);
+    return { rate, total, present, pass: rate >= (state.settings.certThreshold || 80) };
+  }
+
   /* ============================ 렌더링 ============================ */
   function render() {
     document.getElementById('orgName').textContent = state.settings.orgName || '네다바웨이';
     document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
     document.querySelectorAll('.view').forEach(v => v.hidden = v.id !== 'view-' + activeTab);
     ({ dashboard: renderDashboard, students: renderStudents, courses: renderCourses,
-       attendance: renderAttendance, segments: renderSegments, messages: renderMessages, data: renderData }[activeTab])();
+       attendance: renderAttendance, certs: renderCerts, segments: renderSegments, messages: renderMessages,
+       finance: renderFinance, donors: renderDonors, inbox: renderInbox, todos: renderTodos, data: renderData }[activeTab])();
   }
   function go(tab) { activeTab = tab; window.scrollTo(0, 0); render(); }
 
@@ -205,12 +254,15 @@
         ${flowStep(5, '메시지·설문', '안내·설문 발송', 'messages')}
       </div>
 
+      ${dashAlerts()}
+
       <div class="grid kpi" style="margin-bottom:14px">
         ${kpi('총 수강생', activeStudents().length, '취소 제외')}
         ${kpi('확정', counts.confirmed, STATUS.applied + ' ' + counts.applied)}
-        ${kpi('대기', counts.waitlist, '취소 ' + counts.cancelled)}
         ${kpi('개설 강좌', state.courses.length, '회차 ' + state.courses.reduce((a, c) => a + (c.sessions || []).length, 0) + '개')}
-        ${kpi('평균 출석률', attRate == null ? '—' : attRate + '%', '전체 회차 기준')}
+        ${kpi('평균 출석률', attRate == null ? '—' : attRate + '%', '전체 회차')}
+        ${kpi('이번 달 수입', shortWon(monthIncome()), '수강료+후원+기타')}
+        ${kpi('미수금', shortWon(totalUnpaid()), '수강료 미납')}
       </div>
 
       <div class="row">
@@ -235,8 +287,9 @@
           <h3 style="font-size:15px">빠른 작업</h3>
           <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
             <button class="btn primary" data-act="add-student">＋ 수강생 추가</button>
-            <button class="btn" data-go="segments">🔎 결석 많은 수강생 찾기</button>
+            <button class="btn" data-go="finance">💰 미수금 확인·입금 안내</button>
             <button class="btn" data-go="messages">✉ 안내/설문 메시지 만들기</button>
+            <button class="btn" data-go="inbox">📥 문의 확인</button>
             <button class="btn" data-go="data">⬆ 구글폼 CSV 가져오기</button>
           </div>
           ${state.students.length === 0 ? '<div class="hint" style="margin-top:12px">처음이신가요? <b>데이터 탭</b>에서 <b>샘플 불러오기</b>로 화면을 먼저 둘러보세요.</div>' : ''}
@@ -248,6 +301,22 @@
     el.querySelectorAll('.flow .step').forEach(b => b.onclick = () => go(b.dataset.tab));
   }
   const flowStep = (n, t, d, tab) => `<div class="step" data-tab="${tab}"><span class="n">${n}</span><div class="t">${t}</div><div class="d">${d}</div></div>`;
+  const shortWon = (n) => { n = Number(n) || 0; return n >= 10000 ? (Math.round(n / 1000) / 10).toLocaleString('ko-KR').replace(/\.0$/, '') + '만' : n.toLocaleString('ko-KR'); };
+  function monthIncome() { const m = today().slice(0, 7); return ledgerSum('income', m) + donorMonthly(); }
+  function dashAlerts() {
+    const items = [];
+    const unpaid = activeStudents().filter(s => s.payStatus !== 'exempt' && feeDue(s) > 0).length;
+    const inq = openInquiries().length;
+    const dueToday = openTodos().filter(t => t.due && t.due <= today()).length;
+    const noConsent = activeStudents().filter(s => !s.consent).length;
+    if (unpaid) items.push(`<button class="btn sm" data-go="finance">💰 미납 ${unpaid}명</button>`);
+    if (inq) items.push(`<button class="btn sm" data-go="inbox">📥 미응답 문의 ${inq}건</button>`);
+    if (dueToday) items.push(`<button class="btn sm" data-go="todos">⏰ 오늘/기한초과 할일 ${dueToday}건</button>`);
+    if (donorLapsedList().length) items.push(`<button class="btn sm" data-go="donors">💗 후원 중단 ${donorLapsedList().length}명</button>`);
+    if (noConsent && activeStudents().length) items.push(`<button class="btn sm" data-go="students">⚠ 개인정보 미동의 ${noConsent}명</button>`);
+    if (!items.length) return '';
+    return `<div class="card pad" style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><strong style="font-size:13px">🔔 처리할 일</strong> ${items.join(' ')}</div>`;
+  }
   const kpi = (label, num, sub) => `<div class="card kpi-card"><div class="label">${label}</div><div class="num">${num} <small>${sub || ''}</small></div></div>`;
   function bar(label, v, max, color, accent) {
     const pct = Math.round(v / (max || 1) * 100);
@@ -317,7 +386,7 @@
     </tr>`;
   }
   function openStudentModal(id) {
-    const s = id ? studentById(id) : { id: '', name: '', phone: '', email: '', kakao: '', memo: '', courseIds: [], status: 'applied', tags: [] };
+    const s = id ? studentById(id) : { id: '', name: '', phone: '', email: '', kakao: '', memo: '', courseIds: [], status: 'applied', tags: [], feeAmount: 0, paidAmount: 0, payStatus: 'unpaid', consent: false };
     modal(id ? '수강생 수정' : '수강생 추가', `
       <label class="field"><span>이름 *</span><input type="text" id="m_name" value="${esc(s.name)}"></label>
       <div class="inline">
@@ -333,9 +402,15 @@
         ${state.courses.length ? state.courses.map(c => `<label class="chip" style="cursor:pointer"><input type="checkbox" value="${c.id}" ${s.courseIds.includes(c.id) ? 'checked' : ''} style="width:auto;margin-right:4px"><span class="course-dot" style="background:${c.color}"></span>${esc(c.name)}</label>`).join('') : '<span class="muted">강좌를 먼저 등록하세요 (강좌·회차 탭)</span>'}
       </div>
       <div class="inline">
+        <label class="field" style="max-width:150px"><span>수강료(원)</span><input type="number" id="m_fee" value="${esc(s.feeAmount || 0)}" min="0"></label>
+        <label class="field" style="max-width:150px"><span>입금액(원)</span><input type="number" id="m_paid" value="${esc(s.paidAmount || 0)}" min="0"></label>
+        <label class="field" style="max-width:140px"><span>입금상태</span><select id="m_pay">${optionList({ unpaid: '미납', partial: '부분납', paid: '완납', exempt: '면제' }, s.payStatus || 'unpaid')}</select></label>
+      </div>
+      <div class="inline">
         <label class="field"><span>태그(쉼표로 구분)</span><input type="text" id="m_tags" value="${esc(s.tags.join(', '))}" placeholder="예: VIP, 재수강"></label>
       </div>
       <label class="field"><span>메모</span><textarea id="m_memo">${esc(s.memo || '')}</textarea></label>
+      <label class="chip" style="cursor:pointer;display:inline-flex"><input type="checkbox" id="m_consent" ${s.consent ? 'checked' : ''} style="width:auto;margin-right:6px">개인정보 수집·이용 동의함</label>
       <div class="modal-actions">
         <button class="btn ghost" data-close>취소</button>
         <button class="btn primary" id="m_save">저장</button>
@@ -345,7 +420,11 @@
       if (!name) { toast('이름을 입력하세요'); return; }
       const courseIds = Array.from($('#m_courses').querySelectorAll('input:checked')).map(i => i.value);
       const tags = $('#m_tags').value.split(',').map(t => t.trim()).filter(Boolean);
-      const data = { name, phone: $('#m_phone').value.trim(), email: $('#m_email').value.trim(), kakao: $('#m_kakao').value.trim(), status: $('#m_status').value, courseIds, tags, memo: $('#m_memo').value.trim() };
+      const fee = +$('#m_fee').value || 0, paid = +$('#m_paid').value || 0;
+      let payStatus = $('#m_pay').value;
+      // 입금액과 상태 자동 정합(면제는 유지)
+      if (payStatus !== 'exempt') payStatus = paid <= 0 ? 'unpaid' : paid >= fee && fee > 0 ? 'paid' : 'partial';
+      const data = { name, phone: $('#m_phone').value.trim(), email: $('#m_email').value.trim(), kakao: $('#m_kakao').value.trim(), status: $('#m_status').value, courseIds, tags, memo: $('#m_memo').value.trim(), feeAmount: fee, paidAmount: paid, payStatus, consent: $('#m_consent').checked };
       if (id) { Object.assign(s, data); }
       else { state.students.push(Object.assign({ id: uid('st_'), appliedAt: new Date().toISOString() }, data)); }
       save(); closeModal(); renderStudents();
@@ -353,8 +432,9 @@
     };
   }
   function exportStudents() {
-    const header = ['이름', '연락처', '이메일', '카카오', '상태', '신청강좌', '신청강좌수', '태그', '결석수', '출석률', '메모', 'appliedAt'];
-    const rows = state.students.map(s => [s.name, s.phone, s.email, s.kakao, STATUS[s.status], courseNames(s.courseIds).join(' / '), s.courseIds.length, s.tags.join(' '), absenceCount(s.id), (studentAttStats(s.id).rate ?? ''), s.memo, s.appliedAt]);
+    const PAY = { unpaid: '미납', partial: '부분납', paid: '완납', exempt: '면제' };
+    const header = ['이름', '연락처', '이메일', '카카오', '상태', '신청강좌', '신청강좌수', '수강료', '입금액', '미납액', '입금상태', '개인정보동의', '태그', '결석수', '출석률', '메모', 'appliedAt'];
+    const rows = state.students.map(s => [s.name, s.phone, s.email, s.kakao, STATUS[s.status], courseNames(s.courseIds).join(' / '), s.courseIds.length, s.feeAmount || 0, s.paidAmount || 0, feeDue(s), PAY[s.payStatus] || '', s.consent ? 'Y' : 'N', s.tags.join(' '), absenceCount(s.id), (studentAttStats(s.id).rate ?? ''), s.memo, s.appliedAt]);
     download('수강생_' + today() + '.csv', toCSV([header, ...rows]), 'text/csv');
     toast('CSV를 내보냈습니다');
   }
@@ -505,6 +585,7 @@
           <button class="btn sm" data-preset="one">🎯 1개만 신청</button>
           <button class="btn sm" data-preset="three">🎯 3개 이상 신청</button>
           <button class="btn sm" data-preset="absent">🎯 결석 2회 이상</button>
+          <button class="btn sm" data-preset="unpaid">🎯 미납자</button>
         </div>
       </div>
       <div class="card">
@@ -525,6 +606,7 @@
       const p = b.dataset.preset;
       segRules = p === 'one' ? [{ field: 'courseCount', op: '=', value: 1 }]
         : p === 'three' ? [{ field: 'courseCount', op: '>=', value: 3 }]
+        : p === 'unpaid' ? [{ field: 'payment', op: 'is', value: 'unpaid' }]
         : [{ field: 'absence', op: '>=', value: 2 }];
       renderSegments();
     });
@@ -535,12 +617,13 @@
     const toMsg = $('#segToMsg'); if (toMsg) toMsg.onclick = () => { recipients = matched.map(s => s.id); go('messages'); toast(matched.length + '명을 메시지 대상으로 담았습니다'); };
   }
   function ruleHTML(r, i) {
-    const fields = { courseCount: '신청 강좌 수', course: '특정 강좌', status: '상태', absence: '결석 횟수', tag: '태그' };
+    const fields = { courseCount: '신청 강좌 수', course: '특정 강좌', status: '상태', absence: '결석 횟수', payment: '입금상태', tag: '태그' };
     const numOps = { '>=': '이상', '=': '정확히', '<=': '이하' };
     let valInput = '';
     if (r.field === 'courseCount' || r.field === 'absence') valInput = `<input type="number" data-v="${i}" value="${esc(r.value)}" min="0" style="max-width:80px"> <span class="muted">${r.field === 'courseCount' ? '개' : '회'}</span>`;
     else if (r.field === 'course') valInput = `<select data-v="${i}">${state.courses.map(c => `<option value="${c.id}" ${r.value === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>`;
     else if (r.field === 'status') valInput = `<select data-v="${i}">${optionList(STATUS, r.value)}</select>`;
+    else if (r.field === 'payment') valInput = `<select data-v="${i}">${optionList({ unpaid: '미납', partial: '부분납', paid: '완납', exempt: '면제' }, r.value)}</select>`;
     else valInput = `<input type="text" data-v="${i}" value="${esc(r.value)}" placeholder="태그">`;
     let opSel = '';
     if (r.field === 'courseCount' || r.field === 'absence') opSel = `<select data-op="${i}">${optionList(numOps, r.op)}</select>`;
@@ -555,8 +638,8 @@
     wrap.querySelectorAll('[data-v]').forEach(inp => inp.onchange = () => { segRules[+inp.dataset.v].value = inp.value; renderSegments(); });
     wrap.querySelectorAll('[data-rmrule]').forEach(b => b.onclick = () => { segRules.splice(+b.dataset.rmrule, 1); renderSegments(); });
   }
-  function defaultOp(f) { return f === 'course' ? 'has' : (f === 'status' || f === 'tag') ? 'is' : '>='; }
-  function defaultVal(f) { return f === 'course' ? (state.courses[0] || {}).id || '' : f === 'status' ? 'confirmed' : f === 'tag' ? '' : 1; }
+  function defaultOp(f) { return f === 'course' ? 'has' : (f === 'status' || f === 'tag' || f === 'payment') ? 'is' : '>='; }
+  function defaultVal(f) { return f === 'course' ? (state.courses[0] || {}).id || '' : f === 'status' ? 'confirmed' : f === 'payment' ? 'unpaid' : f === 'tag' ? '' : 1; }
   function applySegments() {
     return state.students.filter(s => segRules.every(r => matchRule(s, r)));
   }
@@ -565,6 +648,7 @@
     if (r.field === 'absence') { const n = absenceCount(s.id), v = +r.value; return r.op === '>=' ? n >= v : r.op === '<=' ? n <= v : n === v; }
     if (r.field === 'course') { const has = s.courseIds.includes(r.value); return r.op === 'has' ? has : !has; }
     if (r.field === 'status') { return r.op === 'is' ? s.status === r.value : s.status !== r.value; }
+    if (r.field === 'payment') { return r.op === 'is' ? s.payStatus === r.value : s.payStatus !== r.value; }
     if (r.field === 'tag') { const has = s.tags.some(t => t.toLowerCase() === String(r.value).toLowerCase().trim()); return r.op === 'is' ? has : !has; }
     return true;
   }
@@ -596,7 +680,7 @@
           </div>
           <label class="field"><span>내용</span><textarea id="msgBody">${esc(msgState.body)}</textarea></label>
           <div class="var-list">사용 가능 변수:
-            ${['{이름}', '{강좌명}', '{강좌목록}', '{날짜}', '{회차}', '{설문링크}', '{기관명}'].map(v => `<code data-var="${v}">${v}</code>`).join('')}
+            ${['{이름}', '{강좌명}', '{강좌목록}', '{날짜}', '{회차}', '{미납액}', '{설문링크}', '{기관명}'].map(v => `<code data-var="${v}">${v}</code>`).join('')}
           </div>
           <div style="display:flex;gap:8px;margin-top:8px">
             <button class="btn sm" id="saveTpl">현재 문구를 템플릿으로 저장</button>
@@ -668,6 +752,7 @@
       '{강좌목록}': s && s.courseIds.length ? courseNames(s.courseIds).join(', ') : (c ? c.name : '강좌'),
       '{날짜}': msgState.dateCtx || '(날짜)',
       '{회차}': msgState.sessionCtx || '',
+      '{미납액}': s ? (feeDue(s)).toLocaleString('ko-KR') : '(미납액)',
       '{설문링크}': state.settings.surveyUrl || '(설문 링크: 설정에서 입력)'
     };
     return String(body).replace(/\{[^}]+\}/g, m => (m in map ? map[m] : m));
@@ -712,6 +797,11 @@
           <label class="field"><span>기관명 (메시지 {기관명}에 사용)</span><input type="text" id="setOrg" value="${esc(state.settings.orgName)}"></label>
           <label class="field"><span>보내는 사람 이름</span><input type="text" id="setSender" value="${esc(state.settings.senderName || '')}"></label>
           <label class="field"><span>종료 후 설문 링크 (메시지 {설문링크}에 사용)</span><input type="text" id="setSurvey" value="${esc(state.settings.surveyUrl || '')}" placeholder="구글폼 등 설문 URL"></label>
+          <div class="inline">
+            <label class="field" style="max-width:170px"><span>대표자명 (수료증 발급)</span><input type="text" id="setRep" value="${esc(state.settings.repName || '')}" placeholder="예: 홍길동"></label>
+            <label class="field" style="max-width:150px"><span>수료 기준 출석률(%)</span><input type="number" id="setCert" value="${esc(state.settings.certThreshold || 80)}" min="0" max="100"></label>
+          </div>
+          <label class="field"><span>화면 잠금 PIN (개인정보 보호 · 숫자 4~8자리, 비우면 해제)</span><input type="text" id="setPin" value="${esc(state.settings.pin || '')}" inputmode="numeric" maxlength="8" placeholder="미설정"></label>
           <button class="btn primary sm" id="saveSet">설정 저장</button>
         </div>
 
@@ -748,17 +838,23 @@
         </div>
       </div>`;
 
-    $('#saveSet').onclick = () => { state.settings.orgName = $('#setOrg').value.trim() || '네다바웨이'; state.settings.senderName = $('#setSender').value.trim(); state.settings.surveyUrl = $('#setSurvey').value.trim(); save(); render(); toast('설정을 저장했습니다'); };
+    $('#saveSet').onclick = () => {
+      state.settings.orgName = $('#setOrg').value.trim() || '네다바웨이'; state.settings.senderName = $('#setSender').value.trim();
+      state.settings.surveyUrl = $('#setSurvey').value.trim(); state.settings.repName = $('#setRep').value.trim();
+      state.settings.certThreshold = Math.min(100, Math.max(0, +$('#setCert').value || 80));
+      state.settings.pin = ($('#setPin').value || '').replace(/[^0-9]/g, '').slice(0, 8);
+      save(); updateLockBtn(); render(); toast('설정을 저장했습니다');
+    };
     $('#expJson').onclick = () => download('네다바웨이_운영백업_' + today() + '.json', JSON.stringify(state, null, 2), 'application/json');
     $('#impJson').onchange = (e) => importJson(e.target.files[0]);
-    $('#loadSample').onclick = () => { if (confirm('현재 데이터를 지우고 샘플을 불러올까요?')) { state = sample(); reattachSeq(); save(); toast('샘플을 불러왔습니다'); go('dashboard'); } };
-    $('#resetAll').onclick = () => { if (confirm('모든 데이터를 삭제합니다. 되돌릴 수 없습니다. 계속할까요?')) { state = blank(); reattachSeq(); save(); toast('초기화했습니다'); go('dashboard'); } };
+    $('#loadSample').onclick = () => { if (confirm('현재 데이터를 지우고 샘플을 불러올까요?')) { state = sample(); reattachSeq(); save(); updateLockBtn(); toast('샘플을 불러왔습니다'); go('dashboard'); } };
+    $('#resetAll').onclick = () => { if (confirm('모든 데이터를 삭제합니다. 되돌릴 수 없습니다. 계속할까요?')) { state = blank(); reattachSeq(); save(); updateLockBtn(); toast('초기화했습니다'); go('dashboard'); } };
     $('#impCsv').onchange = (e) => importCsv(e.target.files[0]);
     $('#csvTemplate').onclick = () => download('접수양식.csv', toCSV([['이름', '연락처', '이메일', '카카오', '강좌', '상태', '메모'], ['홍길동', '010-1234-5678', 'hong@example.com', 'hong_kko', '말씀묵상 1강 / 리더십 2강', '신청', '']]), 'text/csv');
   }
   function importJson(file) {
     if (!file) return; const r = new FileReader();
-    r.onload = () => { try { const d = JSON.parse(r.result); if (!d.students) throw 0; state = d; reattachSeq(); state.settings = Object.assign({ orgName: '네다바웨이' }, state.settings); state.templates = state.templates && state.templates.length ? state.templates : defaultTemplates(); save(); toast('복원했습니다'); go('dashboard'); } catch (e) { toast('올바른 백업 파일이 아닙니다'); } };
+    r.onload = () => { try { const d = JSON.parse(r.result); if (!d.students) throw 0; state = d; reattachSeq(); state.settings = Object.assign({ orgName: '네다바웨이' }, state.settings); state.templates = state.templates && state.templates.length ? state.templates : defaultTemplates(); state.donors = state.donors || []; state.inquiries = state.inquiries || []; state.todos = state.todos || []; state.ledger = state.ledger || []; state.students.forEach(s => { if (s.feeAmount == null) s.feeAmount = 0; if (s.paidAmount == null) s.paidAmount = 0; if (!s.payStatus) s.payStatus = 'unpaid'; if (s.consent == null) s.consent = false; }); save(); updateLockBtn(); toast('복원했습니다'); go('dashboard'); } catch (e) { toast('올바른 백업 파일이 아닙니다'); } };
     r.readAsText(file);
   }
   function importCsv(file) {
@@ -791,6 +887,383 @@
     r.readAsText(file);
   }
 
+  /* ---------- 재무·정산 ---------- */
+  function renderFinance() {
+    const el = $('#view-finance');
+    const m = today().slice(0, 7);
+    const tuitionPaid = totalTuitionPaid();
+    const incOther = ledgerSum('income');
+    const donations = state.donors.filter(d => d.status !== 'lapsed').reduce((a, d) => a + (Number(d.amount) || 0) * (d.type === 'regular' ? 1 : 0), 0);
+    const expense = ledgerSum('expense');
+    const net = tuitionPaid + incOther + donorTotalReceived() - expense;
+    const PAY = { unpaid: '미납', partial: '부분납', paid: '완납', exempt: '면제' };
+    // 강좌별 정산
+    const perCourse = state.courses.map(c => {
+      const studs = activeStudents().filter(s => s.courseIds.includes(c.id));
+      const billed = studs.reduce((a, s) => a + (s.payStatus === 'exempt' ? 0 : Math.round((Number(s.feeAmount) || 0) / Math.max(1, s.courseIds.length))), 0);
+      const collected = studs.reduce((a, s) => a + Math.round((Number(s.paidAmount) || 0) / Math.max(1, s.courseIds.length)), 0);
+      return { c, n: studs.length, billed, collected };
+    });
+    const unpaidList = activeStudents().filter(s => s.payStatus !== 'exempt' && feeDue(s) > 0).sort((a, b) => feeDue(b) - feeDue(a));
+
+    el.innerHTML = `
+      <div class="section-head"><h2>재무·정산</h2><span class="desc">수강료 입금·미수금 · 수입/지출 · 강좌별 정산</span>
+        <div class="spacer"></div>
+        <button class="btn sm" id="finExport">CSV 내보내기</button>
+        <button class="btn primary sm" id="addLedger">＋ 수입/지출 입력</button>
+      </div>
+
+      <div class="grid kpi" style="margin-bottom:14px">
+        ${kpi('수강료 수납', shortWon(tuitionPaid), '누적 입금')}
+        ${kpi('미수금', shortWon(totalUnpaid()), unpaidList.length + '명 미납')}
+        ${kpi('후원 수입', shortWon(donorTotalReceived()), '누적')}
+        ${kpi('기타 수입', shortWon(incOther), '장부')}
+        ${kpi('지출', shortWon(expense), '장부')}
+        ${kpi('순수입', shortWon(net), '수입−지출')}
+      </div>
+
+      <div class="row">
+        <div class="card" style="flex:1;min-width:320px">
+          <div class="pad" style="border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px">
+            <h3 style="font-size:15px;margin:0">미수금 (수강료 미납)</h3><div class="spacer"></div>
+            <button class="btn sm primary" id="finMsg" ${unpaidList.length ? '' : 'disabled'}>✉ 입금 안내 보내기</button>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>이름</th><th class="num">수강료</th><th class="num">입금</th><th class="num">미납</th><th></th></tr></thead><tbody>
+            ${unpaidList.length ? unpaidList.map(s => `<tr><td><strong>${esc(s.name)}</strong> <span class="badge ${s.payStatus}">${PAY[s.payStatus]}</span></td><td class="num">${(s.feeAmount || 0).toLocaleString('ko-KR')}</td><td class="num">${(s.paidAmount || 0).toLocaleString('ko-KR')}</td><td class="num overdue">${feeDue(s).toLocaleString('ko-KR')}</td><td style="text-align:right"><button class="btn sm" data-payedit="${s.id}">입금 처리</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">미납이 없습니다 👍</td></tr>'}
+          </tbody></table></div>
+        </div>
+        <div class="card" style="flex:1;min-width:300px">
+          <div class="pad" style="border-bottom:1px solid var(--line)"><h3 style="font-size:15px;margin:0">강좌별 정산</h3></div>
+          <div class="table-wrap"><table><thead><tr><th>강좌</th><th class="num">인원</th><th class="num">청구</th><th class="num">수납</th></tr></thead><tbody>
+            ${perCourse.length ? perCourse.map(p => `<tr><td><span class="course-dot" style="background:${p.c.color}"></span> ${esc(p.c.name)}</td><td class="num">${p.n}</td><td class="num">${p.billed.toLocaleString('ko-KR')}</td><td class="num">${p.collected.toLocaleString('ko-KR')}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">강좌가 없습니다.</td></tr>'}
+          </tbody></table></div>
+          <div class="pad muted" style="font-size:11px">청구·수납은 수강생의 수강료/입금액을 신청 강좌 수로 나눠 배분한 근사치입니다.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="pad" style="border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px">
+          <h3 style="font-size:15px;margin:0">수입·지출 장부</h3>
+          <div class="spacer"></div>
+          <button class="btn sm" id="calc33">🧮 프리랜서 3.3% 계산기</button>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>날짜</th><th>구분</th><th>항목</th><th>분류</th><th class="num">금액</th><th></th></tr></thead><tbody>
+          ${state.ledger.length ? state.ledger.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(e => `<tr><td>${esc(e.date || '')}</td><td>${e.type === 'income' ? '<span class="amt pos">수입</span>' : '<span class="amt neg">지출</span>'}</td><td>${esc(e.title)}</td><td class="muted">${esc(e.category || '')}</td><td class="num">${(Number(e.amount) || 0).toLocaleString('ko-KR')}</td><td style="text-align:right"><button class="icon-btn" data-delledger="${e.id}">🗑</button></td></tr>`).join('') : '<tr><td colspan="6" class="empty">항목이 없습니다. 우측 상단에서 입력하세요.</td></tr>'}
+        </tbody></table></div>
+      </div>`;
+
+    $('#addLedger').onclick = () => openLedgerModal();
+    $('#finExport').onclick = exportFinance;
+    $('#calc33').onclick = openTaxCalc;
+    const fm = $('#finMsg'); if (fm) fm.onclick = () => { recipients = unpaidList.map(s => s.id); msgState.templateId = 'tpl_pay'; const t = state.templates.find(t => t.id === 'tpl_pay'); if (t) { msgState.body = t.body; msgState.channel = t.channel; } go('messages'); toast(unpaidList.length + '명 · 입금 안내 템플릿 준비됨'); };
+    el.querySelectorAll('[data-payedit]').forEach(b => b.onclick = () => openPayModal(b.dataset.payedit));
+    el.querySelectorAll('[data-delledger]').forEach(b => b.onclick = () => { if (confirm('삭제할까요?')) { state.ledger = state.ledger.filter(e => e.id !== b.dataset.delledger); save(); renderFinance(); } });
+  }
+  function donorTotalReceived() { return state.donors.reduce((a, d) => a + (Number(d.received) || 0), 0); }
+  function openPayModal(id) {
+    const s = studentById(id); if (!s) return;
+    modal('입금 처리 · ' + s.name, `
+      <div class="inline">
+        <label class="field"><span>수강료(원)</span><input type="number" id="p_fee" value="${esc(s.feeAmount || 0)}"></label>
+        <label class="field"><span>입금액(원)</span><input type="number" id="p_paid" value="${esc(s.paidAmount || 0)}"></label>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sm" id="p_full">완납 처리</button><button class="btn sm" id="p_exempt">면제</button></div>
+      <div class="modal-actions"><button class="btn ghost" data-close>취소</button><button class="btn primary" id="p_save">저장</button></div>`);
+    $('#p_full').onclick = () => { $('#p_paid').value = $('#p_fee').value; };
+    $('#p_exempt').onclick = () => { s.payStatus = 'exempt'; s.paidAmount = 0; save(); closeModal(); renderFinance(); toast('면제 처리했습니다'); };
+    $('#p_save').onclick = () => {
+      const fee = +$('#p_fee').value || 0, paid = +$('#p_paid').value || 0;
+      s.feeAmount = fee; s.paidAmount = paid;
+      s.payStatus = paid <= 0 ? 'unpaid' : paid >= fee && fee > 0 ? 'paid' : 'partial';
+      save(); closeModal(); renderFinance(); toast('입금 정보를 저장했습니다');
+    };
+  }
+  function openLedgerModal() {
+    modal('수입/지출 입력', `
+      <div class="inline">
+        <label class="field" style="max-width:130px"><span>구분</span><select id="l_type">${optionList({ income: '수입', expense: '지출' }, 'expense')}</select></label>
+        <label class="field"><span>날짜</span><input type="date" id="l_date" value="${today()}"></label>
+      </div>
+      <label class="field"><span>항목 *</span><input type="text" id="l_title" placeholder="예: 강의실 대관료, 교재 인쇄, 특강 수입"></label>
+      <div class="inline">
+        <label class="field"><span>분류</span><input type="text" id="l_cat" placeholder="예: 대관/인쇄/광고/수수료"></label>
+        <label class="field" style="max-width:160px"><span>금액(원) *</span><input type="number" id="l_amt" min="0"></label>
+      </div>
+      <div class="modal-actions"><button class="btn ghost" data-close>취소</button><button class="btn primary" id="l_save">저장</button></div>`);
+    $('#l_save').onclick = () => {
+      const title = $('#l_title').value.trim(), amt = +$('#l_amt').value || 0;
+      if (!title || !amt) { toast('항목과 금액을 입력하세요'); return; }
+      state.ledger.push({ id: uid('lg_'), type: $('#l_type').value, date: $('#l_date').value, title, category: $('#l_cat').value.trim(), amount: amt });
+      save(); closeModal(); renderFinance(); toast('저장되었습니다');
+    };
+  }
+  function openTaxCalc() {
+    modal('프리랜서 3.3% 원천징수 계산기', `
+      <p class="muted" style="font-size:12px">강의료 등 사업소득 지급 시 원천징수(소득세 3% + 지방세 0.3%) 기준입니다.</p>
+      <label class="field"><span>지급 총액(세전, 원)</span><input type="number" id="t_gross" placeholder="예: 1000000"></label>
+      <div id="t_out" class="msg-preview" style="min-height:auto">금액을 입력하세요.</div>
+      <div class="modal-actions"><button class="btn primary" data-close>닫기</button></div>`);
+    const calc = () => {
+      const g = +$('#t_gross').value || 0; const tax = Math.floor(g * 0.033); const net = g - tax;
+      $('#t_out').innerHTML = `원천징수 <b>${tax.toLocaleString('ko-KR')}원</b> (3.3%)<br>실지급액 <b>${net.toLocaleString('ko-KR')}원</b>`;
+    };
+    $('#t_gross').oninput = calc;
+  }
+  function exportFinance() {
+    const PAY = { unpaid: '미납', partial: '부분납', paid: '완납', exempt: '면제' };
+    const rows = [['구분', '날짜', '이름/항목', '분류', '수강료/청구', '입금/금액', '미납', '상태']];
+    activeStudents().forEach(s => rows.push(['수강료', s.appliedAt ? s.appliedAt.slice(0, 10) : '', s.name, courseNames(s.courseIds).join(' / '), s.feeAmount || 0, s.paidAmount || 0, feeDue(s), PAY[s.payStatus] || '']));
+    state.ledger.forEach(e => rows.push([e.type === 'income' ? '수입' : '지출', e.date || '', e.title, e.category || '', '', e.amount || 0, '', '']));
+    state.donors.forEach(d => rows.push(['후원', d.date || '', d.name, d.type === 'regular' ? '정기' : '일시', '', d.amount || 0, '', d.status === 'lapsed' ? '중단' : '']));
+    download('재무_' + today() + '.csv', toCSV(rows), 'text/csv'); toast('재무 CSV를 내보냈습니다');
+  }
+
+  /* ---------- 후원 ---------- */
+  function renderDonors() {
+    const el = $('#view-donors');
+    const list = state.donors.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const regular = state.donors.filter(d => d.type === 'regular' && d.status !== 'lapsed');
+    el.innerHTML = `
+      <div class="section-head"><h2>후원</h2><span class="desc">정기·일시 후원자 관리 · 감사 발송</span>
+        <div class="spacer"></div>
+        <button class="btn sm" id="donExport">CSV</button>
+        <button class="btn primary sm" id="addDonor">＋ 후원자 추가</button>
+      </div>
+      <div class="grid kpi" style="margin-bottom:14px">
+        ${kpi('후원자', state.donors.length, regular.length + '명 정기')}
+        ${kpi('월 정기 후원', shortWon(donorMonthly()), '이탈 제외')}
+        ${kpi('누적 수령', shortWon(donorTotalReceived()), '전체')}
+        ${kpi('후원 중단', donorLapsedList().length, '팔로업 필요')}
+      </div>
+      <div class="card table-wrap">
+        <table><thead><tr><th>이름</th><th>유형</th><th>연락처</th><th class="num">약정액</th><th class="num">누적수령</th><th>최근</th><th>상태</th><th></th></tr></thead><tbody>
+          ${list.length ? list.map(donorRow).join('') : '<tr><td colspan="8" class="empty">후원자가 없습니다.</td></tr>'}
+        </tbody></table>
+      </div>
+      <div class="hint" style="margin-top:12px">감사 메시지는 각 행의 <b>감사</b> 버튼(문자앱/복사)으로 보냅니다. 비영리 임의단체는 세액공제용 기부금영수증 발급이 제한될 수 있으니 규정을 확인하세요.</div>`;
+    $('#addDonor').onclick = () => openDonorModal();
+    $('#donExport').onclick = () => { const rows = [['이름', '유형', '연락처', '약정액', '누적수령', '주기', '최근', '상태', '메모'], ...state.donors.map(d => [d.name, d.type === 'regular' ? '정기' : '일시', d.phone, d.amount || 0, d.received || 0, d.cycle || '', d.date || '', d.status === 'lapsed' ? '중단' : '활성', d.memo || ''])]; download('후원자_' + today() + '.csv', toCSV(rows), 'text/csv'); toast('CSV를 내보냈습니다'); };
+    el.querySelectorAll('[data-editd]').forEach(b => b.onclick = () => openDonorModal(b.dataset.editd));
+    el.querySelectorAll('[data-deld]').forEach(b => b.onclick = () => { if (confirm('후원자를 삭제할까요?')) { state.donors = state.donors.filter(d => d.id !== b.dataset.deld); save(); renderDonors(); } });
+    el.querySelectorAll('[data-thank]').forEach(b => b.onclick = () => thankDonor(b.dataset.thank));
+  }
+  function donorRow(d) {
+    return `<tr class="${d.status === 'lapsed' ? '' : ''}">
+      <td><strong>${esc(d.name)}</strong></td>
+      <td><span class="badge ${d.type === 'regular' ? 'regular' : 'onetime'}">${d.type === 'regular' ? '정기' : '일시'}</span></td>
+      <td class="muted">${esc(d.phone || '')}</td>
+      <td class="num">${(Number(d.amount) || 0).toLocaleString('ko-KR')}</td>
+      <td class="num">${(Number(d.received) || 0).toLocaleString('ko-KR')}</td>
+      <td class="muted">${esc(d.date || '')}</td>
+      <td>${d.status === 'lapsed' ? '<span class="badge lapsed">중단</span>' : '<span class="badge regular">활성</span>'}</td>
+      <td style="text-align:right"><button class="btn sm" data-thank="${d.id}">감사</button><button class="icon-btn" data-editd="${d.id}">✎</button><button class="icon-btn" data-deld="${d.id}">🗑</button></td>
+    </tr>`;
+  }
+  function openDonorModal(id) {
+    const d = id ? state.donors.find(x => x.id === id) : { id: '', name: '', phone: '', type: 'regular', amount: 0, received: 0, cycle: '매월', date: today(), status: 'active', memo: '' };
+    modal(id ? '후원자 수정' : '후원자 추가', `
+      <label class="field"><span>이름 *</span><input type="text" id="d_name" value="${esc(d.name)}"></label>
+      <div class="inline">
+        <label class="field" style="max-width:130px"><span>유형</span><select id="d_type">${optionList({ regular: '정기', onetime: '일시' }, d.type)}</select></label>
+        <label class="field"><span>연락처</span><input type="tel" id="d_phone" value="${esc(d.phone || '')}"></label>
+      </div>
+      <div class="inline">
+        <label class="field"><span>약정액(원)</span><input type="number" id="d_amount" value="${esc(d.amount || 0)}"></label>
+        <label class="field"><span>누적 수령(원)</span><input type="number" id="d_received" value="${esc(d.received || 0)}"></label>
+      </div>
+      <div class="inline">
+        <label class="field" style="max-width:150px"><span>주기</span><input type="text" id="d_cycle" value="${esc(d.cycle || '')}" placeholder="매월/분기/일시"></label>
+        <label class="field"><span>최근 후원일</span><input type="date" id="d_date" value="${esc(d.date || '')}"></label>
+        <label class="field" style="max-width:130px"><span>상태</span><select id="d_status">${optionList({ active: '활성', lapsed: '중단' }, d.status)}</select></label>
+      </div>
+      <label class="field"><span>메모</span><textarea id="d_memo">${esc(d.memo || '')}</textarea></label>
+      <div class="modal-actions"><button class="btn ghost" data-close>취소</button><button class="btn primary" id="d_save">저장</button></div>`);
+    $('#d_save').onclick = () => {
+      const name = $('#d_name').value.trim(); if (!name) { toast('이름을 입력하세요'); return; }
+      const data = { name, phone: $('#d_phone').value.trim(), type: $('#d_type').value, amount: +$('#d_amount').value || 0, received: +$('#d_received').value || 0, cycle: $('#d_cycle').value.trim(), date: $('#d_date').value, status: $('#d_status').value, memo: $('#d_memo').value.trim() };
+      if (id) Object.assign(d, data); else state.donors.push(Object.assign({ id: uid('dn_') }, data));
+      save(); closeModal(); renderDonors(); toast('저장되었습니다');
+    };
+  }
+  function thankDonor(id) {
+    const d = state.donors.find(x => x.id === id); if (!d) return;
+    const t = state.templates.find(t => t.id === 'tpl_thanks');
+    let body = (t ? t.body : '[{기관명}] {이름}님, 후원에 감사드립니다 🙏').replace(/\{기관명\}/g, state.settings.orgName || '네다바웨이').replace(/\{이름\}/g, d.name);
+    modal('감사 메시지 · ' + d.name, `
+      <label class="field"><span>내용</span><textarea id="th_body" style="min-height:120px">${esc(body)}</textarea></label>
+      <div style="display:flex;gap:8px">
+        ${d.phone ? '<button class="btn accent" id="th_sms">문자앱 열기</button>' : ''}
+        <button class="btn" id="th_copy">복사</button>
+        <div class="spacer"></div><button class="btn ghost" data-close>닫기</button>
+      </div>`);
+    const th = $('#th_sms'); if (th) th.onclick = () => { window.location.href = 'sms:' + (d.phone || '').replace(/[^0-9+]/g, '') + '?body=' + encodeURIComponent($('#th_body').value); };
+    $('#th_copy').onclick = () => copy($('#th_body').value);
+  }
+
+  /* ---------- 문의 인박스 ---------- */
+  let inboxFilter = 'open';
+  function renderInbox() {
+    const el = $('#view-inbox');
+    let list = state.inquiries.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    if (inboxFilter === 'open') list = list.filter(q => q.status !== 'done');
+    const CH = { insta: '인스타 DM', kakao: '카카오', sms: '문자', email: '이메일', phone: '전화', etc: '기타' };
+    const ST = { new: '신규', progress: '진행', done: '완료' };
+    el.innerHTML = `
+      <div class="section-head"><h2>문의</h2><span class="desc">인스타 DM·카톡·메일 문의를 한 곳에서 추적</span>
+        <div class="spacer"></div>
+        <button class="btn sm ${inboxFilter === 'open' ? 'primary' : ''}" id="inbOpen">미완료</button>
+        <button class="btn sm ${inboxFilter === 'all' ? 'primary' : ''}" id="inbAll">전체</button>
+        <button class="btn primary sm" id="addInq">＋ 문의 추가</button>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+        ${list.length ? list.map(q => `
+          <div class="card pad">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="badge ${q.status}">${ST[q.status]}</span>
+              <span class="badge">${CH[q.channel] || q.channel}</span>
+              <strong style="flex:1">${esc(q.from || '이름 미상')}</strong>
+              <button class="icon-btn" data-editq="${q.id}">✎</button><button class="icon-btn" data-delq="${q.id}">🗑</button>
+            </div>
+            <div class="muted" style="font-size:11px;margin:4px 0">${esc(q.date || '')} ${q.contact ? '· ' + esc(q.contact) : ''}</div>
+            <div style="font-size:13px;white-space:pre-wrap;margin:6px 0">${esc(q.body || '')}</div>
+            ${q.memo ? '<div class="muted" style="font-size:12px">↳ ' + esc(q.memo) + '</div>' : ''}
+            <div style="display:flex;gap:6px;margin-top:8px">
+              ${q.status !== 'done' ? `<button class="btn sm" data-nextq="${q.id}">${q.status === 'new' ? '진행으로' : '완료로'}</button>` : `<button class="btn sm ghost" data-reopenq="${q.id}">다시 열기</button>`}
+            </div>
+          </div>`).join('') : '<div class="card pad empty">문의가 없습니다.</div>'}
+      </div>`;
+    $('#addInq').onclick = () => openInquiryModal();
+    $('#inbOpen').onclick = () => { inboxFilter = 'open'; renderInbox(); };
+    $('#inbAll').onclick = () => { inboxFilter = 'all'; renderInbox(); };
+    el.querySelectorAll('[data-editq]').forEach(b => b.onclick = () => openInquiryModal(b.dataset.editq));
+    el.querySelectorAll('[data-delq]').forEach(b => b.onclick = () => { if (confirm('삭제할까요?')) { state.inquiries = state.inquiries.filter(q => q.id !== b.dataset.delq); save(); renderInbox(); } });
+    el.querySelectorAll('[data-nextq]').forEach(b => b.onclick = () => { const q = state.inquiries.find(x => x.id === b.dataset.nextq); q.status = q.status === 'new' ? 'progress' : 'done'; save(); renderInbox(); });
+    el.querySelectorAll('[data-reopenq]').forEach(b => b.onclick = () => { const q = state.inquiries.find(x => x.id === b.dataset.reopenq); q.status = 'progress'; save(); renderInbox(); });
+  }
+  function openInquiryModal(id) {
+    const q = id ? state.inquiries.find(x => x.id === id) : { id: '', from: '', channel: 'insta', contact: '', body: '', memo: '', status: 'new', date: today() };
+    modal(id ? '문의 수정' : '문의 추가', `
+      <div class="inline">
+        <label class="field"><span>보낸 사람</span><input type="text" id="q_from" value="${esc(q.from || '')}"></label>
+        <label class="field" style="max-width:150px"><span>채널</span><select id="q_channel">${optionList({ insta: '인스타 DM', kakao: '카카오', sms: '문자', email: '이메일', phone: '전화', etc: '기타' }, q.channel)}</select></label>
+      </div>
+      <div class="inline">
+        <label class="field"><span>연락처(선택)</span><input type="text" id="q_contact" value="${esc(q.contact || '')}"></label>
+        <label class="field" style="max-width:150px"><span>날짜</span><input type="date" id="q_date" value="${esc(q.date || today())}"></label>
+        <label class="field" style="max-width:130px"><span>상태</span><select id="q_status">${optionList({ new: '신규', progress: '진행', done: '완료' }, q.status)}</select></label>
+      </div>
+      <label class="field"><span>문의 내용</span><textarea id="q_body">${esc(q.body || '')}</textarea></label>
+      <label class="field"><span>처리 메모</span><textarea id="q_memo" style="min-height:60px">${esc(q.memo || '')}</textarea></label>
+      <div class="modal-actions"><button class="btn ghost" data-close>취소</button><button class="btn primary" id="q_save">저장</button></div>`);
+    $('#q_save').onclick = () => {
+      const data = { from: $('#q_from').value.trim(), channel: $('#q_channel').value, contact: $('#q_contact').value.trim(), date: $('#q_date').value, status: $('#q_status').value, body: $('#q_body').value.trim(), memo: $('#q_memo').value.trim() };
+      if (id) Object.assign(q, data); else state.inquiries.push(Object.assign({ id: uid('iq_') }, data));
+      save(); closeModal(); renderInbox(); toast('저장되었습니다');
+    };
+  }
+
+  /* ---------- 할일·리마인더 ---------- */
+  function renderTodos() {
+    const el = $('#view-todos');
+    const open = openTodos();
+    const done = state.todos.filter(t => t.done);
+    const timeline = buildTimeline();
+    el.innerHTML = `
+      <div class="section-head"><h2>할일 · 운영 캘린더</h2><span class="desc">회차·정산·마감을 한 타임라인으로</span>
+        <div class="spacer"></div><button class="btn primary sm" id="addTodo">＋ 할일 추가</button></div>
+      <div class="row">
+        <div class="card" style="flex:1;min-width:300px">
+          <div class="pad" style="border-bottom:1px solid var(--line)"><h3 style="font-size:15px;margin:0">할일 (${open.length})</h3></div>
+          <div>
+            ${open.length ? open.map(todoRow).join('') : '<div class="empty">할일이 없습니다 🎉</div>'}
+            ${done.length ? `<div class="pad muted" style="font-size:12px;border-top:1px solid var(--line)">완료 ${done.length}건</div>` + done.slice(0, 5).map(todoRow).join('') : ''}
+          </div>
+        </div>
+        <div class="card" style="flex:1;min-width:300px">
+          <div class="pad" style="border-bottom:1px solid var(--line)"><h3 style="font-size:15px;margin:0">다가오는 일정</h3></div>
+          <div class="table-wrap"><table><tbody>
+            ${timeline.length ? timeline.map(t => `<tr><td style="width:110px"><strong>${t.date}</strong><br><span class="muted" style="font-size:11px">${daysFrom(t.date)}</span></td><td>${t.icon} ${esc(t.label)}</td></tr>`).join('') : '<tr><td class="empty">예정된 일정이 없습니다.</td></tr>'}
+          </tbody></table></div>
+        </div>
+      </div>`;
+    $('#addTodo').onclick = () => openTodoModal();
+    el.querySelectorAll('[data-togglet]').forEach(b => b.onclick = () => { const t = state.todos.find(x => x.id === b.dataset.togglet); t.done = !t.done; save(); renderTodos(); });
+    el.querySelectorAll('[data-editt]').forEach(b => b.onclick = () => openTodoModal(b.dataset.editt));
+    el.querySelectorAll('[data-delt]').forEach(b => b.onclick = () => { state.todos = state.todos.filter(x => x.id !== b.dataset.delt); save(); renderTodos(); });
+  }
+  function todoRow(t) {
+    const over = !t.done && t.due && t.due < today();
+    return `<div class="recipient-line ${t.done ? 'todo-done' : ''}">
+      <input type="checkbox" ${t.done ? 'checked' : ''} data-togglet="${t.id}" style="width:auto">
+      <span class="nm" style="min-width:0;flex:1">${esc(t.title)}</span>
+      ${t.due ? `<span class="${over ? 'overdue' : 'muted'}" style="font-size:12px">${t.due} ${over ? '· 지남' : '· ' + daysFrom(t.due)}</span>` : ''}
+      <span class="actions"><button class="icon-btn" data-editt="${t.id}">✎</button><button class="icon-btn" data-delt="${t.id}">🗑</button></span>
+    </div>`;
+  }
+  function openTodoModal(id) {
+    const t = id ? state.todos.find(x => x.id === id) : { id: '', title: '', due: '', done: false };
+    modal(id ? '할일 수정' : '할일 추가', `
+      <label class="field"><span>할일 *</span><input type="text" id="td_title" value="${esc(t.title)}" placeholder="예: 3주차 자료 업로드, 정산 마감"></label>
+      <label class="field" style="max-width:200px"><span>기한(선택)</span><input type="date" id="td_due" value="${esc(t.due || '')}"></label>
+      <div class="modal-actions"><button class="btn ghost" data-close>취소</button><button class="btn primary" id="td_save">저장</button></div>`);
+    $('#td_save').onclick = () => {
+      const title = $('#td_title').value.trim(); if (!title) { toast('할일을 입력하세요'); return; }
+      const data = { title, due: $('#td_due').value };
+      if (id) Object.assign(t, data); else state.todos.push(Object.assign({ id: uid('td_'), done: false }, data));
+      save(); closeModal(); renderTodos(); toast('저장되었습니다');
+    };
+  }
+  function buildTimeline() {
+    const t = today(); const out = [];
+    upcomingSessions().forEach(u => out.push({ date: u.date, label: u.course.name + ' 회차', icon: '📘' }));
+    openTodos().forEach(td => { if (td.due) out.push({ date: td.due, label: td.title, icon: '✅' }); });
+    return out.filter(x => x.date >= t).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 12);
+  }
+
+  /* ---------- 수료증 ---------- */
+  let certCourseId = '';
+  function renderCerts() {
+    const el = $('#view-certs');
+    if (!state.courses.length) { el.innerHTML = headed('수료') + '<div class="card pad empty">먼저 강좌를 등록하세요.</div>'; return; }
+    if (!certCourseId) certCourseId = state.courses[0].id;
+    const course = courseById(certCourseId);
+    const studs = activeStudents().filter(s => s.courseIds.includes(course.id));
+    const rows = studs.map(s => ({ s, r: certResult(s.id, course.id) }));
+    const th = state.settings.certThreshold || 80;
+    el.innerHTML = `
+      <div class="section-head"><h2>수료</h2><span class="desc">출석률 ${th}% 이상 자동 수료 판정</span>
+        <div class="spacer"></div>
+        <label class="field" style="margin:0;max-width:220px"><select id="certCourse">${state.courses.map(c => `<option value="${c.id}" ${c.id === certCourseId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>
+      </div>
+      <div class="card table-wrap">
+        <table><thead><tr><th>이름</th><th class="num">출석</th><th class="num">출석률</th><th>판정</th><th></th></tr></thead><tbody>
+          ${rows.length ? rows.map(({ s, r }) => `<tr><td><strong>${esc(s.name)}</strong></td><td class="num">${r.total ? r.present + '/' + r.total : '—'}</td><td class="num">${r.rate == null ? '—' : r.rate + '%'}</td><td>${r.rate == null ? '<span class="badge">기록없음</span>' : r.pass ? '<span class="badge paid">수료</span>' : '<span class="badge unpaid">미수료</span>'}</td><td style="text-align:right">${r.pass ? `<button class="btn sm" data-cert="${s.id}">수료증</button>` : ''}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">이 강좌 수강생이 없습니다.</td></tr>'}
+        </tbody></table>
+      </div>
+      <div class="hint" style="margin-top:12px">출석률은 <b>회차별 출결이 기록된 회차</b> 기준입니다. 공결은 출석으로 인정합니다. 기준(%)은 데이터 탭에서 조정하세요.</div>`;
+    $('#certCourse').onchange = (e) => { certCourseId = e.target.value; renderCerts(); };
+    el.querySelectorAll('[data-cert]').forEach(b => b.onclick = () => showCert(b.dataset.cert, course.id));
+  }
+  function showCert(sid, cid) {
+    const s = studentById(sid), c = courseById(cid), r = certResult(sid, cid);
+    modal('수료증 미리보기', `
+      <div class="cert-card" id="certPrint">
+        <div class="ct">CERTIFICATE · 수 료 증</div>
+        <div class="cn">${esc(s.name)}</div>
+        <div class="cb">위 사람은 <b>${esc(state.settings.orgName || '네다바웨이')}</b>의<br>「<b>${esc(c.name)}</b>」 과정을 성실히 이수하였기에<br>이 수료증을 수여합니다.<br><span class="muted">출석률 ${r.rate}%</span></div>
+        <div class="muted" style="font-size:12px">${today()}</div>
+        <div style="margin-top:10px;font-weight:700">${esc(state.settings.orgName || '네다바웨이')}${state.settings.repName ? ' · ' + esc(state.settings.repName) : ''}</div>
+      </div>
+      <div class="modal-actions"><button class="btn ghost" data-close>닫기</button><button class="btn primary" id="certPrintBtn">🖨 인쇄/PDF 저장</button></div>`);
+    $('#certPrintBtn').onclick = () => printCert(s, c, r);
+  }
+  function printCert(s, c, r) {
+    const w = window.open('', '_blank');
+    if (!w) { toast('팝업이 차단되었습니다'); return; }
+    w.document.write(`<html><head><meta charset="utf-8"><title>수료증_${esc(s.name)}</title><style>body{font-family:'Noto Serif KR',serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}.c{border:6px double #6b4423;border-radius:14px;padding:60px 80px;text-align:center;max-width:560px}.t{letter-spacing:8px;color:#8a5a2b;font-size:14px}.n{font-size:38px;font-weight:800;margin:20px 0}.b{font-size:16px;line-height:2.2;margin:20px 0}.o{margin-top:24px;font-weight:700;font-size:18px}</style></head><body><div class="c"><div class="t">CERTIFICATE · 수 료 증</div><div class="n">${esc(s.name)}</div><div class="b">위 사람은 <b>${esc(state.settings.orgName || '네다바웨이')}</b>의<br>「<b>${esc(c.name)}</b>」 과정을 성실히 이수하였기에 이 수료증을 수여합니다.<br>출석률 ${r.rate}%</div><div>${today()}</div><div class="o">${esc(state.settings.orgName || '네다바웨이')}${state.settings.repName ? ' · ' + esc(state.settings.repName) : ''}</div></div><script>window.onload=function(){window.print()}<\/script></body></html>`);
+    w.document.close();
+  }
+
   /* ---------- 공용 UI ---------- */
   function headed(t) { return `<div class="section-head"><h2>${t}</h2></div>`; }
   function optionList(map, sel) { return Object.entries(map).map(([k, v]) => `<option value="${k}" ${k === String(sel) ? 'selected' : ''}>${esc(v)}</option>`).join(''); }
@@ -810,16 +1283,49 @@
     const cNames = ['말씀묵상 기초 1강', '말씀묵상 심화 2강', '청소년 리더십 3강', '정체성 습관설계 4강', 'AI 작업실 5강', '관점노트 6강'];
     d.courses = cNames.map((n, i) => ({ id: 'co_s' + i, name: n, color: COURSE_COLORS[i], capacity: 20, memo: '', sessions: sampleSessions(i) }));
     const names = ['김소망', '이믿음', '박사랑', '최기쁨', '정평강', '한은혜', '오진리', '윤빛나', '장다윗', '서한나', '문요셉', '배루디아'];
+    const fees = [50000, 80000, 100000, 120000];
     d.students = names.map((nm, i) => {
       const pick = []; const num = (i % 4) + 1; // 1~4개 신청
       for (let k = 0; k < num; k++) pick.push(d.courses[(i + k) % 6].id);
-      return { id: 'st_s' + i, name: nm, phone: '010-' + (1000 + i * 7).toString().padStart(4, '0') + '-' + (2000 + i * 13).toString().slice(0, 4), email: 'user' + i + '@example.com', kakao: '', memo: i % 5 === 0 ? '재수강' : '', courseIds: pick, tags: i % 5 === 0 ? ['재수강'] : (i % 6 === 0 ? ['VIP'] : []), status: ['confirmed', 'confirmed', 'applied', 'waitlist'][i % 4], appliedAt: new Date().toISOString() };
+      const fee = fees[i % 4] * num / ((i % 4) + 1); const feeAmount = 30000 * num;
+      // 입금 상태 다양화: 완납/부분/미납/면제
+      const payVariant = i % 4;
+      const paidAmount = payVariant === 0 ? feeAmount : payVariant === 1 ? Math.round(feeAmount / 2) : payVariant === 3 ? 0 : 0;
+      const payStatus = payVariant === 0 ? 'paid' : payVariant === 1 ? 'partial' : payVariant === 2 ? 'unpaid' : (i === 3 ? 'exempt' : 'unpaid');
+      return { id: 'st_s' + i, name: nm, phone: '010-' + (1000 + i * 7).toString().padStart(4, '0') + '-' + (2000 + i * 13).toString().slice(0, 4), email: 'user' + i + '@example.com', kakao: '', memo: i % 5 === 0 ? '재수강' : '', courseIds: pick, tags: i % 5 === 0 ? ['재수강'] : (i % 6 === 0 ? ['VIP'] : []), status: ['confirmed', 'confirmed', 'applied', 'waitlist'][i % 4], feeAmount, paidAmount, payStatus, consent: i % 7 !== 0, appliedAt: new Date().toISOString() };
     });
     // 출석 샘플: 첫 강좌 1회차
     const c0 = d.courses[0]; const day = (c0.sessions[0]);
     if (day) { const rec = {}; d.students.filter(s => s.courseIds.includes(c0.id)).forEach((s, i) => rec[s.id] = ['present', 'present', 'late', 'absent'][i % 4]); d.attendance[c0.id + '::' + day] = rec; }
+    // 후원자 샘플
+    d.donors = [
+      { id: 'dn_0', name: '이든든', phone: '010-2222-0001', type: 'regular', amount: 30000, received: 360000, cycle: '매월', date: today().slice(0, 7) + '-05', status: 'active', memo: '' },
+      { id: 'dn_1', name: '박한결', phone: '010-2222-0002', type: 'regular', amount: 50000, received: 600000, cycle: '매월', date: today().slice(0, 7) + '-03', status: 'active', memo: '' },
+      { id: 'dn_2', name: '최소망', phone: '010-2222-0003', type: 'onetime', amount: 100000, received: 100000, cycle: '일시', date: today().slice(0, 7) + '-10', status: 'active', memo: '개강 축하' },
+      { id: 'dn_3', name: '정온유', phone: '010-2222-0004', type: 'regular', amount: 20000, received: 40000, cycle: '매월', date: '2026-03-05', status: 'lapsed', memo: '3월 이후 중단' }
+    ];
+    // 문의 샘플
+    d.inquiries = [
+      { id: 'iq_0', from: '@jeju_mom', channel: 'insta', contact: '', body: '6개 강좌 중 2개만 들어도 되나요? 시간표가 궁금해요.', memo: '', status: 'new', date: today() },
+      { id: 'iq_1', from: '김문의', channel: 'kakao', contact: '010-3333-0002', body: '수강료 분납 가능한지요?', memo: '분납 안내 예정', status: 'progress', date: today() },
+      { id: 'iq_2', from: '이완료', channel: 'email', contact: 'done@example.com', body: '환불 규정 문의', memo: '규정 안내 완료', status: 'done', date: '2026-07-20' }
+    ];
+    // 할일 샘플
+    d.todos = [
+      { id: 'td_0', title: '3주차 강의자료 업로드', due: today(), done: false },
+      { id: 'td_1', title: '미납자 입금 안내 발송', due: addDays(2), done: false },
+      { id: 'td_2', title: '월말 정산 마감', due: addDays(7), done: false },
+      { id: 'td_3', title: '개강 안내 문자 발송', due: addDays(-2), done: true }
+    ];
+    // 장부 샘플
+    d.ledger = [
+      { id: 'lg_0', type: 'expense', date: today().slice(0, 7) + '-02', title: '강의실 대관료', category: '대관', amount: 150000 },
+      { id: 'lg_1', type: 'expense', date: today().slice(0, 7) + '-04', title: '교재 인쇄', category: '인쇄', amount: 80000 },
+      { id: 'lg_2', type: 'income', date: today().slice(0, 7) + '-06', title: '외부 특강료', category: '강의', amount: 300000 }
+    ];
     return d;
   }
+  function addDays(n) { return new Date(Date.now() + n * 86400000).toISOString().slice(0, 10); }
   function sampleSessions(i) {
     // 오늘 기준 과거·미래 회차 몇 개 (고정 계산, 랜덤 미사용)
     const base = new Date(); const out = [];
@@ -827,10 +1333,28 @@
     return out;
   }
 
+  /* ---------- PIN 잠금 ---------- */
+  let unlocked = false;
+  function updateLockBtn() { $('#lockBtn').hidden = !(state.settings.pin); }
+  function showLock() {
+    if (!state.settings.pin) { unlocked = true; $('#lockScreen').hidden = true; return; }
+    unlocked = false; $('#lockScreen').hidden = false; $('#lockErr').hidden = true;
+    const pin = $('#lockPin'); pin.value = ''; setTimeout(() => pin.focus(), 50);
+  }
+  function tryUnlock() {
+    if ($('#lockPin').value === state.settings.pin) { unlocked = true; $('#lockScreen').hidden = true; render(); }
+    else { $('#lockErr').textContent = 'PIN이 일치하지 않습니다.'; $('#lockErr').hidden = false; $('#lockPin').value = ''; $('#lockPin').focus(); }
+  }
+  $('#lockSubmit').onclick = tryUnlock;
+  $('#lockPin').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryUnlock(); });
+  $('#lockBtn').onclick = showLock;
+
   /* ---------- 부팅 ---------- */
   document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => go(b.dataset.tab));
   $('#modalClose').onclick = closeModal;
   $('#modalBackdrop').onclick = (e) => { if (e.target.id === 'modalBackdrop') closeModal(); };
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  updateLockBtn();
   render();
+  if (state.settings.pin) showLock();
 })();
