@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>운영 관제 센터 — 네다바웨이</title>
+<meta name="description" content="온라인 강의 접수·수강생·출석·세그먼트·메시지를 한 화면에서 운영하는 관제 센터.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#6b4423">
+<link rel="stylesheet" href="manage.css">
+</head>
+<body>
+<div id="app" aria-live="polite">
+  <!-- 상단 바 -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <div>
+        <strong id="orgName">네다바웨이</strong>
+        <span class="sub">운영 관제 센터</span>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="dashboard" class="active">대시보드</button>
+      <button data-tab="students">접수·수강생</button>
+      <button data-tab="courses">강좌·회차</button>
+      <button data-tab="attendance">출석부</button>
+      <button data-tab="certs">수료</button>
+      <button data-tab="segments">세그먼트</button>
+      <button data-tab="messages">메시지·설문</button>
+      <button data-tab="finance">재무·정산</button>
+      <button data-tab="donors">후원</button>
+      <button data-tab="inbox">문의</button>
+      <button data-tab="todos">할일</button>
+      <button data-tab="data">데이터</button>
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="lockBtn" title="화면 잠금" hidden>🔒</button>
+      <span class="savehint" id="saveHint">자동 저장됨</span>
+    </div>
+  </header>
+
+  <main id="views">
+    <section class="view" id="view-dashboard"></section>
+    <section class="view" id="view-students" hidden></section>
+    <section class="view" id="view-courses" hidden></section>
+    <section class="view" id="view-attendance" hidden></section>
+    <section class="view" id="view-certs" hidden></section>
+    <section class="view" id="view-segments" hidden></section>
+    <section class="view" id="view-messages" hidden></section>
+    <section class="view" id="view-finance" hidden></section>
+    <section class="view" id="view-donors" hidden></section>
+    <section class="view" id="view-inbox" hidden></section>
+    <section class="view" id="view-todos" hidden></section>
+    <section class="view" id="view-data" hidden></section>
+  </main>
+</div>
+
+<!-- PIN 잠금 화면 -->
+<div class="lock-screen" id="lockScreen" hidden>
+  <div class="lock-box">
+    <div class="lock-emoji">🔒</div>
+    <h2 id="lockTitle">잠금 해제</h2>
+    <p class="muted" id="lockDesc">PIN을 입력하세요</p>
+    <input type="password" id="lockPin" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off">
+    <button class="btn primary" id="lockSubmit">확인</button>
+    <p class="lock-err" id="lockErr" hidden></p>
+  </div>
+</div>
+
+<!-- 모달 -->
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head"><h3 id="modalTitle"></h3><button class="icon-btn" id="modalClose" aria-label="닫기">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
