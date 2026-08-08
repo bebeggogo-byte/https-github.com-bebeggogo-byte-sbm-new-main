@@ -26,9 +26,16 @@ jobs:
         run: |
           rm -rf _publish
           mkdir _publish
-          cp -R index.html styles.css script.js favicon.svg CNAME robots.txt sitemap.xml _publish/ || true
+          # 사이트 전체를 복사한다 (word/·programs/ 등 하위 페이지 포함).
+          # VCS/워크플로/발행 임시 디렉터리만 제외.
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='_publish' \
+            ./ _publish/
           touch _publish/.nojekyll
-          echo "Published tree:"; ls -la _publish
+          echo "Published tree (top level):"; ls -la _publish
+          echo "word/ present?"; ls -la _publish/word 2>/dev/null || echo "MISSING word/"
 
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
