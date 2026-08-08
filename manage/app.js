@@ -449,6 +449,7 @@
         ${state.courses.length ? state.courses.map(courseCard).join('') : '<div class="card pad empty">등록된 강좌가 없습니다. 우측 상단 <b>＋ 강좌 추가</b>로 시작하세요.</div>'}
       </div>`;
     $('#addCourse').onclick = () => openCourseModal();
+    el.querySelectorAll('[data-attc]').forEach(b => b.onclick = () => { attSel.courseId = b.dataset.attc; attSel.date = ''; go('attendance'); });
     el.querySelectorAll('[data-editc]').forEach(b => b.onclick = () => openCourseModal(b.dataset.editc));
     el.querySelectorAll('[data-delc]').forEach(b => b.onclick = () => {
       if (confirm('강좌를 삭제할까요? 수강생의 신청 정보와 출석 기록에서도 제거됩니다.')) {
@@ -472,6 +473,7 @@
       <div class="muted" style="font-size:12px;margin:6px 0">신청 ${enrolled}명 ${c.capacity ? '/ 정원 ' + c.capacity : ''} · 회차 ${sessions.length}개</div>
       ${c.memo ? '<div class="muted" style="font-size:12px;margin-bottom:6px">' + esc(c.memo) + '</div>' : ''}
       <div style="display:flex;flex-wrap:wrap;gap:5px">${sessions.length ? sessions.map(d => `<span class="chip">${d} ${daysFrom(d) === '오늘' ? '· 오늘' : ''}</span>`).join('') : '<span class="muted" style="font-size:12px">회차 미정</span>'}</div>
+      <button class="btn sm primary" data-attc="${c.id}" style="margin-top:12px;width:100%;justify-content:center">📋 이 강좌 출석부 열기</button>
     </div>`;
   }
   function openCourseModal(id) {
@@ -522,9 +524,12 @@
         <button class="btn" id="expAtt">CSV 내보내기</button>
       </div>
       <div class="card pad no-print" style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">강좌 선택 (클릭하면 그 강좌 출석부로 전환)</div>
+        <div class="seg-quick" style="margin-bottom:12px">
+          ${state.courses.map(c => `<button class="btn sm ${c.id === attSel.courseId ? 'primary' : ''}" data-pickcourse="${c.id}"><span class="course-dot" style="background:${c.color}"></span> ${esc(c.name)} <span class="${c.id === attSel.courseId ? '' : 'muted'}">${activeStudents().filter(s => s.courseIds.includes(c.id)).length}명</span></button>`).join('')}
+        </div>
         <div class="inline">
-          <label class="field"><span>강좌</span><select id="a_course">${state.courses.map(c => `<option value="${c.id}" ${c.id === attSel.courseId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>
-          <label class="field" style="max-width:200px"><span>회차</span><select id="a_date">${sessions.length ? sessions.map(d => `<option value="${d}" ${d === attSel.date ? 'selected' : ''}>${d} (${daysFrom(d)})</option>`).join('') : '<option value="">회차 없음</option>'}</select></label>
+          <label class="field" style="max-width:220px"><span>회차</span><select id="a_date">${sessions.length ? sessions.map(d => `<option value="${d}" ${d === attSel.date ? 'selected' : ''}>${d} (${daysFrom(d)})</option>`).join('') : '<option value="">회차 없음</option>'}</select></label>
           <button class="btn sm" id="a_allpresent">전원 출석</button>
         </div>
       </div>
@@ -538,7 +543,7 @@
         <div class="muted no-print" style="margin-top:10px;font-size:12px">출석 ${count(rec, 'present')} · 지각 ${count(rec, 'late')} · 결석 ${count(rec, 'absent')} · 공결 ${count(rec, 'excused')}</div>`}
       </div>`;
 
-    $('#a_course').onchange = (e) => { attSel.courseId = e.target.value; attSel.date = ''; renderAttendance(); };
+    el.querySelectorAll('[data-pickcourse]').forEach(b => b.onclick = () => { attSel.courseId = b.dataset.pickcourse; attSel.date = ''; renderAttendance(); });
     $('#a_date').onchange = (e) => { attSel.date = e.target.value; renderAttendance(); };
     $('#printAtt').onclick = () => window.print();
     $('#expAtt').onclick = exportAttendance;

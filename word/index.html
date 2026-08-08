@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>말씀 · SBM 말씀묵상 — Nedabah Way 네다바웨이</title>
+    <meta name="description" content="혼자 읽던 말씀을 함께 읽습니다. 묵상–나눔–실천을 한 흐름으로 이어가는 SBM 말씀묵상 모임. 성령일 선교사가 직접 이끄는 말씀통독 사역 — 제주 서귀포 기점.">
+    <meta name="keywords" content="SBM, 말씀묵상, 말씀통독, 성령일 선교사, 성경 읽기, 제주, 네다바웨이, Nedabah Way">
+    <meta name="author" content="Nedabah Way">
+    <link rel="canonical" href="https://nedabah.org/word/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Nedabah Way">
+    <meta property="og:url" content="https://nedabah.org/word/">
+    <meta property="og:image" content="https://nedabah.org/og/default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:title" content="말씀 · SBM 말씀묵상 — Nedabah Way">
+    <meta property="og:description" content="혼자 읽던 말씀을, 함께 읽습니다. 묵상–나눔–실천의 SBM 말씀묵상 모임.">
+    <meta property="og:locale" content="ko_KR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="말씀 · SBM 말씀묵상 — Nedabah Way">
+    <meta name="twitter:description" content="혼자 읽던 말씀을, 함께 읽습니다.">
+    <meta name="twitter:image" content="https://nedabah.org/og/default.png">
+
+    <meta name="theme-color" content="#ffffff">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/manifest.json">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  *{box-sizing:border-box}
+  :root{
+    --bg:#ffffff; --surface:#ffffff; --ink:#1e293b; --muted:#64748b;
+    --line:#e8edf5; --brand:#3b82f6; --accent:#2563eb; --amber:#e0a63a; --gold:#b8862b; --card:#ffffff;
+    --serif:'Noto Serif KR','Nanum Myeongjo','Pretendard',ui-serif,Georgia,serif;
+    --sans:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --wrap:1080px; --pad:clamp(1.25rem,5vw,2rem); --sec:clamp(4rem,9vw,7rem);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#0f1729; --surface:#141f34; --ink:#eaf0fb; --muted:#9fb0c9;
+      --line:#26324a; --brand:#60a5fa; --accent:#93c5fd; --amber:#f0c05a; --gold:#f0c05a; --card:#16223b; }
+  }
+  :root[data-theme="dark"]{ --bg:#0f1729; --surface:#141f34; --ink:#eaf0fb; --muted:#9fb0c9;
+    --line:#26324a; --brand:#60a5fa; --accent:#93c5fd; --amber:#f0c05a; --gold:#f0c05a; --card:#16223b; }
+  :root[data-theme="light"]{ --bg:#ffffff; --surface:#ffffff; --ink:#1e293b; --muted:#64748b;
+    --line:#e8edf5; --brand:#3b82f6; --accent:#2563eb; --amber:#e0a63a; --gold:#b8862b; --card:#ffffff; }
+
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:17px;line-height:1.8;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3,h4{margin:0}
+  .wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:var(--pad)}
+  .serif{font-family:var(--serif)}
+  .eyebrow{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700}
+  .textlink{color:var(--brand);font-weight:600;border-bottom:1px solid color-mix(in srgb,var(--brand) 32%,transparent);padding-bottom:2px;transition:border-color .18s}
+  .textlink:hover{border-color:var(--brand)}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+
+  header.nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .logo{font-family:var(--serif);font-weight:700;letter-spacing:.12em;font-size:1rem;display:inline-flex;align-items:center;gap:.5rem}
+  .logo .badge{font-size:.62rem;letter-spacing:.16em;color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));border-radius:999px;padding:.15em .6em;font-family:var(--sans);font-weight:700}
+  .nav-links{display:flex;align-items:center;gap:clamp(.8rem,2.2vw,1.7rem);font-size:.92rem}
+  .nav-links a.item{color:var(--muted);transition:color .18s}
+  .nav-links a.item:hover{color:var(--ink)}
+  .nav-home{color:var(--muted);font-size:.86rem;display:inline-flex;align-items:center;gap:.3em}
+  .nav-home:hover{color:var(--ink)}
+  .cta{display:inline-flex;align-items:center;gap:.5em;background:var(--brand);color:#fff;
+    padding:.72em 1.5em;border-radius:999px;font-weight:700;font-size:.92rem;box-shadow:0 6px 16px -6px color-mix(in srgb,var(--brand) 60%,transparent);transition:background .18s,transform .18s;border:0;cursor:pointer;font-family:inherit}
+  .cta:hover{background:var(--accent);transform:translateY(-1px)}
+  .cta.ghost{background:transparent;color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 40%,var(--line));box-shadow:none}
+  .cta.ghost:hover{background:color-mix(in srgb,var(--brand) 8%,transparent);color:var(--accent)}
+  @media (max-width:680px){ .nav-links .item{display:none} }
+
+  section{padding-block:var(--sec)}
+  .mark{width:64px;height:64px}
+  .mark use{transform-box:view-box;transform-origin:60px 60px}
+  .m-breathe{animation:mBreathe 6s ease-in-out infinite;transform-origin:center}
+  @keyframes mBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  @media (prefers-reduced-motion:reduce){ .m-breathe{animation:none} }
+
+  .hero{position:relative;isolation:isolate;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero::before{content:"";position:absolute;inset:0;z-index:-1;
+    background:radial-gradient(55% 45% at 92% 2%,color-mix(in srgb,var(--amber) 7%,transparent) 0%,transparent 60%)}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(1.5rem,4vw,3.4rem);align-items:center;
+    min-height:clamp(440px,68vh,620px);padding-block:clamp(2.6rem,5vw,4rem)}
+  .hero h1{font-family:var(--serif);font-size:clamp(2rem,4.4vw,3.2rem);font-weight:700;line-height:1.28;letter-spacing:-.01em;margin:1rem 0 1.1rem;text-wrap:balance}
+  .hero p.sub{font-size:clamp(1rem,1.4vw,1.15rem);color:var(--muted);max-width:40ch;margin:0 0 1.9rem}
+  .hero-actions{display:flex;gap:.8rem;flex-wrap:wrap;align-items:center}
+  .versecard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(1.6rem,3.5vw,2.4rem);
+    box-shadow:0 30px 60px -38px color-mix(in srgb,var(--gold) 60%,transparent);display:flex;flex-direction:column;gap:1rem}
+  .versecard .vq{font-family:var(--serif);font-size:clamp(1.3rem,2.4vw,1.75rem);line-height:1.7;font-weight:400;text-wrap:balance}
+  .versecard cite{font-size:.85rem;font-style:normal;color:var(--gold);letter-spacing:.04em;font-weight:600}
+  .versecard .accent{width:38px;height:3px;border-radius:2px;background:var(--gold)}
+  @media (max-width:760px){ .hero-grid{grid-template-columns:1fr} }
+
+  .sec-head{max-width:60ch}
+  .sec-head h2{font-family:var(--serif);font-weight:700;font-size:clamp(1.5rem,2.9vw,2.15rem);line-height:1.35;margin-top:.6rem;text-wrap:balance}
+  .sec-head p.lead{color:var(--muted);margin:1rem 0 0}
+  .center{text-align:center;margin-inline:auto}
+
+  .sbm{background:var(--surface);border-block:1px solid var(--line)}
+  .path3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:clamp(2rem,4vw,3rem)}
+  @media (max-width:760px){ .path3{grid-template-columns:1fr} }
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.7rem 1.5rem;position:relative}
+  .pcard .step{font-family:var(--serif);font-size:.8rem;font-weight:700;color:var(--gold);letter-spacing:.12em}
+  .pcard h3{font-family:var(--serif);font-size:1.35rem;font-weight:700;margin:.5rem 0 .5rem}
+  .pcard p{color:var(--muted);font-size:.95rem;margin:0}
+  .pcard .num{position:absolute;top:1.3rem;right:1.5rem;font-family:var(--serif);font-size:1.1rem;color:color-mix(in srgb,var(--gold) 55%,transparent);font-weight:700}
+
+  .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:clamp(1.8rem,4vw,2.6rem)}
+  @media (max-width:680px){ .info-grid{grid-template-columns:1fr} }
+  .icard{border:1px solid var(--line);border-radius:14px;padding:1.3rem 1.4rem;background:var(--card)}
+  .icard .k{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700}
+  .icard b{display:block;font-family:var(--serif);font-size:1.12rem;margin:.35rem 0 .3rem}
+  .icard span{color:var(--muted);font-size:.92rem}
+
+  .leader{background:var(--surface);border-block:1px solid var(--line)}
+  .leader-grid{display:grid;grid-template-columns:minmax(0,.4fr) minmax(0,.6fr);gap:clamp(1.5rem,5vw,3.5rem);align-items:center}
+  @media (max-width:760px){ .leader-grid{grid-template-columns:1fr} }
+  .leader .ph{aspect-ratio:1;border-radius:20px;position:relative;overflow:hidden;
+    background:radial-gradient(120% 90% at 25% 15%,#fdeecb 0%,transparent 55%),radial-gradient(120% 120% at 85% 88%,#dbeafe 0%,transparent 52%),linear-gradient(150deg,#f3ead6,#e6cf9f 78%)}
+  .leader .ph::after{content:"";position:absolute;left:14px;bottom:12px;font-size:.72rem;color:#6b5a34;background:rgba(255,255,255,.72);padding:.28em .62em;border-radius:999px;backdrop-filter:blur(3px);display:none}
+  .leader h2{font-family:var(--serif);font-weight:700;font-size:clamp(1.4rem,2.7vw,2rem);line-height:1.4;margin:.6rem 0 1rem;text-wrap:balance}
+  .leader p{color:var(--muted);margin:0 0 1rem;max-width:48ch}
+  .leader p b{color:var(--ink)}
+  .leader .who{font-family:var(--serif);color:var(--ink);font-weight:700}
+  .facts{display:flex;gap:.5rem;flex-wrap:wrap;margin:.2rem 0 1.4rem;padding:0;list-style:none}
+  .facts li{font-size:.8rem;font-weight:600;color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,transparent);border:1px solid color-mix(in srgb,var(--gold) 30%,var(--line));border-radius:999px;padding:.28em .85em}
+
+  .join{background:var(--bg);border-top:1px solid var(--line);text-align:center}
+  .join h2{font-family:var(--serif);font-weight:700;font-size:clamp(1.6rem,3vw,2.3rem);line-height:1.4;margin:.7rem auto 1rem;max-width:20ch;text-wrap:balance}
+  .join p{color:var(--muted);max-width:46ch;margin:0 auto 1.8rem}
+  .join-actions{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+  .join .ig-dot{width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#f5b301,#e0742f 40%,#d62976 78%,#8a5aa0)}
+  .cta.insta{background:linear-gradient(135deg,#f5b301,#e0742f 45%,#d62976 82%,#8a5aa0);box-shadow:0 6px 16px -6px rgba(214,41,118,.5)}
+  .cta.insta:hover{filter:brightness(1.05);background:linear-gradient(135deg,#f5b301,#e0742f 45%,#d62976 82%,#8a5aa0)}
+
+  footer{background:var(--surface);border-top:1px solid var(--line);padding-block:clamp(2.4rem,6vw,3.6rem) 1.8rem;font-size:.9rem}
+  .foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:2rem}
+  .foot-grid h4{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 .6rem;font-weight:700}
+  .foot-grid p{margin:0;color:var(--muted);line-height:1.7}
+  .foot-brand .name{font-family:var(--serif);font-weight:700;letter-spacing:.1em;color:var(--ink);margin-bottom:.5rem}
+  .foot-grid a{color:var(--muted)} .foot-grid a:hover{color:var(--ink)}
+  .foot-bottom{margin-top:2rem;padding-top:1.1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.8rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  @media (max-width:640px){ .foot-grid{grid-template-columns:1fr 1fr} .foot-brand{grid-column:1/-1} }
+
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){ .reveal{opacity:1;transform:none;transition:none} html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="bloom">
+    <path style="fill:currentColor" d="M60 60 C72 44 72 22 60 10 C48 22 48 44 60 60 Z"/>
+    <path style="fill:currentColor" transform="rotate(120 60 60)" d="M60 60 C72 44 72 22 60 10 C48 22 48 44 60 60 Z"/>
+    <path style="fill:currentColor" transform="rotate(240 60 60)" d="M60 60 C72 44 72 22 60 10 C48 22 48 44 60 60 Z"/>
+    <circle cx="60" cy="60" r="5.4" style="fill:#fff;stroke:var(--dot,#b8862b);stroke-width:2.6"/>
+  </g>
+</defs></svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a href="/word/" class="logo">NEDABAH WAY <span class="badge">말씀</span></a>
+    <nav class="nav-links" aria-label="주요">
+      <a class="item" href="#sbm">SBM 말씀묵상</a>
+      <a class="item" href="#rhythm">함께 읽기</a>
+      <a class="item" href="#leader">이끄는 이</a>
+      <a class="nav-home" href="/">교육 홈 ↗</a>
+      <a class="cta" href="#join">함께하기</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="reveal">
+        <svg class="mark m-breathe" viewBox="0 0 120 120" style="color:var(--gold);--dot:var(--gold)" aria-hidden="true"><use href="#bloom"/></svg>
+        <div class="eyebrow" style="margin-top:1rem">말씀 사역 · Nedabah Way</div>
+        <h1>혼자 읽던 말씀을,<br>함께 읽습니다</h1>
+        <p class="sub">묵상–나눔–실천을 한 흐름으로. 매주 만나 성경을 함께 읽는 <b>SBM 말씀묵상 모임</b>입니다.</p>
+        <div class="hero-actions">
+          <a class="cta" href="#join">함께하기</a>
+          <a class="cta ghost" href="#sbm">어떻게 읽나요?</a>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="versecard">
+          <span class="accent" aria-hidden="true"></span>
+          <p class="vq">“주의 권능의 날에<br>주의 백성이 거룩한 옷을 입고<br>즐거이 헌신하니…”</p>
+          <cite>시편 110:3</cite>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sbm" class="sbm">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <div class="eyebrow">SBM · Scripture-Based Meditation</div>
+        <h2 class="serif">SBM 말씀묵상 모임</h2>
+        <p class="lead">‘의지’가 아니라 ‘구조’로 지속되는 묵상. 혼자 멈추던 자리를, 함께 읽는 리듬으로 바꿉니다.</p>
+      </div>
+      <div class="path3">
+        <div class="pcard reveal">
+          <span class="num">01</span>
+          <div class="step">묵상</div>
+          <h3 class="serif">혼자 만나는 말씀</h3>
+          <p>오늘의 본문을 천천히 읽고, 마음에 남는 한 구절을 붙잡습니다.</p>
+        </div>
+        <div class="pcard reveal">
+          <span class="num">02</span>
+          <div class="step">나눔</div>
+          <h3 class="serif">함께 나누는 자리</h3>
+          <p>서로의 발견을 나눕니다. 다른 눈이 내 자리를 넓혀 줍니다.</p>
+        </div>
+        <div class="pcard reveal">
+          <span class="num">03</span>
+          <div class="step">실천</div>
+          <h3 class="serif">삶으로 잇기</h3>
+          <p>읽은 말씀을 한 걸음의 적용으로. 다음 만남까지 삶에서 이어갑니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="rhythm">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="eyebrow">함께 읽기의 리듬</div>
+        <h2 class="serif">매주, 같은 자리에서</h2>
+        <p class="lead">부담 없이 시작할 수 있게, 단순한 리듬으로 운영합니다. 처음 오시는 분도 환영합니다.</p>
+      </div>
+      <div class="info-grid">
+        <div class="icard reveal"><div class="k">언제</div><b>매주 정기 모임</b><span>묵상–나눔–실천을 한 흐름으로</span></div>
+        <div class="icard reveal"><div class="k">누구와</div><b>청년 · 공동체</b><span>혼자보다 함께가 편한 분들과</span></div>
+        <div class="icard reveal"><div class="k">어떻게</div><b>강의 · 모임 문의</b><span>기관·교회·소그룹 초청도 가능</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="leader" class="leader">
+    <div class="wrap leader-grid">
+      <div class="reveal">
+        <div class="ph" data-label="사진 자리 · 성령일 선교사"></div>
+      </div>
+      <div class="reveal">
+        <div class="eyebrow">이끄는 이</div>
+        <h2 class="serif">말씀을 함께 여는<br>성령일 선교사</h2>
+        <p><span class="who">SBM 말씀묵상 강의</span>는 <b>성령일 선교사</b>가 직접 이끕니다. 성경을 ‘혼자 읽는 법’이 아니라 ‘함께 읽는 법’을 가르치고 세웁니다.</p>
+        <p><b>8여 년</b> 동안 중국 지하교회에서 탈북자들과 오직 성경만 읽으며 그 긴 시간을 함께 견뎠고, 이어 <b>태국에서 12년</b>을 지냈습니다. 지금은 <b>제주에 정착해 10년째</b> 살며, 순회선교사로 다시 파송받아 <b>제주 서귀포시를 기점으로 전 세계를 순회</b>하며 <b>말씀통독 모임</b>을 이어가고 있습니다.</p>
+        <ul class="facts">
+          <li>중국 지하교회 8년+</li>
+          <li>태국 12년</li>
+          <li>제주 10년째 · 서귀포 기점 세계 순회</li>
+        </ul>
+        <p>이 오랜 여정에서 길어 올린 ‘함께 읽는 힘’으로, 기관·교회·소그룹의 초청 강의도 대상과 상황에 맞춰 유연하게 설계합니다.</p>
+        <a class="textlink" href="#join">말씀묵상 강의 문의 →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="join" class="join">
+    <div class="wrap">
+      <svg class="mark m-breathe" viewBox="0 0 120 120" style="color:var(--gold);--dot:var(--gold);width:52px;height:52px" aria-hidden="true"><use href="#bloom"/></svg>
+      <h2 class="serif">함께 읽으실래요?</h2>
+      <p>처음이어도 괜찮습니다. 인스타 DM이나 메일로 편하게 연락 주세요. 모임 안내와 다음 일정을 전해드릴게요.</p>
+      <div class="join-actions">
+        <a class="cta insta" href="https://ig.me/m/nedabah_way" target="_blank" rel="noopener"><span class="ig-dot" aria-hidden="true"></span> @nedabah_way DM</a>
+        <a class="cta ghost" href="mailto:nedabah.way@gmail.com?subject=%5BSBM%20말씀묵상%5D%20문의">메일로 문의</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="name">NEDABAH WAY · 말씀</div>
+        <p>자발성으로 시작되는<br>거룩을 향한 공동체의 길</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p><a href="mailto:nedabah.way@gmail.com">nedabah.way@gmail.com</a><br><a href="https://instagram.com/nedabah_way" target="_blank" rel="noopener">Instagram @nedabah_way</a></p>
+      </div>
+      <div>
+        <h4>Nedabah Way</h4>
+        <p><a href="/">교육 · 프로그램 홈 ↗</a><br>제주특별자치도 서귀포시</p>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Nedabah Way.</span>
+      <span>SBM 말씀묵상 · 함께 읽기 · 성령일 선교사</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var els=[].slice.call(document.querySelectorAll('.reveal'));
+    var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    if(!('IntersectionObserver' in window)||reduce){ els.forEach(function(e){e.classList.add('in')}); }
+    else{
+      var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}})},{threshold:.12});
+      els.forEach(function(e,i){ e.style.transitionDelay=Math.min((i%3)*80,200)+'ms'; io.observe(e); });
+    }
+  })();
+</script>
+</body>
+</html>
