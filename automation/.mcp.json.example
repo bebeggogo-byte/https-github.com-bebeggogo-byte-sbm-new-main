@@ -1,0 +1,27 @@
+{
+  "_comment": "이 파일을 .mcp.json 으로 복사한 뒤 본인 자격증명을 채우세요. .mcp.json 은 .gitignore 처리되어 커밋되지 않습니다. Claude Code 가 이 MCP 서버들을 자동으로 띄웁니다.",
+
+  "mcpServers": {
+    "google-calendar": {
+      "_what": "구글 캘린더에 강의 일정을 '자동 등록'(.ics 수동 업로드 대신). OAuth 데스크톱 클라이언트 credentials.json 필요.",
+      "command": "npx",
+      "args": ["-y", "@cocal/google-calendar-mcp"],
+      "env": {
+        "GOOGLE_OAUTH_CREDENTIALS": "/절대경로/credentials.json"
+      }
+    },
+
+    "filesystem": {
+      "_what": "생성한 PDF/PPTX/ICS 산출물을 Claude 가 읽고 쓰도록 허용.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem",
+               "/절대경로/automation/output"]
+    }
+  },
+
+  "_불가_항목": {
+    "kakaotalk": "카카오톡은 제3자 채팅 읽기 API를 공개하지 않습니다. → 메시지를 inputs/ 텍스트로 붙여넣어 사용.",
+    "a_dot_call": "에이닷 통화 내용은 공개 API가 없습니다. → 통화요약을 inputs/ 텍스트로 붙여넣기.",
+    "notebooklm": "Google NotebookLM 은 공개 API가 없어 자동화 불가. → 생성된 curriculum_*.pdf 를 수동 업로드 후 슬라이드 개요 작성 → make_slides.py 로 PPT 화."
+  }
+}

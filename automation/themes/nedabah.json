@@ -1,0 +1,22 @@
+{
+  "name": "nedabah",
+  "display_name": "네다바웨이 (Nedabah Way)",
+  "source_label": "네다바웨이 · Nedabah Way",
+  "match": ["네다바", "nedabah", "제주", "공동체", "거룩", "신앙", "교회", "주일학교", "청년부"],
+  "palette": {
+    "bg": "FFFFFF",
+    "ink": "2B2B2B",
+    "heading": "5B4A36",
+    "accent": "A86B4B",
+    "muted": "9A9A9A",
+    "line": "CCBEA8"
+  },
+  "fonts": { "heading": "Noto Serif KR", "body": "Noto Sans KR" },
+  "layout": {
+    "title_pt": 30,
+    "subtitle_pt": 16,
+    "objective_pt": 12,
+    "body_pt": 16,
+    "source_pt": 6
+  }
+}

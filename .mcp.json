@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "google-calendar": {
+      "command": "npx",
+      "args": ["-y", "@cocal/google-calendar-mcp"],
+      "env": {
+        "GOOGLE_OAUTH_CREDENTIALS": "./automation/credentials.json"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./automation/output"]
+    },
+    "notebooklm": {
+      "command": "notebooklm-mcp",
+      "args": [],
+      "env": {
+        "_comment": "사전에 'nlm login --file cookies.txt' 1회 실행 필요 (쿠키는 프로필에 저장됨)"
+      }
+    }
+  }
+}

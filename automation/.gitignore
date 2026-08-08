@@ -1,0 +1,30 @@
+# 개인정보 보호: 실제 메시지/통화 내용은 커밋하지 않음
+inputs/*
+!inputs/sample_messages.txt
+
+# 생성 산출물(강의별 자료)은 로컬에만 — 필요 시 수동 공유
+output/
+
+# 녹음 파일 / 전사본 (용량·민감)
+recordings/
+
+# 워크플로우 진행상태 / 강의별 작업폴더 (개인 일정·자료 포함)
+workflow_state.json
+workspace/
+
+# 파이썬 캐시
+__pycache__/
+*.pyc
+
+# OAuth 비밀키 / 브라우저 세션
+credentials.json
+token.json
+.mcp.json
+connectors/.nblm_profile/
+
+# 노트북LM 세션 쿠키 (비밀번호급 민감정보!)
+cookies.txt
+*.cookies
+
+# 사용자 업로드 강의 덱(개인 자료)
+nlm_in/

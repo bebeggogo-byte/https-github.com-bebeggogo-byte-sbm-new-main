@@ -1,0 +1,32 @@
+python-pptx>=1.0
+reportlab>=4.0
+icalendar>=5.0
+
+# 선택: AI 정밀 파싱/커리큘럼 (ANTHROPIC_API_KEY 필요)
+anthropic>=0.40
+
+# 선택: 구글 캘린더 무클릭 등록 (connectors/gcal_push.py)
+google-api-python-client>=2.0
+google-auth-oauthlib>=1.0
+google-auth-httplib2>=0.2
+
+# 선택: NotebookLM 브라우저 자동화 (connectors/notebooklm_browser.py)
+#   설치 후: playwright install chromium
+playwright>=1.40
+
+# 선택: 카톡 스크린샷 OCR (connectors/kakao_ingest.py --ocr)
+#   시스템에 tesseract + tesseract-ocr-kor 도 설치 필요
+pytesseract>=0.3
+pillow>=10.0
+
+# 선택: 강의 녹음 전사 (transcribe.py)  — 시스템에 ffmpeg 필요
+faster-whisper>=1.0
+
+# 선택: 워터마크/로고 지우개 (tools/erase_watermark.py) + 슬라이드 OCR 갭분석
+opencv-python-headless>=4.8
+numpy>=1.24
+pymupdf>=1.23
+# 이미지 덱 텍스트 추출(gap_analysis --ocr)엔 시스템 tesseract + tesseract-ocr-kor 도 필요
+
+# 선택: 노트북LM 직접 제어 (로컬 실행) — connectors/nlm_slides.sh
+notebooklm-mcp-cli>=0.7
