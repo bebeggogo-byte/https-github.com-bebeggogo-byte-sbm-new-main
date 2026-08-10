@@ -546,18 +546,26 @@
     return zipStore(files);
   }
 
-  /* ---------- 클로드 디자인 슬라이드: 7가지 레이아웃 렌더러 ---------- */
-  const DZC = { brown: '6B4423', brownD: '4E3117', cream: 'F7F1E8', paper: 'FFFDF9', ink: '2C2118', mut: '8A7A66', gold: 'A07D20', goldL: 'E3C77E', green: '3F7D5A', creamTxt: 'F0E4D4' };
+  /* ---------- 클로드 디자인 슬라이드: 레이아웃 렌더러 (안티 AI-slop)
+     원칙: 장식 라인·스트라이프 금지 / white 지배·brown 보조·gold 악센트 1개 /
+     한 슬라이드 한 개념 / 여백 40%+ / 본문 좌정렬 / 다크 샌드위치(표지·질문·마무리) */
+  const DZC = {
+    brown: '6B4423', brownD: '4E3117', white: 'FFFFFF', ink: '2C2118',
+    sub: '6E5F4E', mut: '9A8B77', gold: 'B08A2E', goldL: 'E3C77E',
+    green: '3F7D5A', tint: 'EFE6D8', tintNum: 'E9DCC8', creamTxt: 'D8C9B4', tintCard: 'F4EEE4'
+  };
 
   function dzText(id, x, y, w, h, paras, anchor) {
     const ps = paras.filter(p => p && p.t).map(p => {
-      const pPr = `<a:pPr algn="${p.align || 'l'}"${p.bullet ? ' marL="285750" indent="-285750"' : ''}>${p.bullet ? '<a:buFont typeface="Arial"/><a:buChar char="•"/>' : '<a:buNone/>'}</a:pPr>`;
-      return `<a:p>${pPr}<a:r><a:rPr lang="ko-KR" sz="${p.sz}"${p.b ? ' b="1"' : ''}${p.i ? ' i="1"' : ''} dirty="0"><a:solidFill><a:srgbClr val="${p.color}"/></a:solidFill></a:rPr><a:t>${xesc(p.t)}</a:t></a:r></a:p>`;
+      const pPr = `<a:pPr algn="${p.align || 'l'}"${p.bullet ? ' marL="285750" indent="-285750"' : ''}>${p.spcAft ? `<a:spcAft><a:spcPts val="${p.spcAft}"/></a:spcAft>` : ''}${p.bullet ? '<a:buFont typeface="Arial"/><a:buChar char="•"/>' : '<a:buNone/>'}</a:pPr>`;
+      const rPr = `<a:rPr lang="ko-KR" sz="${p.sz}"${p.b ? ' b="1"' : ''}${p.i ? ' i="1"' : ''}${p.spc ? ` spc="${p.spc}"` : ''} dirty="0"><a:solidFill><a:srgbClr val="${p.color}"/></a:solidFill>${p.font ? `<a:latin typeface="${p.font}"/>` : ''}</a:rPr>`;
+      const runs = String(p.t).split('\n').map(line => `<a:r>${rPr}<a:t>${xesc(line)}</a:t></a:r>`).join('<a:br/>');
+      return `<a:p>${pPr}${runs}</a:p>`;
     }).join('');
     return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="t${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr wrap="square"${anchor ? ` anchor="${anchor}"` : ''}><a:normAutofit/></a:bodyPr><a:lstStyle/>${ps || '<a:p><a:endParaRPr lang="ko-KR"/></a:p>'}</p:txBody></p:sp>`;
   }
-  function dzRect(id, x, y, w, h, fill) {
-    return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="r${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${fill}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="ko-KR"/></a:p></p:txBody></p:sp>`;
+  function dzRect(id, x, y, w, h, fill, prst) {
+    return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="r${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="${prst || 'rect'}"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${fill}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="ko-KR"/></a:p></p:txBody></p:sp>`;
   }
   function dzSlide(bg, inner) {
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -566,43 +574,67 @@
 
   function renderDesignedSlide(s, idx) {
     const C = DZC;
-    const pageNo = dzText(9, 11200000, 6350000, 700000, 320000, [{ t: String(idx + 1), sz: 1000, color: C.mut, align: 'r' }]);
+    const pageNo = dzText(19, 11200000, 6400000, 700000, 300000, [{ t: String(idx + 1), sz: 1000, color: C.mut, align: 'r' }]);
     switch (s.layout) {
-      case 'cover':
-        return dzSlide(C.brown,
-          dzRect(2, 838200, 3400000, 2286000, 45720, C.gold) +
-          dzText(3, 838200, 1950000, 10515600, 1350000, [{ t: s.title, sz: 4400, b: 1, color: 'FFFFFF' }], 'b') +
-          dzText(4, 838200, 3600000, 10515600, 900000, [{ t: s.subtitle, sz: 2000, color: C.creamTxt }]));
-      case 'section':
-        return dzSlide(C.cream,
-          dzRect(2, 0, 0, 274320, 6858000, C.brown) +
-          dzText(3, 838200, 1450000, 10515600, 1500000, [{ t: s.number || '', sz: 6600, b: 1, color: C.gold }]) +
-          dzText(4, 838200, 3200000, 10515600, 1100000, [{ t: s.title, sz: 3600, b: 1, color: C.brownD }]));
-      case 'quote':
-        return dzSlide(C.paper,
-          dzRect(2, 1524000, 2200000, 68580, 2300000, C.gold) +
-          dzText(3, 1900000, 2200000, 8500000, 1900000, [{ t: '“' + s.quote + '”', sz: 2600, i: 1, color: C.brownD }]) +
-          dzText(4, 1900000, 4250000, 8500000, 600000, [{ t: s.source, sz: 1400, color: C.mut }]) + pageNo);
-      case 'question':
-        return dzSlide(C.brown,
-          dzText(2, 1219200, 1500000, 9753600, 900000, [{ t: '?', sz: 5400, b: 1, color: C.goldL, align: 'ctr' }]) +
-          dzText(3, 1219200, 2700000, 9753600, 2200000, [{ t: s.question, sz: 3200, b: 1, color: 'FFFFFF', align: 'ctr' }], 'ctr'));
-      case 'activity':
-        return dzSlide(C.cream,
-          dzRect(2, 838200, 480000, 1600000, 540000, C.green) +
-          dzText(3, 838200, 480000, 1600000, 540000, [{ t: '활동', sz: 1400, b: 1, color: 'FFFFFF', align: 'ctr' }], 'ctr') +
-          dzText(4, 838200, 1200000, 10515600, 850000, [{ t: s.title, sz: 2600, b: 1, color: C.brownD }]) +
-          dzText(5, 838200, 2150000, 10515600, 4100000, (s.steps || []).map(t => ({ t, sz: 1800, color: C.ink, bullet: true }))) + pageNo);
-      case 'closing':
+      case 'cover': // 다크 + 골드 키커(자간) + 대제목 — 장식 라인 없음
         return dzSlide(C.brownD,
-          dzText(2, 1219200, 2150000, 9753600, 1400000, [{ t: s.main, sz: 2200, color: C.creamTxt, align: 'ctr' }], 'ctr') +
-          dzRect(3, 5486400, 3750000, 1219200, 45720, C.gold) +
-          dzText(4, 1219200, 3950000, 9753600, 1300000, [{ t: s.charge, sz: 3000, b: 1, color: C.goldL, align: 'ctr' }]));
-      default: // content
-        return dzSlide(C.paper,
-          dzText(2, 838200, 411480, 10515600, 820000, [{ t: s.title, sz: 2800, b: 1, color: C.brownD }], 'b') +
-          dzRect(3, 838200, 1330000, 1371600, 45720, C.brown) +
-          dzText(4, 838200, 1650000, 10515600, 4550000, (s.bullets || []).map(t => ({ t, sz: 1800, color: C.ink, bullet: true }))) + pageNo);
+          dzText(2, 822960, 1920240, 10515600, 457200, [{ t: s.kicker || '', sz: 1500, color: C.goldL, spc: 400 }]) +
+          dzText(3, 777240, 2331720, 10561320, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF' }]) +
+          dzText(4, 822960, 3977640, 10515600, 548640, [{ t: s.subtitle || '', sz: 1900, color: C.creamTxt }]));
+      case 'statement': // 흰 배경, 큰 문장 하나 — 여백이 디자인
+        return dzSlide(C.white,
+          dzText(2, 822960, 2194560, 10515600, 2469480, [{ t: s.text || s.title, sz: 4000, b: 1, color: C.ink }]));
+      case 'section': // 거대한 틴트 숫자가 그래픽 요소 (스트라이프 대신)
+        return dzSlide(C.white,
+          dzText(2, 0, 365760, 11887200, 6035040, [{ t: s.number || '', sz: 30000, b: 1, color: C.tintNum, align: 'r' }]) +
+          dzText(3, 822960, 4846320, 7315200, 914400, [{ t: s.title, sz: 4000, b: 1, color: C.brownD }]) +
+          dzText(4, 822960, 5760720, 7315200, 457200, [{ t: s.subtitle || '', sz: 1600, color: C.mut }]));
+      case 'quote': // 거대한 따옴표 글리프 틴트 (골드 바 대신)
+        return dzSlide(C.white,
+          dzText(2, 502920, 91440, 2743200, 2743200, [{ t: '“', sz: 20000, b: 1, color: C.tint, font: 'Cambria' }]) +
+          dzText(3, 1554480, 2331720, 9144000, 1828800, [{ t: s.quote, sz: 3000, i: 1, color: C.brownD }]) +
+          dzText(4, 1554480, 4434840, 9144000, 457200, [{ t: s.source, sz: 1500, color: C.mut }]) + pageNo);
+      case 'question': // 다크, 질문 하나만 — 청중을 멈추게
+        return dzSlide(C.brownD,
+          dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr' }], 'ctr') +
+          dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.goldL, align: 'ctr' }]));
+      case 'activity': { // 라벨은 자간 텍스트, 단계는 큰 틴트 숫자
+        let inner = dzText(2, 822960, 640080, 2743200, 365760, [{ t: '활동', sz: 1400, b: 1, color: C.green, spc: 600 }]) +
+          dzText(3, 822960, 1097280, 10515600, 731520, [{ t: s.title, sz: 3000, b: 1, color: C.brownD }]);
+        (s.steps || []).slice(0, 4).forEach((t, i) => {
+          const y = 2149856 + i * 1280160;
+          inner += dzText(4 + i * 2, 822960, y - 137160, 914400, 1005840, [{ t: String(i + 1), sz: 5400, b: 1, color: C.tintNum }]) +
+            dzText(5 + i * 2, 2011680, y + 91440, 8869680, 822960, [{ t, sz: 1800, b: 1, color: C.ink }]);
+        });
+        return dzSlide(C.white, inner + pageNo);
+      }
+      case 'stat': // 거대 숫자 + 라벨
+        return dzSlide(C.white,
+          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.brown, align: 'ctr' }], 'ctr') +
+          dzText(3, 1097280, 4434840, 9966960, 731520, [{ t: s.label || '', sz: 1900, color: C.sub, align: 'ctr' }]));
+      case 'compare': { // 두 칼럼 대비 카드 (틴트 vs 브라운)
+        let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.brownD }]) +
+          dzRect(3, 822960, 1737360, 5029200, 4206240, C.tintCard, 'roundRect') +
+          dzRect(4, 6336792, 1737360, 5029200, 4206240, C.brown, 'roundRect');
+        const colFn = (x, head, items, headC, txtC, id) => {
+          let h = dzText(id, x + 457200, 2148840, 4114800, 548640, [{ t: head, sz: 2200, b: 1, color: headC }]);
+          (items || []).slice(0, 4).forEach((t, i) => {
+            h += dzText(id + 1 + i, x + 457200, 2926080 + i * 822960, 4114800, 731520, [{ t, sz: 1500, b: 1, color: txtC }]);
+          });
+          return h;
+        };
+        inner += colFn(822960, s.leftHead || '', s.leftItems, C.brownD, C.ink, 5);
+        inner += colFn(6336792, s.rightHead || '', s.rightItems, C.goldL, 'FFFFFF', 11);
+        return dzSlide(C.white, inner);
+      }
+      case 'closing': // 다크, 결단 한 문장 — 장식 없음
+        return dzSlide(C.brownD,
+          dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2600, color: C.creamTxt, align: 'ctr' }], 'ctr') +
+          dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: C.goldL, align: 'ctr' }]));
+      default: // content — 제목 + 여백 있는 불릿 (밑줄·라인 없음)
+        return dzSlide(C.white,
+          dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.brownD }], 'b') +
+          dzText(3, 822960, 1737360, 10515600, 4297680, (s.bullets || []).map(t => ({ t, sz: 1800, color: C.ink, bullet: true, spcAft: 900 }))) + pageNo);
     }
   }
   function buildDesignedPptx(ds) { return buildPptx(ds, (s, i) => renderDesignedSlide(s, i)); }
@@ -610,37 +642,42 @@
   function normalizeSlideDesign(parsed) {
     const arr = parsed && (Array.isArray(parsed.slides) ? parsed.slides : (Array.isArray(parsed) ? parsed : null));
     if (!arr || !arr.length) return null;
-    const LAY = ['cover', 'section', 'content', 'quote', 'question', 'activity', 'closing'];
+    const LAY = ['cover', 'statement', 'section', 'content', 'quote', 'question', 'activity', 'stat', 'compare', 'closing'];
     const S = (x) => String(x == null ? '' : x).trim();
+    const A = (x, n) => Array.isArray(x) ? x.map(S).filter(Boolean).slice(0, n) : [];
     const out = arr.map(s => {
       if (!s) return null;
       let layout = S(s.layout).toLowerCase();
       if (!LAY.includes(layout)) layout = 'content';
       return {
-        layout, title: S(s.title), subtitle: S(s.subtitle), number: S(s.number),
-        bullets: Array.isArray(s.bullets) ? s.bullets.map(S).filter(Boolean).slice(0, 7) : [],
-        steps: Array.isArray(s.steps) ? s.steps.map(S).filter(Boolean).slice(0, 7) : [],
+        layout, title: S(s.title), subtitle: S(s.subtitle), kicker: S(s.kicker), number: S(s.number),
+        text: S(s.text), bullets: A(s.bullets, 5), steps: A(s.steps, 4),
         quote: S(s.quote), source: S(s.source), question: S(s.question),
+        value: S(s.value), label: S(s.label),
+        leftHead: S(s.leftHead), leftItems: A(s.leftItems, 4),
+        rightHead: S(s.rightHead), rightItems: A(s.rightItems, 4),
         main: S(s.main), charge: S(s.charge)
       };
-    }).filter(s => s && (s.title || s.quote || s.question || s.main || s.bullets.length || s.steps.length));
+    }).filter(s => s && (s.title || s.text || s.quote || s.question || s.main || s.value || s.bullets.length || s.steps.length || s.leftItems.length));
     return out.length ? out : null;
   }
 
   function slideDesignRules() {
-    return `[슬라이드 설계 규칙]
-- 한 슬라이드 = 하나의 메시지. 원고를 슬라이드에 옮겨 적지 말 것(강의는 말로, 슬라이드는 기억 장치로).
-- 제목 20자 이내, 불릿 5개 이하·각 40자 이내.
-- 청중을 멈추게 할 질문은 question 슬라이드로 독립시키고, 인용구는 quote 슬라이드로.
-- 구간이 바뀔 때 section 슬라이드(번호 01, 02…)로 호흡을 만들 것. 활동 안내는 activity로.
-- 시작은 cover, 마지막은 closing(깊은 얻음 + 결단 문장).
+    return `[슬라이드 설계 규칙 — AI 느낌을 지우는 것이 목표]
+- 한 슬라이드 = 하나의 메시지. 3초 안에 파악되어야 한다. 원고를 옮겨 적지 말 것(강의는 말로, 슬라이드는 기억 장치로).
+- 제목 20자 이내, 불릿 5개 이하·각 40자 이내. 같은 레이아웃을 연속으로 쓰지 말 것.
+- 핵심 선언 문장은 statement로 독립. 숫자·통계가 있으면 stat으로 크게. 대비 구조(전/후, A/B)는 compare로.
+- 청중을 멈추게 할 질문은 question으로, 인용구는 quote로 독립.
+- 구간이 바뀔 때 section(번호 01, 02…)으로 호흡. 활동 안내는 activity(단계 4개 이하).
+- 시작 cover(kicker=시리즈명·주최, subtitle=부제), 마지막 closing(main=깊은 얻음, charge=결단 문장).
+- 문구는 구체적으로. 클리셰 금지: "~의 여정", "함께 알아보겠습니다", "다양한", "효과적인" 같은 빈 말.
 - 총 8~20장 권장.
 
 [레이아웃]
-cover(title,subtitle) · section(number,title) · content(title,bullets[]) · quote(quote,source) · question(question) · activity(title,steps[]) · closing(main,charge)
+cover(kicker,title,subtitle) · statement(text) · section(number,title,subtitle) · content(title,bullets[]) · quote(quote,source) · question(question,subtitle) · activity(title,steps[]) · stat(value,label) · compare(title,leftHead,leftItems[],rightHead,rightItems[]) · closing(main,charge)
 
 [출력 — 오직 JSON, 코드펜스·설명 금지]
-{"slides":[{"layout":"cover","title":"...","subtitle":"..."},{"layout":"section","number":"01","title":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"quote","quote":"...","source":"..."},{"layout":"question","question":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
+{"slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"..."},{"layout":"statement","text":"..."},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
   }
   function buildSlideDesignPromptFromPlan(P) {
     const body = P.deep ? buildPlanMd(P) : `제목: ${P.title}\n${P.intent ? '설계 의도: ' + P.intent + '\n' : ''}슬라이드 개요:\n${P.slidesText || '(없음)'}`;
