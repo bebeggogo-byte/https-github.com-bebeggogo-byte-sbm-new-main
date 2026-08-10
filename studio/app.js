@@ -622,9 +622,6 @@
     }).join('');
     return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="t${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr wrap="square"${anchor ? ` anchor="${anchor}"` : ''}><a:normAutofit/></a:bodyPr><a:lstStyle/>${ps || '<a:p><a:endParaRPr lang="ko-KR"/></a:p>'}</p:txBody></p:sp>`;
   }
-  function dzRect(id, x, y, w, h, fill, prst) {
-    return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="r${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="${prst || 'rect'}"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${fill}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="ko-KR"/></a:p></p:txBody></p:sp>`;
-  }
   /* 슬라이드 배경 — 항상 단색(그라데이션 금지) */
   function dzSlide(bg, inner) {
     const fill = `<a:solidFill><a:srgbClr val="${bg}"/></a:solidFill>`;
@@ -724,19 +721,16 @@
         return dzSlide(C.pageBg,
           dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: AC, align: 'ctr', font: tf, spc: -150 }], 'ctr') +
           dzText(3, 1097280, 4434840, 9966960, 731520, [{ t: s.label || '', sz: 2400, color: C.gray2, align: 'ctr' }]));
-      case 'compare': { // 포컬: 오른쪽 카드(틴트+악센트 헤드) — 시선이 결론 쪽에 머문다
-        let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink, font: tf }]) +
-          dzRect(3, 822960, 1737360, 5029200, 4206240, C.card, 'roundRect') +
-          dzRect(4, 6336792, 1737360, 5029200, 4206240, C.tintNum, 'roundRect');
-        const colFn = (x, head, items, headC, id) => {
-          let h = dzText(id, x + 457200, 2148840, 4114800, 548640, [{ t: head, sz: 2400, b: 1, color: headC }]);
-          (items || []).slice(0, 4).forEach((t, i) => {
-            h += dzText(id + 1 + i, x + 457200, 2926080 + i * 822960, 4114800, 731520, [{ t, sz: 2000, color: C.gray2 }]);
-          });
+      case 'compare': { // 두 칼럼 텍스트 대비 — 도형 없음, 오른쪽(결론)이 악센트 포컬
+        let inner = dzText(2, 822960, 475488, 10515600, 731520, [{ t: s.title, sz: 2800, b: 1, color: C.ink, font: tf }]);
+        const colFn = (x, head, items, headC, itemC, id) => {
+          let h = dzText(id, x, 1737360, 4800600, 640080, [{ t: head, sz: 2400, b: 1, color: headC }]);
+          h += dzText(id + 1, x, 2560320, 4800600, 3657600,
+            (items || []).slice(0, 4).map(t => ({ t, sz: 2000, color: itemC, lnSpc: 200000 })));
           return h;
         };
-        inner += colFn(822960, s.leftHead || '', s.leftItems, C.gray2, 5);
-        inner += colFn(6336792, s.rightHead || '', s.rightItems, AC, 11);
+        inner += colFn(822960, s.leftHead || '', s.leftItems, C.gray2, C.gray2, 3);
+        inner += colFn(6336792, s.rightHead || '', s.rightItems, AC, C.ink, 5);
         return dzSlide(C.pageBg, inner);
       }
       case 'closing': // 포컬: 결단 문장 + 악센트 마침표
@@ -834,7 +828,7 @@ ${themeLines}
 - 총 8~20장 권장.
 
 [레이아웃]
-cover(kicker,title,subtitle) · statement(text,highlight=강조 단어) · section(number,title,subtitle) · content(title,subtitle=소제목,lead=학습목표·핵심 한 줄,desc=슬라이드 설명,bullets[]=내용) · quote(quote,source) · question(question,subtitle) · activity(title,steps[]) · stat(value,label) · compare(title,leftHead,leftItems[],rightHead=결론 쪽,rightItems[]) · closing(main,charge)
+cover(kicker,title,subtitle) · statement(text,highlight=강조 단어) · section(number,title,subtitle) · content(title,subtitle=소제목,lead=학습목표·핵심 한 줄,desc=슬라이드 설명,bullets[]=내용) · quote(quote,source) · question(question,subtitle) · activity(title,steps[]) · stat(value,label) · compare(title,leftHead,leftItems[],rightHead=결론 쪽·악센트,rightItems[]) · closing(main,charge)
 
 [출력 — 오직 JSON, 코드펜스·설명 금지]
 {"theme":"cobalt","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"...","imageQuery":"open door light"},{"layout":"statement","text":"...","highlight":"강조단어"},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","subtitle":"소제목","lead":"학습목표: ...","desc":"슬라이드 설명","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
