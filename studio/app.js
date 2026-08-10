@@ -479,9 +479,12 @@
   }
   const xesc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  /* slides: [{title, bullets[]}] → .pptx Blob (16:9, 브랜드 브라운/크림) */
-  function buildPptx(slides) {
-    const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
+  const PPTX_NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
+
+  /* slides: [{title, bullets[]}] → .pptx Blob (16:9, 브랜드 브라운/크림)
+     renderFn을 주면 슬라이드 XML 생성을 커스텀 렌더러로 대체(디자인 레이아웃용) */
+  function buildPptx(slides, renderFn) {
+    const NS = PPTX_NS;
     const emptyTree = '<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree>';
     const theme = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Nedabah"><a:themeElements>
@@ -534,13 +537,157 @@
     });
     files.push({ name: 'ppt/theme/theme1.xml', data: theme });
     slides.forEach((s, i) => {
-      files.push({ name: `ppt/slides/slide${i + 1}.xml`, data: slideXml(s) });
+      files.push({ name: `ppt/slides/slide${i + 1}.xml`, data: (renderFn || slideXml)(s, i) });
       files.push({
         name: `ppt/slides/_rels/slide${i + 1}.xml.rels`, data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/></Relationships>`
       });
     });
     return zipStore(files);
+  }
+
+  /* ---------- 클로드 디자인 슬라이드: 7가지 레이아웃 렌더러 ---------- */
+  const DZC = { brown: '6B4423', brownD: '4E3117', cream: 'F7F1E8', paper: 'FFFDF9', ink: '2C2118', mut: '8A7A66', gold: 'A07D20', goldL: 'E3C77E', green: '3F7D5A', creamTxt: 'F0E4D4' };
+
+  function dzText(id, x, y, w, h, paras, anchor) {
+    const ps = paras.filter(p => p && p.t).map(p => {
+      const pPr = `<a:pPr algn="${p.align || 'l'}"${p.bullet ? ' marL="285750" indent="-285750"' : ''}>${p.bullet ? '<a:buFont typeface="Arial"/><a:buChar char="•"/>' : '<a:buNone/>'}</a:pPr>`;
+      return `<a:p>${pPr}<a:r><a:rPr lang="ko-KR" sz="${p.sz}"${p.b ? ' b="1"' : ''}${p.i ? ' i="1"' : ''} dirty="0"><a:solidFill><a:srgbClr val="${p.color}"/></a:solidFill></a:rPr><a:t>${xesc(p.t)}</a:t></a:r></a:p>`;
+    }).join('');
+    return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="t${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr wrap="square"${anchor ? ` anchor="${anchor}"` : ''}><a:normAutofit/></a:bodyPr><a:lstStyle/>${ps || '<a:p><a:endParaRPr lang="ko-KR"/></a:p>'}</p:txBody></p:sp>`;
+  }
+  function dzRect(id, x, y, w, h, fill) {
+    return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="r${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${fill}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="ko-KR"/></a:p></p:txBody></p:sp>`;
+  }
+  function dzSlide(bg, inner) {
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld ${PPTX_NS}><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="${bg}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
+  }
+
+  function renderDesignedSlide(s, idx) {
+    const C = DZC;
+    const pageNo = dzText(9, 11200000, 6350000, 700000, 320000, [{ t: String(idx + 1), sz: 1000, color: C.mut, align: 'r' }]);
+    switch (s.layout) {
+      case 'cover':
+        return dzSlide(C.brown,
+          dzRect(2, 838200, 3400000, 2286000, 45720, C.gold) +
+          dzText(3, 838200, 1950000, 10515600, 1350000, [{ t: s.title, sz: 4400, b: 1, color: 'FFFFFF' }], 'b') +
+          dzText(4, 838200, 3600000, 10515600, 900000, [{ t: s.subtitle, sz: 2000, color: C.creamTxt }]));
+      case 'section':
+        return dzSlide(C.cream,
+          dzRect(2, 0, 0, 274320, 6858000, C.brown) +
+          dzText(3, 838200, 1450000, 10515600, 1500000, [{ t: s.number || '', sz: 6600, b: 1, color: C.gold }]) +
+          dzText(4, 838200, 3200000, 10515600, 1100000, [{ t: s.title, sz: 3600, b: 1, color: C.brownD }]));
+      case 'quote':
+        return dzSlide(C.paper,
+          dzRect(2, 1524000, 2200000, 68580, 2300000, C.gold) +
+          dzText(3, 1900000, 2200000, 8500000, 1900000, [{ t: '“' + s.quote + '”', sz: 2600, i: 1, color: C.brownD }]) +
+          dzText(4, 1900000, 4250000, 8500000, 600000, [{ t: s.source, sz: 1400, color: C.mut }]) + pageNo);
+      case 'question':
+        return dzSlide(C.brown,
+          dzText(2, 1219200, 1500000, 9753600, 900000, [{ t: '?', sz: 5400, b: 1, color: C.goldL, align: 'ctr' }]) +
+          dzText(3, 1219200, 2700000, 9753600, 2200000, [{ t: s.question, sz: 3200, b: 1, color: 'FFFFFF', align: 'ctr' }], 'ctr'));
+      case 'activity':
+        return dzSlide(C.cream,
+          dzRect(2, 838200, 480000, 1600000, 540000, C.green) +
+          dzText(3, 838200, 480000, 1600000, 540000, [{ t: '활동', sz: 1400, b: 1, color: 'FFFFFF', align: 'ctr' }], 'ctr') +
+          dzText(4, 838200, 1200000, 10515600, 850000, [{ t: s.title, sz: 2600, b: 1, color: C.brownD }]) +
+          dzText(5, 838200, 2150000, 10515600, 4100000, (s.steps || []).map(t => ({ t, sz: 1800, color: C.ink, bullet: true }))) + pageNo);
+      case 'closing':
+        return dzSlide(C.brownD,
+          dzText(2, 1219200, 2150000, 9753600, 1400000, [{ t: s.main, sz: 2200, color: C.creamTxt, align: 'ctr' }], 'ctr') +
+          dzRect(3, 5486400, 3750000, 1219200, 45720, C.gold) +
+          dzText(4, 1219200, 3950000, 9753600, 1300000, [{ t: s.charge, sz: 3000, b: 1, color: C.goldL, align: 'ctr' }]));
+      default: // content
+        return dzSlide(C.paper,
+          dzText(2, 838200, 411480, 10515600, 820000, [{ t: s.title, sz: 2800, b: 1, color: C.brownD }], 'b') +
+          dzRect(3, 838200, 1330000, 1371600, 45720, C.brown) +
+          dzText(4, 838200, 1650000, 10515600, 4550000, (s.bullets || []).map(t => ({ t, sz: 1800, color: C.ink, bullet: true }))) + pageNo);
+    }
+  }
+  function buildDesignedPptx(ds) { return buildPptx(ds, (s, i) => renderDesignedSlide(s, i)); }
+
+  function normalizeSlideDesign(parsed) {
+    const arr = parsed && (Array.isArray(parsed.slides) ? parsed.slides : (Array.isArray(parsed) ? parsed : null));
+    if (!arr || !arr.length) return null;
+    const LAY = ['cover', 'section', 'content', 'quote', 'question', 'activity', 'closing'];
+    const S = (x) => String(x == null ? '' : x).trim();
+    const out = arr.map(s => {
+      if (!s) return null;
+      let layout = S(s.layout).toLowerCase();
+      if (!LAY.includes(layout)) layout = 'content';
+      return {
+        layout, title: S(s.title), subtitle: S(s.subtitle), number: S(s.number),
+        bullets: Array.isArray(s.bullets) ? s.bullets.map(S).filter(Boolean).slice(0, 7) : [],
+        steps: Array.isArray(s.steps) ? s.steps.map(S).filter(Boolean).slice(0, 7) : [],
+        quote: S(s.quote), source: S(s.source), question: S(s.question),
+        main: S(s.main), charge: S(s.charge)
+      };
+    }).filter(s => s && (s.title || s.quote || s.question || s.main || s.bullets.length || s.steps.length));
+    return out.length ? out : null;
+  }
+
+  function slideDesignRules() {
+    return `[슬라이드 설계 규칙]
+- 한 슬라이드 = 하나의 메시지. 원고를 슬라이드에 옮겨 적지 말 것(강의는 말로, 슬라이드는 기억 장치로).
+- 제목 20자 이내, 불릿 5개 이하·각 40자 이내.
+- 청중을 멈추게 할 질문은 question 슬라이드로 독립시키고, 인용구는 quote 슬라이드로.
+- 구간이 바뀔 때 section 슬라이드(번호 01, 02…)로 호흡을 만들 것. 활동 안내는 activity로.
+- 시작은 cover, 마지막은 closing(깊은 얻음 + 결단 문장).
+- 총 8~20장 권장.
+
+[레이아웃]
+cover(title,subtitle) · section(number,title) · content(title,bullets[]) · quote(quote,source) · question(question) · activity(title,steps[]) · closing(main,charge)
+
+[출력 — 오직 JSON, 코드펜스·설명 금지]
+{"slides":[{"layout":"cover","title":"...","subtitle":"..."},{"layout":"section","number":"01","title":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"quote","quote":"...","source":"..."},{"layout":"question","question":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
+  }
+  function buildSlideDesignPromptFromPlan(P) {
+    const body = P.deep ? buildPlanMd(P) : `제목: ${P.title}\n${P.intent ? '설계 의도: ' + P.intent + '\n' : ''}슬라이드 개요:\n${P.slidesText || '(없음)'}`;
+    return `당신은 강의 프레젠테이션 디자이너입니다. 아래 강의 설계를 바탕으로, 청중이 따라오기 쉽고 통찰이 살아나는 강의용 슬라이드 구성을 설계하세요.
+
+${slideDesignRules()}
+
+[강의 설계]
+${body}`;
+  }
+  function buildSlideDesignPromptFromAtoms(theme, aud, picked) {
+    const blocks = picked.map((a, i) => `#${i + 1} [${a.type}] ${a.title}\n${a.content || a.summary}`).join('\n\n');
+    return `당신은 강의 프레젠테이션 디자이너입니다. 아래 재료(지식 아톰)로 「${theme || '새 강의'}」 강의용 슬라이드 구성을 설계하세요.${aud ? '\n[대상/길이·톤] ' + aud : ''}
+
+${slideDesignRules()}
+
+[재료 아톰 ${picked.length}개]
+${blocks}`;
+  }
+
+  function openSlideDesignPaste(baseName) {
+    openModal('슬라이드 디자인 결과(JSON) 붙여넣기', `
+      <div class="stack">
+        <p class="muted small">클로드가 준 JSON을 붙여넣으면 브랜드 디자인이 입혀진 .pptx로 저장됩니다.</p>
+        <textarea id="sdIn" class="mono" style="min-height:220px" placeholder='{"slides":[{"layout":"cover",...}]}'></textarea>
+        <div class="row"><button class="btn primary" id="sdApply">.pptx 만들기</button><button class="btn ghost" id="sdCancel">취소</button></div>
+      </div>`, () => {
+      $('#sdCancel').addEventListener('click', closeModal);
+      $('#sdApply').addEventListener('click', () => {
+        const ds = normalizeSlideDesign(extractJSON($('#sdIn').value));
+        if (!ds) { toast('슬라이드 JSON을 인식하지 못했습니다'); return; }
+        download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-디자인슬라이드.pptx', buildDesignedPptx(ds));
+        closeModal(); toast(ds.length + '장 디자인 슬라이드(.pptx)를 내보냈습니다');
+      });
+    });
+  }
+
+  async function autoDesignSlides(promptText, baseName, btn) {
+    if (!state.settings.anthropicKey) { toast('설정에서 Anthropic API 키를 먼저 입력하세요'); return; }
+    btn.disabled = true; const old = btn.textContent; btn.textContent = '디자인 중…';
+    try {
+      const ds = normalizeSlideDesign(extractJSON(await callClaude(promptText, 8000)));
+      if (!ds) throw new Error('결과 파싱 실패');
+      download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-디자인슬라이드.pptx', buildDesignedPptx(ds));
+      toast(ds.length + '장 디자인 슬라이드(.pptx) 완성');
+    } catch (e) { toast('자동 디자인 실패: ' + e.message + ' — 프롬프트 복사 방식을 쓰세요'); }
+    finally { btn.disabled = false; btn.textContent = old; }
   }
 
   /* 설계 보드 → 슬라이드 초안 */
@@ -674,10 +821,20 @@
 
         ${P.deep ? renderDeepBoard(P.deep) : ''}
 
+        <div class="card" style="box-shadow:none">
+          <strong>슬라이드 만들기</strong>
+          <p class="muted small" style="margin:6px 0 10px"><b>🎨 클로드 디자인</b>은 클로드가 레이아웃(표지·구간·인용·질문·활동·마무리)까지 설계한 걸 브랜드 디자인 .pptx로 만듭니다. 빠른 초안은 설계 보드를 그대로 나열합니다.</p>
+          <div class="row">
+            <button class="btn sm primary" id="plDzPrompt">🎨 ① 디자인 프롬프트 복사</button>
+            <button class="btn sm" id="plDzPaste">🎨 ② 결과(JSON) → .pptx</button>
+            ${state.settings.anthropicKey ? `<button class="btn sm green" id="plDzAuto">⚡ 자동 디자인 .pptx</button>` : ''}
+            ${P.deep ? `<button class="btn sm ghost" id="plSlidesGen">🖼 빠른 초안</button>` : ''}
+          </div>
+        </div>
+
         <div class="row">
           <button class="btn primary" id="plSave">저장</button>
           <button class="btn" id="plMd">📄 .md 내보내기</button>
-          ${P.deep ? `<button class="btn" id="plSlidesGen">🖼 슬라이드 초안(.pptx)</button>` : ''}
           <button class="btn ghost danger right" id="plDel">삭제</button>
         </div>
         <p class="muted small" style="margin:0">.md 파일은 <b>NotebookLM 소스</b>로 바로 올릴 수 있습니다(드래그 업로드). NotebookLM이 만든 브리핑·정리는 슬라이드 개요 칸에 붙여넣어 다시 심화 설계에 쓰세요. 업로드·슬라이드 생성까지 클로드로 자동화하려면 저장소의 <b>docs/notebooklm-연동.md</b>(notebooklm-py MCP/스킬 설치법)를 참고하세요.</p>
@@ -720,6 +877,9 @@
         download(P.title.replace(/[^\w가-힣\- ]/g, '') + '-슬라이드초안.pptx', buildPptx(makeSlidesFromPlan(P)));
         toast('슬라이드 초안(.pptx)을 내보냈습니다 — PowerPoint/키노트/구글슬라이드에서 다듬으세요');
       });
+      $('#plDzPrompt').addEventListener('click', async () => { await save(true); copy(buildSlideDesignPromptFromPlan(P)); });
+      $('#plDzPaste').addEventListener('click', async () => { await save(true); openSlideDesignPaste(P.title); });
+      const dza = $('#plDzAuto'); if (dza) dza.addEventListener('click', async () => { await save(true); autoDesignSlides(buildSlideDesignPromptFromPlan(P), P.title, dza); });
     });
   }
 
@@ -1629,7 +1789,10 @@ ${(L.transcript || '').trim()}`;
               <button class="btn primary block" id="cFuse" ${picked.length ? '' : 'disabled'}>🔮 클로드 융합 프롬프트 복사</button>
               <button class="btn block" id="cOutline" ${picked.length ? '' : 'disabled'}>🧾 아웃라인 마크다운 복사</button>
               <button class="btn block" id="cMd" ${picked.length ? '' : 'disabled'}>📄 전체 원고(.md) 내보내기</button>
-              <button class="btn block" id="cPptx" ${picked.length ? '' : 'disabled'}>🖼 슬라이드 초안(.pptx)</button>
+              <button class="btn block" id="cDzPrompt" ${picked.length ? '' : 'disabled'}>🎨 슬라이드 디자인 프롬프트</button>
+              <button class="btn block" id="cDzPaste" ${picked.length ? '' : 'disabled'}>🎨 결과(JSON) → .pptx</button>
+              ${state.settings.anthropicKey ? `<button class="btn green block" id="cDzAuto" ${picked.length ? '' : 'disabled'}>⚡ 자동 디자인 .pptx</button>` : ''}
+              <button class="btn block ghost" id="cPptx" ${picked.length ? '' : 'disabled'}>🖼 빠른 초안(.pptx)</button>
               ${state.settings.anthropicKey ? `<button class="btn green block" id="cAutoFuse" ${picked.length ? '' : 'disabled'}>⚡ 자동 융합(초안 생성)</button>` : ''}
               <button class="btn block" id="cSaveComp" ${picked.length ? '' : 'disabled'}>💾 조립본으로 저장</button>
             </div>
@@ -1651,6 +1814,9 @@ ${(L.transcript || '').trim()}`;
         buildPptx(makeSlidesFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked)));
       toast('슬라이드 초안(.pptx)을 내보냈습니다');
     });
+    bind('cDzPrompt', 'click', () => copy(buildSlideDesignPromptFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked)));
+    bind('cDzPaste', 'click', () => openSlideDesignPaste(ui.composeTheme.trim() || '새강의'));
+    bind('cDzAuto', 'click', (e) => autoDesignSlides(buildSlideDesignPromptFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked), ui.composeTheme.trim() || '새강의', e.currentTarget));
     bind('cAutoFuse', 'click', (e) => autoFuse(picked, e.currentTarget));
     bind('cSaveComp', 'click', () => saveComposition(picked));
     bind('cRecommend', 'click', () => {
