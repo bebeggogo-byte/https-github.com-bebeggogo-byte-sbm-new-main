@@ -743,23 +743,25 @@
         return dzSlide(C.pageBg,
           dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2400, color: C.gray2, align: 'ctr' }], 'ctr') +
           dzText(3, 1097280, 4023360, 9966960, 1005840, [{ runs: dotRuns(s.charge, C.ink), sz: 3600, b: 1, align: 'ctr', spc: -75, font: tf }]));
-      default: { // content — 구조 위계: 제목 28 / 소제목 24 / 학습목표 22(포컬) / 설명 20 / 내용 20, 줄간격 2.0
-        let inner = dzText(2, 822960, 548640, 10515600, 731520, [{ t: s.title, sz: 2800, b: 1, color: C.ink, font: tf }], 'b');
-        let y = 1371600; let id = 3;
+      default: { // content — 헤더 블록(제목~설명)은 왼쪽 상단에 촘촘히, 내용은 그 아래
+        // 위계: 제목 28 / 소제목 24 / 학습목표 22(포컬) / 설명 14(메타, 내용보다 작게) / 내용 20 · 줄간격 2.0
+        let inner = dzText(2, 822960, 475488, 10515600, 640080, [{ t: s.title, sz: 2800, b: 1, color: C.ink, font: tf }]);
+        let y = 1143000; let id = 3;
         if (s.subtitle) {
-          inner += dzText(id++, 822960, y, 10515600, 640080, [{ t: s.subtitle, sz: 2400, b: 1, color: C.gray2 }]);
-          y += 731520;
+          inner += dzText(id++, 822960, y, 10515600, 548640, [{ t: s.subtitle, sz: 2400, b: 1, color: C.gray2 }]);
+          y += 594360;
         }
         if (s.lead) { // 학습목표·핵심 리드 — 이 슬라이드의 포컬
-          inner += dzText(id++, 822960, y, 10515600, 731520, [{ t: s.lead, sz: 2200, b: 1, color: AC }]);
-          y += 822960;
+          inner += dzText(id++, 822960, y, 10515600, 548640, [{ t: s.lead, sz: 2200, b: 1, color: AC }]);
+          y += 594360;
         }
-        if (s.desc) {
-          inner += dzText(id++, 822960, y, 10515600, 640080, [{ t: s.desc, sz: 2000, color: C.gray }]);
-          y += 731520;
+        if (s.desc) { // 슬라이드 설명 — 작은 메타 텍스트
+          inner += dzText(id++, 822960, y, 10515600, 411480, [{ t: s.desc, sz: 1400, color: C.gray }]);
+          y += 457200;
         }
+        y += 274320; // 헤더 블록 ↔ 내용 사이 숨 고르기
         inner += dzText(id, 822960, y, 10515600, Math.max(914400, 6218172 - y),
-          (s.bullets || []).map(t => ({ t, sz: 2000, color: (s.lead || s.desc) ? C.gray2 : C.ink, lnSpc: 200000 })));
+          (s.bullets || []).map(t => ({ t, sz: 2000, color: C.ink, lnSpc: 200000 })));
         return dzSlide(C.pageBg, inner + pageNo);
       }
     }
@@ -808,8 +810,9 @@
 - 문장은 짧게, 마침표까지 신경 쓴 카피처럼.
 
 [타이포 위계 — 강의실 뒤에서도 보여야 한다]
-- content 구조: 제목 28pt / 소제목(subtitle) 24pt / 학습목표(lead) 22pt / 설명(desc) 20pt / 내용(bullets) 20pt, 줄간격 2.0
-- 최소 글자 크기 20pt — 이보다 작은 텍스트는 만들지 않는다(렌더러가 보장).
+- content 구조: 제목 28pt / 소제목(subtitle) 24pt / 학습목표(lead) 22pt / 설명(desc) 14pt / 내용(bullets) 20pt, 줄간격 2.0
+- 제목~설명은 왼쪽 상단 헤더 블록에 촘촘히, 내용은 그 아래 여백을 두고.
+- 설명(desc)은 메타 정보라 내용보다 작다(14pt) — 그 외 텍스트의 최소 크기는 20pt(렌더러가 보장).
 - 안 보이는 슬라이드는 실패다. 글이 많아 20pt를 지키기 어려우면 슬라이드를 쪼개라.
 
 [테마 — 주제에 어울리는 것 하나를 골라 theme 필드로 지정]
