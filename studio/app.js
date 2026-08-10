@@ -561,6 +561,10 @@
      토큰만 갈아끼운다. 기본은 애플 미니멀(흰 배경·검은 글씨).
      tf = 제목 폰트 오버라이드(세리프 테마용). */
   const SLIDE_THEMES = {
+    cobalt: {
+      name: '코발트 블루', mood: '기본 — 선명하고 깊은 블루 포인트',
+      t: { pageBg: 'FFFFFF', ink: '000000', gray: '75777B', gray2: '4D5256', card: 'F7F7F7', tintNum: 'E3ECFA', darkBg: '0047AB', darkMain: 'B9CFF0', kicker: '7FA8E0', charge: 'FFFFFF', accent: '0047AB' }
+    },
     samsung: {
       name: '삼성 원UI', mood: '기본 — 밝고 친근한 신뢰감, 삼성 블루 포인트',
       t: { pageBg: 'FFFFFF', ink: '000000', gray: '75777B', gray2: '4D5256', card: 'F7F7F7', tintNum: 'E4EAF9', darkBg: '1428A0', darkMain: 'B7C4EE', kicker: '8FA7E8', charge: 'FFFFFF', accent: '1428A0' }
@@ -597,7 +601,7 @@
   function resolveSlideTheme(userPick, claudePick) {
     if (userPick && userPick !== 'auto' && SLIDE_THEMES[userPick]) return userPick;
     if (claudePick && SLIDE_THEMES[claudePick]) return claudePick;
-    return 'samsung';
+    return 'cobalt';
   }
 
   function dzText(id, x, y, w, h, paras, anchor) {
@@ -621,17 +625,9 @@
   function dzRect(id, x, y, w, h, fill, prst) {
     return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="r${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="${prst || 'rect'}"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${fill}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="ko-KR"/></a:p></p:txBody></p:sp>`;
   }
-  /* 어두운 색을 살짝 밝게 — 다크 그라디언트 상단용 */
-  function dzLighten(hex, amt) {
-    const n = parseInt(hex, 16);
-    const c = (v) => Math.min(255, v + amt).toString(16).padStart(2, '0');
-    return (c((n >> 16) & 255) + c((n >> 8) & 255) + c(n & 255)).toUpperCase();
-  }
-  function dzSlide(bg, inner, grad) {
-    // grad: 잡스 키노트 시그니처 — 다크 배경의 미묘한 수직 그라디언트(위가 조금 밝음)
-    const fill = grad
-      ? `<a:gradFill><a:gsLst><a:gs pos="0"><a:srgbClr val="${dzLighten(bg, 26)}"/></a:gs><a:gs pos="100000"><a:srgbClr val="${bg}"/></a:gs></a:gsLst><a:lin ang="5400000" scaled="1"/></a:gradFill>`
-      : `<a:solidFill><a:srgbClr val="${bg}"/></a:solidFill>`;
+  /* 슬라이드 배경 — 항상 단색(그라데이션 금지) */
+  function dzSlide(bg, inner) {
+    const fill = `<a:solidFill><a:srgbClr val="${bg}"/></a:solidFill>`;
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:sld ${PPTX_NS}><p:cSld><p:bg><p:bgPr>${fill}<a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
   }
@@ -642,7 +638,7 @@
   }
 
   function renderDesignedSlide(s, idx, C) {
-    C = C || SLIDE_THEMES.samsung.t;
+    C = C || SLIDE_THEMES.cobalt.t;
     const tf = C.tf;                    // 제목 폰트 오버라이드(세리프 테마)
     const AC = C.accent || C.ink;       // 포컬 포인트 색 — 이곳에만 색을 쓴다
     const pageNo = dzText(19, 11200000, 6400000, 700000, 300000, [{ t: String(idx + 1), sz: 1200, color: C.gray, align: 'r' }]);
@@ -803,7 +799,7 @@
   function slideDesignRules() {
     const themeLines = Object.keys(SLIDE_THEMES).map(k => `${k} = ${SLIDE_THEMES[k].name} (${SLIDE_THEMES[k].mood})`).join('\n');
     return `[디자인 언어 — 화이트 + 포컬 포인트 (배경 칠하기 절대 금지)]
-- 모든 슬라이드는 흰 배경. 배경 전체를 색·사진으로 칠하는 것은 절대 금지.
+- 모든 슬라이드는 흰 배경. 배경 전체를 색·사진으로 칠하는 것은 절대 금지. 그라데이션도 금지 — 모든 색은 단색.
 - 슬라이드마다 시선이 처음 닿는 **포컬 포인트를 정확히 하나** 설계하라:
   하이라이트 단어(statement.highlight) / 거대 틴트 숫자(section) / 거대 통계 숫자(stat) /
   리드 문장(content.lead) / 거대 물음표(question) / 오른쪽 사진 카드(imageQuery) 중 하나.
@@ -838,7 +834,7 @@ ${themeLines}
 cover(kicker,title,subtitle) · statement(text,highlight=강조 단어) · section(number,title,subtitle) · content(title,subtitle=소제목,lead=학습목표·핵심 한 줄,desc=슬라이드 설명,bullets[]=내용) · quote(quote,source) · question(question,subtitle) · activity(title,steps[]) · stat(value,label) · compare(title,leftHead,leftItems[],rightHead=결론 쪽,rightItems[]) · closing(main,charge)
 
 [출력 — 오직 JSON, 코드펜스·설명 금지]
-{"theme":"samsung","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"...","imageQuery":"open door light"},{"layout":"statement","text":"...","highlight":"강조단어"},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","subtitle":"소제목","lead":"학습목표: ...","desc":"슬라이드 설명","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
+{"theme":"cobalt","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"...","imageQuery":"open door light"},{"layout":"statement","text":"...","highlight":"강조단어"},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","subtitle":"소제목","lead":"학습목표: ...","desc":"슬라이드 설명","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
   }
   function buildSlideDesignPromptFromPlan(P) {
     const body = P.deep ? buildPlanMd(P) : `제목: ${P.title}\n${P.intent ? '설계 의도: ' + P.intent + '\n' : ''}슬라이드 개요:\n${P.slidesText || '(없음)'}`;
