@@ -99,7 +99,7 @@
     atoms: [],        // {id,title,type,topic,tags[],summary,content,keypoints[],durationSec,lectureId,lectureTitle,createdAt,star,usedIn[]}
     compositions: [], // 저장된 조립본 {id,theme,audience,atomIds[],createdAt,updatedAt}
     plans: [],        // 강의 전 설계 {id,title,topic,audience,intent,slidesText,deep,createdAt,updatedAt}
-    settings: { speaker: '', transcribeUrl: '', transcribeKey: '', transcribeModel: 'whisper-1', anthropicKey: '', anthropicModel: 'claude-opus-4-8' },
+    settings: { speaker: '', transcribeUrl: '', transcribeKey: '', transcribeModel: 'whisper-1', anthropicKey: '', anthropicModel: 'claude-opus-4-8', autoDeleteAudio: true },
     tray: [],         // 조립대에 담긴 atom id 목록(순서)
     ui: { atomQuery: '', atomType: '', atomTopic: '', atomTag: '', composeTheme: '', composeAudience: '', recoIds: [] }
   };
@@ -438,6 +438,148 @@
     return out.trim();
   }
 
+  /* ---------- PPTX 생성 — 라이브러리 없이 슬라이드 초안(.pptx) 만들기 ---------- */
+  const CRC_TABLE = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
+    return t;
+  })();
+  function crc32(u8) {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  /* 무압축(stored) ZIP 작성기 */
+  function zipStore(files) {
+    const enc = new TextEncoder();
+    const parts = [], central = []; let offset = 0;
+    files.forEach(f => {
+      const nameU8 = enc.encode(f.name);
+      const data = typeof f.data === 'string' ? enc.encode(f.data) : f.data;
+      const crc = crc32(data);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true);
+      lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+      lh.setUint16(26, nameU8.length, true);
+      parts.push(new Uint8Array(lh.buffer), nameU8, data);
+      const cd = new DataView(new ArrayBuffer(46));
+      cd.setUint32(0, 0x02014b50, true); cd.setUint16(4, 20, true); cd.setUint16(6, 20, true);
+      cd.setUint32(16, crc, true); cd.setUint32(20, data.length, true); cd.setUint32(24, data.length, true);
+      cd.setUint16(28, nameU8.length, true); cd.setUint32(42, offset, true);
+      central.push(new Uint8Array(cd.buffer), nameU8);
+      offset += 30 + nameU8.length + data.length;
+    });
+    let cdSize = 0; central.forEach(c => { cdSize += c.length; });
+    const eocd = new DataView(new ArrayBuffer(22));
+    eocd.setUint32(0, 0x06054b50, true);
+    eocd.setUint16(8, files.length, true); eocd.setUint16(10, files.length, true);
+    eocd.setUint32(12, cdSize, true); eocd.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, new Uint8Array(eocd.buffer)],
+      { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+  }
+  const xesc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  /* slides: [{title, bullets[]}] → .pptx Blob (16:9, 브랜드 브라운/크림) */
+  function buildPptx(slides) {
+    const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
+    const emptyTree = '<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree>';
+    const theme = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Nedabah"><a:themeElements>
+<a:clrScheme name="Nedabah"><a:dk1><a:srgbClr val="2C2118"/></a:dk1><a:lt1><a:srgbClr val="FFFDF9"/></a:lt1><a:dk2><a:srgbClr val="4E3117"/></a:dk2><a:lt2><a:srgbClr val="F7F1E8"/></a:lt2><a:accent1><a:srgbClr val="6B4423"/></a:accent1><a:accent2><a:srgbClr val="3F7D5A"/></a:accent2><a:accent3><a:srgbClr val="A07D20"/></a:accent3><a:accent4><a:srgbClr val="B4531F"/></a:accent4><a:accent5><a:srgbClr val="4A6FA5"/></a:accent5><a:accent6><a:srgbClr val="7A5AA0"/></a:accent6><a:hlink><a:srgbClr val="4A6FA5"/></a:hlink><a:folHlink><a:srgbClr val="7A5AA0"/></a:folHlink></a:clrScheme>
+<a:fontScheme name="Nedabah"><a:majorFont><a:latin typeface="Malgun Gothic"/><a:ea typeface="Malgun Gothic"/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Malgun Gothic"/><a:ea typeface="Malgun Gothic"/><a:cs typeface=""/></a:minorFont></a:fontScheme>
+<a:fmtScheme name="Office"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst><a:lnStyleLst><a:ln w="6350"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="12700"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="19050"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:bgFillStyleLst></a:fmtScheme>
+</a:themeElements></a:theme>`;
+    const slideXml = (s) => {
+      const paras = (s.bullets || []).map(b => b
+        ? `<a:p><a:pPr marL="285750" indent="-285750"><a:buFont typeface="Arial"/><a:buChar char="•"/></a:pPr><a:r><a:rPr lang="ko-KR" sz="1800" dirty="0"><a:solidFill><a:srgbClr val="2C2118"/></a:solidFill></a:rPr><a:t>${xesc(b)}</a:t></a:r></a:p>`
+        : '<a:p><a:endParaRPr lang="ko-KR" sz="1800"/></a:p>').join('');
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld ${NS}><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="F7F1E8"/></a:solidFill><a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+<p:sp><p:nvSpPr><p:cNvPr id="2" name="Title"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="838200" y="411480"/><a:ext cx="10515600" cy="1188720"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr wrap="square" anchor="b"/><a:lstStyle/><a:p><a:r><a:rPr lang="ko-KR" sz="3200" b="1" dirty="0"><a:solidFill><a:srgbClr val="4E3117"/></a:solidFill></a:rPr><a:t>${xesc(s.title || '')}</a:t></a:r></a:p></p:txBody></p:sp>
+<p:sp><p:nvSpPr><p:cNvPr id="3" name="Body"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="838200" y="1783080"/><a:ext cx="10515600" cy="4526280"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr wrap="square"><a:normAutofit/></a:bodyPr><a:lstStyle/>${paras || '<a:p><a:endParaRPr lang="ko-KR"/></a:p>'}</p:txBody></p:sp>
+</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt2" tx1="dk1" bg2="lt1" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sld>`;
+    };
+    const files = [];
+    files.push({
+      name: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${slides.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join('')}</Types>`
+    });
+    files.push({
+      name: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>`
+    });
+    files.push({
+      name: 'ppt/presentation.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:presentation ${NS}><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${slides.map((_, i) => `<p:sldId id="${256 + i}" r:id="rId${i + 2}"/>`).join('')}</p:sldIdLst><p:sldSz cx="12192000" cy="6858000"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`
+    });
+    files.push({
+      name: 'ppt/_rels/presentation.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/>${slides.map((_, i) => `<Relationship Id="rId${i + 2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${i + 1}.xml"/>`).join('')}</Relationships>`
+    });
+    files.push({
+      name: 'ppt/slideMasters/slideMaster1.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sldMaster ${NS}><p:cSld>${emptyTree}</p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst></p:sldMaster>`
+    });
+    files.push({
+      name: 'ppt/slideMasters/_rels/slideMaster1.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme1.xml"/></Relationships>`
+    });
+    files.push({
+      name: 'ppt/slideLayouts/slideLayout1.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sldLayout ${NS} type="blank" preserve="1"><p:cSld name="빈 화면">${emptyTree}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`
+    });
+    files.push({
+      name: 'ppt/slideLayouts/_rels/slideLayout1.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`
+    });
+    files.push({ name: 'ppt/theme/theme1.xml', data: theme });
+    slides.forEach((s, i) => {
+      files.push({ name: `ppt/slides/slide${i + 1}.xml`, data: slideXml(s) });
+      files.push({
+        name: `ppt/slides/_rels/slide${i + 1}.xml.rels`, data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/></Relationships>`
+      });
+    });
+    return zipStore(files);
+  }
+
+  /* 설계 보드 → 슬라이드 초안 */
+  function makeSlidesFromPlan(P) {
+    const slides = [{ title: P.title, bullets: [P.topic, P.audience, '', P.intent].filter((x, i) => x || i === 2) }];
+    const d = P.deep;
+    if (d) {
+      d.sections.forEach(s => {
+        slides.push({
+          title: s.heading, bullets: [
+            s.induces ? '유도: ' + s.induces : '',
+            s.insight ? '💡 ' + s.insight : '',
+            s.question ? '❓ ' + s.question : '',
+            s.activity ? '🧪 ' + s.activity : '',
+            (s.quote && (s.quote.text || s.quote.source)) ? '📖 ' + (s.quote.text ? '“' + s.quote.text + '” — ' : '') + (s.quote.source || '') : '',
+            s.transition ? '→ ' + s.transition : ''
+          ].filter(Boolean)
+        });
+      });
+      if (d.closing.deepGain || d.closing.charge) {
+        slides.push({ title: '마무리', bullets: [d.closing.deepGain, d.closing.charge].filter(Boolean) });
+      }
+    }
+    return slides;
+  }
+
+  /* 조립본 → 슬라이드 초안 */
+  function makeSlidesFromAtoms(theme, audience, picked) {
+    const slides = [{ title: theme || '새 강의', bullets: [audience].filter(Boolean) }];
+    picked.forEach(a => {
+      const bullets = [];
+      if (a.summary) bullets.push(a.summary);
+      (a.keypoints || []).forEach(k => bullets.push(k));
+      if (!bullets.length && a.content) bullets.push(clip(a.content, 200));
+      slides.push({ title: a.title, bullets });
+    });
+    return slides;
+  }
+
   RENDER.design = function () {
     const v = $('#view-design');
     const list = state.plans;
@@ -534,9 +676,11 @@
 
         <div class="row">
           <button class="btn primary" id="plSave">저장</button>
-          ${P.deep ? `<button class="btn" id="plMd">📄 설계안(.md) 내보내기</button>` : ''}
+          <button class="btn" id="plMd">📄 .md 내보내기</button>
+          ${P.deep ? `<button class="btn" id="plSlidesGen">🖼 슬라이드 초안(.pptx)</button>` : ''}
           <button class="btn ghost danger right" id="plDel">삭제</button>
         </div>
+        <p class="muted small" style="margin:0">.md 파일은 <b>NotebookLM 소스</b>로 바로 올릴 수 있습니다(드래그 업로드). NotebookLM이 만든 브리핑·정리는 슬라이드 개요 칸에 붙여넣어 다시 심화 설계에 쓰세요.</p>
       </div>`, () => {
       const save = async (silent) => {
         P.title = $('#plTitle').value.trim() || P.title;
@@ -570,7 +714,12 @@
       $('#plPrompt').addEventListener('click', async () => { await save(true); copy(buildDeepenPrompt(P)); });
       $('#plPaste').addEventListener('click', async () => { await save(true); openDeepenPaste(P); });
       const auto = $('#plAuto'); if (auto) auto.addEventListener('click', async () => { await save(true); autoDeepen(P, auto); });
-      const md = $('#plMd'); if (md) md.addEventListener('click', () => download(P.title.replace(/[^\w가-힣\- ]/g, '') + '-설계.md', buildPlanMd(P)));
+      const md = $('#plMd'); if (md) md.addEventListener('click', async () => { await save(true); download(P.title.replace(/[^\w가-힣\- ]/g, '') + '-설계.md', buildPlanMd(P)); });
+      const sg = $('#plSlidesGen'); if (sg) sg.addEventListener('click', async () => {
+        await save(true);
+        download(P.title.replace(/[^\w가-힣\- ]/g, '') + '-슬라이드초안.pptx', buildPptx(makeSlidesFromPlan(P)));
+        toast('슬라이드 초안(.pptx)을 내보냈습니다 — PowerPoint/키노트/구글슬라이드에서 다듬으세요');
+      });
     });
   }
 
@@ -941,6 +1090,8 @@ ${P.slidesText || '(없음)'}`;
           <button class="btn sm primary" id="lecSave">변경 저장</button>
           ${L.hasAudio ? `<button class="btn sm ghost" id="lecPlay">▶ 오디오</button>` : ''}
           ${state.settings.transcribeUrl && L.hasAudio ? `<button class="btn sm ghost" id="lecTranscribe">🎙 전사 API로 채우기</button>` : ''}
+          <button class="btn sm ghost" id="lecMd" title="NotebookLM 소스로도 사용">📄 .md</button>
+          ${L.hasAudio ? `<button class="btn sm ghost danger" id="lecDelAudio">🗑 오디오만 삭제</button>` : ''}
         </div>
 
         <div class="card" style="box-shadow:none">
@@ -984,6 +1135,13 @@ ${P.slidesText || '(없음)'}`;
       $('#lecSave').addEventListener('click', () => save(false).then(() => { RENDER.lectures(); }));
       const play = $('#lecPlay'); if (play) play.addEventListener('click', () => playAudio(L.id));
       const tr = $('#lecTranscribe'); if (tr) tr.addEventListener('click', () => transcribeViaAPI(L));
+      $('#lecMd').addEventListener('click', async () => { await save(true); download(L.title.replace(/[^\w가-힣\- ]/g, '') + '.md', buildLectureMd(L)); });
+      const da = $('#lecDelAudio'); if (da) da.addEventListener('click', async () => {
+        if (!confirm('이 강의의 오디오만 삭제할까요? 자막·아톰은 유지됩니다.')) return;
+        const freed = await deleteAudioOnly(L);
+        toast(fmtBytes(freed) + ' 확보 — 오디오 삭제됨');
+        openLecture(L.id); if (activeTab === 'lectures') RENDER.lectures();
+      });
       $('#lecDel').addEventListener('click', () => { closeModal(); delLecture(L.id); });
       $('#pfPrompt').addEventListener('click', async () => { await save(true); copy(buildProofreadPrompt(L)); });
       $('#pfPaste').addEventListener('click', async () => { await save(true); openProofreadPaste(L); });
@@ -997,6 +1155,19 @@ ${P.slidesText || '(없음)'}`;
       $('#atomPaste').addEventListener('click', async () => { await save(true); openAtomPaste(L); });
       const auto = $('#atomAuto'); if (auto) auto.addEventListener('click', async () => { await save(true); autoAtomize(L, auto); });
     });
+  }
+
+  /* 강의 원본 → .md (NotebookLM 소스로도 사용) */
+  function buildLectureMd(L) {
+    let md = `# ${L.title}\n\n`;
+    const meta = [L.topic && '주제: ' + L.topic, L.date && '날짜: ' + L.date,
+      (L.tags && L.tags.length) && '태그: ' + L.tags.join(', '),
+      L.durationSec && '길이: ' + fmtHMS(L.durationSec)].filter(Boolean);
+    if (meta.length) md += meta.join('  \n') + '\n\n';
+    if (L.notes) md += `## 강의 의도\n${L.notes}\n\n`;
+    if (L.markers && L.markers.length) md += `## 강의 중 마커\n${L.markers.map(m => `- ${fmtHMS(m.t)} ${m.label}`).join('\n')}\n\n`;
+    md += `## 강의 내용(자막)\n\n${L.transcript || '(자막 없음)'}\n`;
+    return md;
   }
 
   /* ============================ 원자화 프롬프트/파싱 ============================ */
@@ -1084,6 +1255,32 @@ ${body || '(원문 없음 — 메타만 보고 최선을 다해 추정하지 말
     for (const a of atoms) { await dbPut('atoms', a); state.atoms.unshift(a); }
     if (atoms.length) { L.atomized = true; await dbPut('lectures', L); }
     saveHint(atoms.length + '개 아톰 저장됨');
+    // 원자화 완료 → 원본 오디오는 용량이 크므로 자동 삭제(설정으로 끌 수 있음)
+    if (atoms.length && state.settings.autoDeleteAudio && L.hasAudio) {
+      const freed = await deleteAudioOnly(L);
+      if (freed) toast('원자화 완료 — 오디오 삭제로 ' + fmtBytes(freed) + ' 확보 (자막·아톰은 유지)');
+    }
+  }
+
+  /* 오디오만 삭제(자막·아톰·메타 유지) — 반환: 확보한 바이트 */
+  async function deleteAudioOnly(L) {
+    let freed = 0;
+    try { const a = await dbGet('audio', L.id); if (a && a.blob) freed = a.blob.size || 0; } catch (e) { }
+    await dbDel('audio', L.id);
+    L.hasAudio = false; L.audioType = '';
+    await dbPut('lectures', L);
+    return freed;
+  }
+
+  async function bulkDeleteAtomizedAudio() {
+    const targets = state.lectures.filter(L => L.hasAudio && L.atomized);
+    if (!targets.length) { toast('삭제할 오디오가 없습니다 (원자화 완료 + 오디오 보유 기준)'); return; }
+    if (!confirm(targets.length + '개 강의의 오디오를 삭제합니다. 자막·아톰·설계·조립본은 유지됩니다. 계속할까요?')) return;
+    let freed = 0;
+    for (const L of targets) freed += await deleteAudioOnly(L);
+    toast(fmtBytes(freed) + ' 확보 — 오디오 ' + targets.length + '개 삭제');
+    if (activeTab === 'data') RENDER.data();
+    if (activeTab === 'lectures') RENDER.lectures();
   }
 
   function openAtomPaste(L) {
@@ -1432,6 +1629,7 @@ ${(L.transcript || '').trim()}`;
               <button class="btn primary block" id="cFuse" ${picked.length ? '' : 'disabled'}>🔮 클로드 융합 프롬프트 복사</button>
               <button class="btn block" id="cOutline" ${picked.length ? '' : 'disabled'}>🧾 아웃라인 마크다운 복사</button>
               <button class="btn block" id="cMd" ${picked.length ? '' : 'disabled'}>📄 전체 원고(.md) 내보내기</button>
+              <button class="btn block" id="cPptx" ${picked.length ? '' : 'disabled'}>🖼 슬라이드 초안(.pptx)</button>
               ${state.settings.anthropicKey ? `<button class="btn green block" id="cAutoFuse" ${picked.length ? '' : 'disabled'}>⚡ 자동 융합(초안 생성)</button>` : ''}
               <button class="btn block" id="cSaveComp" ${picked.length ? '' : 'disabled'}>💾 조립본으로 저장</button>
             </div>
@@ -1448,6 +1646,11 @@ ${(L.transcript || '').trim()}`;
     bind('cFuse', 'click', () => copy(buildFusionPrompt(picked)));
     bind('cOutline', 'click', () => copy(buildOutlineMd(picked)));
     bind('cMd', 'click', () => download(((ui.composeTheme.trim() || '새강의')).replace(/[^\w가-힣\- ]/g, '') + '.md', buildFullMd(picked)));
+    bind('cPptx', 'click', () => {
+      download(((ui.composeTheme.trim() || '새강의')).replace(/[^\w가-힣\- ]/g, '') + '-슬라이드초안.pptx',
+        buildPptx(makeSlidesFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked)));
+      toast('슬라이드 초안(.pptx)을 내보냈습니다');
+    });
     bind('cAutoFuse', 'click', (e) => autoFuse(picked, e.currentTarget));
     bind('cSaveComp', 'click', () => saveComposition(picked));
     bind('cRecommend', 'click', () => {
@@ -1780,6 +1983,18 @@ ${blocks}`;
       </div>
 
       <div class="card">
+        <strong>용량 관리 — 오디오 정리</strong>
+        <p class="muted small" style="margin:6px 0 10px">자막·아톰까지 만들어졌다면 원본 오디오는 지워도 됩니다. 자막·아톰·설계·조립본은 그대로 유지됩니다.</p>
+        <label class="row small" style="gap:6px">
+          <input type="checkbox" id="setAutoDel" ${s.autoDeleteAudio ? 'checked' : ''} style="width:auto">
+          원자화가 끝나면 그 강의의 오디오를 자동 삭제
+        </label>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="dBulkAudio">원자화 완료된 강의의 오디오 일괄 삭제</button>
+        </div>
+      </div>
+
+      <div class="card">
         <strong>기본 정보</strong>
         <div style="margin-top:10px"><label class="field">강사 이름(원고 서명 등)</label><input type="text" id="setSpeaker" value="${esc(s.speaker || '')}" placeholder="선택"></div>
       </div>
@@ -1814,6 +2029,8 @@ ${blocks}`;
     saveField('setSpeaker', 'speaker'); saveField('setAnthKey', 'anthropicKey'); saveField('setAnthModel', 'anthropicModel');
     saveField('setTrUrl', 'transcribeUrl'); saveField('setTrKey', 'transcribeKey'); saveField('setTrModel', 'transcribeModel');
 
+    bind('setAutoDel', 'change', (e) => { state.settings.autoDeleteAudio = e.target.checked; saveSettings(); saveHint('설정 저장됨'); });
+    bind('dBulkAudio', 'click', bulkDeleteAtomizedAudio);
     bind('dExport', 'click', () => exportBackup(false));
     bind('dExportAudio', 'click', () => exportBackup(true));
     bind('dImport', 'change', (e) => importBackup(e.target.files[0]));
