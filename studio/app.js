@@ -483,7 +483,8 @@
 
   /* slides: [{title, bullets[]}] → .pptx Blob (16:9, 브랜드 브라운/크림)
      renderFn을 주면 슬라이드 XML 생성을 커스텀 렌더러로 대체(디자인 레이아웃용) */
-  function buildPptx(slides, renderFn) {
+  function buildPptx(slides, renderFn, size) {
+    size = size || { w: 12192000, h: 6858000 };
     const NS = PPTX_NS;
     const emptyTree = '<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree>';
     const theme = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -513,7 +514,7 @@
     });
     files.push({
       name: 'ppt/presentation.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:presentation ${NS}><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${slides.map((_, i) => `<p:sldId id="${256 + i}" r:id="rId${i + 2}"/>`).join('')}</p:sldIdLst><p:sldSz cx="12192000" cy="6858000"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`
+<p:presentation ${NS}><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${slides.map((_, i) => `<p:sldId id="${256 + i}" r:id="rId${i + 2}"/>`).join('')}</p:sldIdLst><p:sldSz cx="${size.w}" cy="${size.h}"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`
     });
     files.push({
       name: 'ppt/_rels/presentation.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -865,6 +866,125 @@ ${blocks}`;
     if (el) el.addEventListener('change', (e) => { state.settings.slideTheme = e.target.value; saveSettings(); saveHint('슬라이드 테마 저장됨'); });
   }
 
+  /* ---------- 워크지(A4 활동지) — 매 활동: 가이드 + 명료한 예시 + 응답 공간 ---------- */
+  const A4 = { w: 7560000, h: 10692000, mx: 720000 }; // 210×297mm, 여백 20mm
+
+  function normalizeWorksheet(parsed) {
+    if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.items)) return null;
+    const S = (x) => String(x == null ? '' : x).trim();
+    const items = parsed.items.map(it => {
+      if (!it) return null;
+      let type = S(it.type).toLowerCase();
+      if (!['activity', 'question', 'fill'].includes(type)) type = 'activity';
+      return {
+        type, title: S(it.title),
+        guide: Array.isArray(it.guide) ? it.guide.map(S).filter(Boolean).slice(0, 4) : [],
+        example: S(it.example), prompt: S(it.prompt)
+      };
+    }).filter(it => it && (it.title || it.prompt || it.guide.length));
+    if (!items.length) return null;
+    return { theme: S(parsed.theme).toLowerCase(), kicker: S(parsed.kicker), title: S(parsed.title) || '워크지', objective: S(parsed.objective), items };
+  }
+
+  /* 워크지 페이지 렌더 — 텍스트만, 자동 페이지 나눔 */
+  function buildWorksheetPptx(ws, userThemePick) {
+    const key = resolveSlideTheme(userThemePick, ws.theme);
+    const C = SLIDE_THEMES[key].t;
+    const AC = C.accent || C.ink;
+    const CW = A4.w - A4.mx * 2;
+    const pages = []; let cur = ''; let y = A4.mx; let id = 2;
+    const limit = A4.h - A4.mx - 350000;
+    const flushPage = () => { pages.push(cur); cur = ''; y = A4.mx; };
+    const put = (h, xml) => { if (y + h > limit && cur) flushPage(); cur += xml(y); y += h; };
+
+    // 머리(첫 페이지): 키커·제목·이름/날짜·학습목표
+    put(380000, (yy) => dzText(id++, A4.mx, yy, CW, 340000, [{ t: ws.kicker || '', sz: 1100, color: AC, spc: 300 }]));
+    put(700000, (yy) => dzText(id++, A4.mx, yy, CW, 640000, [{ t: ws.title, sz: 2000, b: 1, color: C.ink, font: C.tf }]));
+    put(500000, (yy) => dzText(id++, A4.mx, yy, CW, 400000, [{ t: '이름 ______________________        날짜 ______________', sz: 1100, color: C.gray2 }]));
+    if (ws.objective) put(560000, (yy) => dzText(id++, A4.mx, yy, CW, 460000, [{ t: '학습목표  ' + ws.objective, sz: 1200, b: 1, color: AC }]));
+    y += 250000;
+
+    let actNo = 0;
+    ws.items.forEach((it) => {
+      if (it.type === 'activity') {
+        actNo++;
+        const stepH = 400000;
+        const blockHead = 560000, exH = it.example ? 420000 : 0, prH = it.prompt ? 420000 : 0, ansH = 2000000;
+        const total = blockHead + it.guide.length * stepH + exH + prH + ansH + 350000;
+        if (y + Math.min(total, 5200000) > limit && cur) flushPage();
+        put(blockHead, (yy) => dzText(id++, A4.mx, yy, CW, 500000, [{ t: `활동 ${actNo}.  ${it.title}`, sz: 1400, b: 1, color: C.ink }]));
+        it.guide.forEach((g, gi) => {
+          put(stepH, (yy) => dzText(id++, A4.mx + 180000, yy, CW - 180000, 360000, [{ t: `${gi + 1})  ${g}`, sz: 1150, color: C.ink, lnSpc: 130000 }]));
+        });
+        if (it.example) put(exH, (yy) => dzText(id++, A4.mx + 180000, yy, CW - 180000, 380000, [{ t: it.example, sz: 1050, i: 1, color: C.gray }]));
+        if (it.prompt) put(prH, (yy) => dzText(id++, A4.mx + 180000, yy, CW - 180000, 380000, [{ t: '✎ ' + it.prompt, sz: 1100, b: 1, color: AC }]));
+        put(ansH, (yy) => dzText(id++, A4.mx + 180000, yy, CW - 180000, 340000, [{ t: '여기에 적어 보세요', sz: 900, color: 'C8C8C8' }]));
+        y += 250000;
+      } else if (it.type === 'question') {
+        const block = 520000 + 1500000 + 250000;
+        if (y + block > limit && cur) flushPage();
+        put(520000, (yy) => dzText(id++, A4.mx, yy, CW, 460000, [{ runs: [{ t: 'Q.  ', color: AC }, { t: it.prompt, color: C.ink }], sz: 1300, b: 1 }]));
+        put(1500000, (yy) => dzText(id++, A4.mx + 180000, yy, CW - 180000, 340000, [{ t: '여기에 적어 보세요', sz: 900, color: 'C8C8C8' }]));
+        y += 250000;
+      } else { // fill — 빈칸 채우기
+        put(720000, (yy) => dzText(id++, A4.mx, yy, CW, 640000, [{ t: it.prompt, sz: 1200, color: C.ink, lnSpc: 160000 }]));
+        y += 200000;
+      }
+    });
+    flushPage();
+
+    const pageXmls = pages.map((inner, pi) =>
+      dzSlide(C.pageBg, inner + dzText(99, A4.w / 2 - 500000, A4.h - 520000, 1000000, 300000, [{ t: String(pi + 1), sz: 1000, color: C.gray, align: 'ctr' }])));
+    return buildPptx(pageXmls, (xml) => xml, { w: A4.w, h: A4.h });
+  }
+
+  function worksheetRules() {
+    return `[워크지 규칙 — 교육자가 설명 없이 나눠줘도 되는 수준]
+- 매 활동: 참여자가 바로 시작할 수 있는 가이드(명령형 한 문장 단계 2~3개) + 반드시 명료한 예시 1개("예) ..." 형태) + 응답 지시(✎).
+- 유형: activity(활동) / question(깊이 질문) / fill(빈칸 문장 — ____ 포함).
+- 활동 2~4개 + 질문 1~2개 권장. A4 1~2장 분량. 쉬운 말로.
+- 예시는 구체적이어야 한다: "예) 미룬 전화 한 통 — 어머니께 안부 전화" 수준.
+
+[출력 — 오직 JSON, 코드펜스 금지]
+{"theme":"cobalt","kicker":"시리즈·강의명","title":"워크지 제목","objective":"학습목표 한 줄","items":[{"type":"activity","title":"활동명","guide":["단계"],"example":"예) ...","prompt":"응답 지시"},{"type":"question","prompt":"깊이 질문"},{"type":"fill","prompt":"문장 속 ____ 빈칸"}]}`;
+  }
+  function buildWorksheetPromptFromPlan(P) {
+    const body = P.deep ? buildPlanMd(P) : `제목: ${P.title}\n${P.intent ? '설계 의도: ' + P.intent + '\n' : ''}슬라이드 개요:\n${P.slidesText || '(없음)'}`;
+    return `당신은 참여형 교육 워크지(활동지) 설계자입니다. 아래 강의 설계에 맞는 A4 워크지를 만드세요.\n\n${worksheetRules()}\n\n[강의 설계]\n${body}`;
+  }
+  function buildWorksheetPromptFromAtoms(theme, aud, picked) {
+    const blocks = picked.map((a, i) => `#${i + 1} [${a.type}] ${a.title}\n${a.content || a.summary}`).join('\n\n');
+    return `당신은 참여형 교육 워크지(활동지) 설계자입니다. 아래 재료로 「${theme || '새 강의'}」 A4 워크지를 만드세요.${aud ? '\n[대상] ' + aud : ''}\n\n${worksheetRules()}\n\n[재료]\n${blocks}`;
+  }
+
+  function openWorksheetPaste(baseName) {
+    openModal('워크지 결과(JSON) 붙여넣기', `
+      <div class="stack">
+        <p class="muted small">클로드가 준 JSON을 붙여넣으면 A4 워크지(.pptx)로 저장됩니다 — 파워포인트에서 편집·인쇄하세요.</p>
+        <textarea id="wsIn" class="mono" style="min-height:200px" placeholder='{"title":"...","items":[...]}'></textarea>
+        <div class="row"><button class="btn primary" id="wsApply">A4 .pptx 만들기</button><button class="btn ghost" id="wsCancel">취소</button></div>
+      </div>`, () => {
+      $('#wsCancel').addEventListener('click', closeModal);
+      $('#wsApply').addEventListener('click', () => {
+        const ws = normalizeWorksheet(extractJSON($('#wsIn').value));
+        if (!ws) { toast('워크지 JSON을 인식하지 못했습니다'); return; }
+        download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-워크지A4.pptx', buildWorksheetPptx(ws, state.settings.slideTheme));
+        closeModal(); toast('A4 워크지(.pptx)를 내보냈습니다');
+      });
+    });
+  }
+  async function autoWorksheet(promptText, baseName, btn) {
+    if (!state.settings.anthropicKey) { toast('설정에서 Anthropic API 키를 먼저 입력하세요'); return; }
+    btn.disabled = true; const old = btn.textContent; btn.textContent = '워크지 제작 중…';
+    try {
+      const ws = normalizeWorksheet(extractJSON(await callClaude(promptText, 8000)));
+      if (!ws) throw new Error('결과 파싱 실패');
+      download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-워크지A4.pptx', buildWorksheetPptx(ws, state.settings.slideTheme));
+      toast('A4 워크지(.pptx) 완성');
+    } catch (e) { toast('워크지 제작 실패: ' + e.message + ' — 프롬프트 복사 방식을 쓰세요'); }
+    finally { btn.disabled = false; btn.textContent = old; }
+  }
+
   /* ---------- 배경 사진: 크롭·소싱·완성 흐름 ---------- */
   async function cropToJpeg(blobOrFile, W, H) {
     W = W || 1200; H = H || 1366; // 오른쪽 사진 카드 비율
@@ -1105,6 +1225,11 @@ ${blocks}`;
             ${P.deep ? `<button class="btn sm ghost" id="plSlidesGen">🖼 빠른 초안</button>` : ''}
           </div>
           <div class="row" style="margin-top:8px">
+            <button class="btn sm" id="plWsPrompt">📝 ① 워크지(A4) 프롬프트</button>
+            <button class="btn sm" id="plWsPaste">📝 ② 결과(JSON) → A4</button>
+            ${state.settings.anthropicKey ? `<button class="btn sm green" id="plWsAuto">⚡ 자동 워크지</button>` : ''}
+          </div>
+          <div class="row" style="margin-top:8px">
             <span class="muted small">테마</span> ${themeSelectHTML('plTheme')}
           </div>
         </div>
@@ -1158,6 +1283,9 @@ ${blocks}`;
       $('#plDzPrompt').addEventListener('click', async () => { await save(true); copy(buildSlideDesignPromptFromPlan(P)); });
       $('#plDzPaste').addEventListener('click', async () => { await save(true); openSlideDesignPaste(P.title); });
       const dza = $('#plDzAuto'); if (dza) dza.addEventListener('click', async () => { await save(true); autoDesignSlides(buildSlideDesignPromptFromPlan(P), P.title, dza); });
+      $('#plWsPrompt').addEventListener('click', async () => { await save(true); copy(buildWorksheetPromptFromPlan(P)); });
+      $('#plWsPaste').addEventListener('click', async () => { await save(true); openWorksheetPaste(P.title); });
+      const wsa = $('#plWsAuto'); if (wsa) wsa.addEventListener('click', async () => { await save(true); autoWorksheet(buildWorksheetPromptFromPlan(P), P.title, wsa); });
     });
   }
 
@@ -2071,6 +2199,8 @@ ${(L.transcript || '').trim()}`;
               <button class="btn block" id="cDzPaste" ${picked.length ? '' : 'disabled'}>🎨 결과(JSON) → .pptx</button>
               ${state.settings.anthropicKey ? `<button class="btn green block" id="cDzAuto" ${picked.length ? '' : 'disabled'}>⚡ 자동 디자인 .pptx</button>` : ''}
               <button class="btn block ghost" id="cPptx" ${picked.length ? '' : 'disabled'}>🖼 빠른 초안(.pptx)</button>
+              <button class="btn block" id="cWsPrompt" ${picked.length ? '' : 'disabled'}>📝 워크지(A4) 프롬프트</button>
+              <button class="btn block" id="cWsPaste" ${picked.length ? '' : 'disabled'}>📝 결과(JSON) → A4</button>
               <div class="row"><span class="muted small">테마</span> ${themeSelectHTML('cTheme2')}</div>
               ${state.settings.anthropicKey ? `<button class="btn green block" id="cAutoFuse" ${picked.length ? '' : 'disabled'}>⚡ 자동 융합(초안 생성)</button>` : ''}
               <button class="btn block" id="cSaveComp" ${picked.length ? '' : 'disabled'}>💾 조립본으로 저장</button>
@@ -2097,6 +2227,8 @@ ${(L.transcript || '').trim()}`;
     bind('cDzPrompt', 'click', () => copy(buildSlideDesignPromptFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked)));
     bind('cDzPaste', 'click', () => openSlideDesignPaste(ui.composeTheme.trim() || '새강의'));
     bind('cDzAuto', 'click', (e) => autoDesignSlides(buildSlideDesignPromptFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked), ui.composeTheme.trim() || '새강의', e.currentTarget));
+    bind('cWsPrompt', 'click', () => copy(buildWorksheetPromptFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked)));
+    bind('cWsPaste', 'click', () => openWorksheetPaste(ui.composeTheme.trim() || '새강의'));
     bind('cAutoFuse', 'click', (e) => autoFuse(picked, e.currentTarget));
     bind('cSaveComp', 'click', () => saveComposition(picked));
     bind('cRecommend', 'click', () => {
