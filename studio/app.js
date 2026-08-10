@@ -571,27 +571,27 @@
     },
     serif: {
       name: '클래식 세리프', mood: '말씀 묵상·문학·역사 — 고전적인 무게',
-      t: { pageBg: 'FFFFFF', ink: '1F1A15', gray: '8A8175', gray2: '5F574B', card: 'F6F3EE', tintNum: 'EAE4DA', darkBg: '1F1A15', darkMain: 'C9C2B6', kicker: 'D9B96A', charge: 'D9B96A', tf: 'Cambria' }
+      t: { pageBg: 'FFFFFF', ink: '1F1A15', gray: '8A8175', gray2: '5F574B', card: 'F6F3EE', tintNum: 'EAE4DA', accent: 'B08A2E', darkBg: '1F1A15', darkMain: 'C9C2B6', kicker: 'D9B96A', charge: 'D9B96A', tf: 'Cambria' }
     },
     nedabah: {
       name: '네다바웨이 브라운', mood: '공동체 브랜드 행사·수료식',
-      t: { pageBg: 'FFFFFF', ink: '2C2118', gray: '9A8B77', gray2: '6E5F4E', card: 'F4EEE4', tintNum: 'E9DCC8', darkBg: '4E3117', darkMain: 'D8C9B4', kicker: 'E3C77E', charge: 'E3C77E' }
+      t: { pageBg: 'FFFFFF', ink: '2C2118', gray: '9A8B77', gray2: '6E5F4E', card: 'F4EEE4', tintNum: 'E9DCC8', accent: '6B4423', darkBg: '4E3117', darkMain: 'D8C9B4', kicker: 'E3C77E', charge: 'E3C77E' }
     },
     midnight: {
       name: '미드나잇 네이비', mood: '리더십·비전·전략 — 단정한 신뢰감',
-      t: { pageBg: 'FFFFFF', ink: '1C2340', gray: '7A82A6', gray2: '4A5378', card: 'EEF2FB', tintNum: 'DEE7F8', darkBg: '1E2761', darkMain: 'CADCFC', kicker: '9FB8E8', charge: 'FFFFFF' }
+      t: { pageBg: 'FFFFFF', ink: '1C2340', gray: '7A82A6', gray2: '4A5378', card: 'EEF2FB', tintNum: 'DEE7F8', accent: '1E2761', darkBg: '1E2761', darkMain: 'CADCFC', kicker: '9FB8E8', charge: 'FFFFFF' }
     },
     forest: {
       name: '포레스트 그린', mood: '성장·회복·습관·자연 주제',
-      t: { pageBg: 'FFFFFF', ink: '1E3320', gray: '7C8A7B', gray2: '4C5F4C', card: 'EFF4EC', tintNum: 'DDE8D5', darkBg: '2C5F2D', darkMain: 'CFE3C2', kicker: '97BC62', charge: 'FFFFFF' }
+      t: { pageBg: 'FFFFFF', ink: '1E3320', gray: '7C8A7B', gray2: '4C5F4C', card: 'EFF4EC', tintNum: 'DDE8D5', accent: '2C5F2D', darkBg: '2C5F2D', darkMain: 'CFE3C2', kicker: '97BC62', charge: 'FFFFFF' }
     },
     terracotta: {
       name: '웜 테라코타', mood: '공동체·환대·가족 — 따뜻한 온도',
-      t: { pageBg: 'FFFFFF', ink: '3A2A26', gray: '9C8A83', gray2: '6B564E', card: 'F1EDE2', tintNum: 'EAD9D2', darkBg: '8E3B31', darkMain: 'EFE0D6', kicker: 'EAD3C4', charge: 'FFFFFF' }
+      t: { pageBg: 'FFFFFF', ink: '3A2A26', gray: '9C8A83', gray2: '6B564E', card: 'F1EDE2', tintNum: 'EAD9D2', accent: 'B85042', darkBg: '8E3B31', darkMain: 'EFE0D6', kicker: 'EAD3C4', charge: 'FFFFFF' }
     },
     cherry: {
       name: '체리 볼드', mood: '도전·결단·회개 — 강한 촉구',
-      t: { pageBg: 'FFFFFF', ink: '2B1518', gray: '9B8B8D', gray2: '5F4A4E', card: 'FAF3F2', tintNum: 'F3DEDD', darkBg: '990011', darkMain: 'F2C9CE', kicker: 'F2C9CE', charge: 'FFFFFF' }
+      t: { pageBg: 'FFFFFF', ink: '2B1518', gray: '9B8B8D', gray2: '5F4A4E', card: 'FAF3F2', tintNum: 'F3DEDD', accent: '990011', darkBg: '990011', darkMain: 'F2C9CE', kicker: 'F2C9CE', charge: 'FFFFFF' }
     }
   };
   function resolveSlideTheme(userPick, claudePick) {
@@ -601,10 +601,19 @@
   }
 
   function dzText(id, x, y, w, h, paras, anchor) {
-    const ps = paras.filter(p => p && p.t).map(p => {
+    const ps = paras.filter(p => p && (p.t || p.runs)).map(p => {
       const pPr = `<a:pPr algn="${p.align || 'l'}"${p.bullet ? ' marL="285750" indent="-285750"' : ''}>${p.spcAft ? `<a:spcAft><a:spcPts val="${p.spcAft}"/></a:spcAft>` : ''}${p.bullet ? '<a:buFont typeface="Arial"/><a:buChar char="•"/>' : '<a:buNone/>'}</a:pPr>`;
       const rPr = `<a:rPr lang="ko-KR" sz="${p.sz}"${p.b ? ' b="1"' : ''}${p.i ? ' i="1"' : ''}${p.spc ? ` spc="${p.spc}"` : ''} dirty="0"><a:solidFill><a:srgbClr val="${p.color}"/></a:solidFill>${p.font ? `<a:latin typeface="${p.font}"/>` : ''}</a:rPr>`;
-      const runs = String(p.t).split('\n').map(line => `<a:r>${rPr}<a:t>${xesc(line)}</a:t></a:r>`).join('<a:br/>');
+      let runs;
+      if (p.runs) {
+        // 다색 런: 포컬 포인트(하이라이트 단어·악센트 마침표)용
+        runs = p.runs.filter(r => r && r.t !== '').map(r => {
+          const rr = `<a:rPr lang="ko-KR" sz="${r.sz || p.sz}"${(r.b != null ? r.b : p.b) ? ' b="1"' : ''}${r.i ? ' i="1"' : ''}${(r.spc || p.spc) ? ` spc="${r.spc || p.spc}"` : ''} dirty="0"><a:solidFill><a:srgbClr val="${r.color || p.color}"/></a:solidFill>${(r.font || p.font) ? `<a:latin typeface="${r.font || p.font}"/>` : ''}</a:rPr>`;
+          return String(r.t).split('\n').map(line => `<a:r>${rr}<a:t>${xesc(line)}</a:t></a:r>`).join('<a:br/>');
+        }).join('');
+      } else {
+        runs = String(p.t).split('\n').map(line => `<a:r>${rPr}<a:t>${xesc(line)}</a:t></a:r>`).join('<a:br/>');
+      }
       return `<a:p>${pPr}${runs}</a:p>`;
     }).join('');
     return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="t${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr wrap="square"${anchor ? ` anchor="${anchor}"` : ''}><a:normAutofit/></a:bodyPr><a:lstStyle/>${ps || '<a:p><a:endParaRPr lang="ko-KR"/></a:p>'}</p:txBody></p:sp>`;
@@ -627,70 +636,86 @@
 <p:sld ${PPTX_NS}><p:cSld><p:bg><p:bgPr>${fill}<a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
   }
 
-  /* 풀블리드 배경 사진(p:pic, rId2) + 다크 오버레이 — 사진 위 흰 글씨용 */
-  function dzPhotoBase(overlayAlpha) {
-    return `<p:pic><p:nvPicPr><p:cNvPr id="30" name="bgphoto"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="12192000" cy="6858000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>` +
-      `<p:sp><p:nvSpPr><p:cNvPr id="31" name="overlay"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="12192000" cy="6858000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="000000"><a:alpha val="${overlayAlpha}"/></a:srgbClr></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="ko-KR"/></a:p></p:txBody></p:sp>`;
+  /* 사진은 배경이 아니라 요소 — 오른쪽 라운드 카드(rId2). 텍스트는 왼쪽 컬럼 */
+  function dzPhotoCard() {
+    return `<p:pic><p:nvPicPr><p:cNvPr id="30" name="photo"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="6583680" y="548640"/><a:ext cx="5059680" cy="5760720"/></a:xfrm><a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 6000"/></a:avLst></a:prstGeom></p:spPr></p:pic>`;
   }
 
   function renderDesignedSlide(s, idx, C) {
     C = C || SLIDE_THEMES.samsung.t;
-    const tf = C.tf; // 제목 폰트 오버라이드(세리프 테마)
+    const tf = C.tf;                    // 제목 폰트 오버라이드(세리프 테마)
+    const AC = C.accent || C.ink;       // 포컬 포인트 색 — 이곳에만 색을 쓴다
     const pageNo = dzText(19, 11200000, 6400000, 700000, 300000, [{ t: String(idx + 1), sz: 1000, color: C.gray, align: 'r' }]);
-    // 사진이 붙은 슬라이드: 풀블리드 사진 + 오버레이 + 흰 글씨 변형
-    if (s._img) {
-      const wrap = (xml) => ({ xml, img: s._img });
-      switch (s.layout) {
-        case 'cover':
-          return wrap(dzSlide('000000', dzPhotoBase(46000) +
-            dzText(2, 1097280, 2011680, 9966960, 457200, [{ t: s.kicker || '', sz: 1500, color: 'E8E8E8', spc: 400, align: 'ctr' }]) +
-            dzText(3, 548640, 2469480, 11064240, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -100 }]) +
-            dzText(4, 1097280, 4114800, 9966960, 548640, [{ t: s.subtitle || '', sz: 1900, color: 'DCDCDC', align: 'ctr' }])));
-        case 'section':
-          return wrap(dzSlide('000000', dzPhotoBase(42000) +
-            dzText(2, 822960, 4480560, 10515600, 731520, [{ t: s.number || '', sz: 2000, b: 1, color: 'E8E8E8', spc: 400 }]) +
-            dzText(3, 822960, 4846320, 10515600, 914400, [{ t: s.title, sz: 4000, b: 1, color: 'FFFFFF', font: tf, spc: -75 }]) +
-            dzText(4, 822960, 5760720, 10515600, 457200, [{ t: s.subtitle || '', sz: 1600, color: 'D6D6D6' }])));
-        case 'question':
-          return wrap(dzSlide('000000', dzPhotoBase(52000) +
-            dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -75 }], 'ctr') +
-            dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: 'D6D6D6', align: 'ctr' }])));
-        case 'quote':
-          return wrap(dzSlide('000000', dzPhotoBase(52000) +
-            dzText(2, 1554480, 2331720, 9144000, 1828800, [{ t: '“' + (s.quote || '') + '”', sz: 3000, color: 'FFFFFF', align: 'ctr', font: tf }], 'ctr') +
-            dzText(3, 1554480, 4434840, 9144000, 457200, [{ t: s.source, sz: 1500, color: 'D6D6D6', align: 'ctr' }])));
-        case 'closing':
-          return wrap(dzSlide('000000', dzPhotoBase(52000) +
-            dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2600, color: 'DCDCDC', align: 'ctr' }], 'ctr') +
-            dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -75 }])));
-        // 그 외 레이아웃은 사진 무시하고 기본 렌더로
+    // 하이라이트 단어 → 다색 런 분해 (포컬 포인트)
+    const hlRuns = (text, hl, base) => {
+      text = String(text || '');
+      if (hl && text.includes(hl)) {
+        const i = text.indexOf(hl);
+        return [{ t: text.slice(0, i), color: base }, { t: hl, color: AC }, { t: text.slice(i + hl.length), color: base }];
       }
+      return null;
+    };
+    // 제목 끝 악센트 마침표 — 에디토리얼 포컬
+    const dotRuns = (text, base) => [{ t: String(text || ''), color: base }, { t: '.', color: AC }];
+
+    // ── 사진이 있으면: 텍스트 왼쪽 컬럼 + 오른쪽 라운드 사진 카드 (배경은 언제나 흰색) ──
+    if (s._img && ['cover', 'section', 'question', 'quote', 'closing'].includes(s.layout)) {
+      const wrap = (xml) => ({ xml, img: s._img });
+      const L = { x: 822960, w: 5303520 }; // 왼쪽 텍스트 컬럼
+      let txt = '';
+      if (s.layout === 'cover') {
+        txt = dzText(2, L.x, 1554480, L.w, 457200, [{ t: s.kicker || '', sz: 1400, color: AC, spc: 400 }]) +
+          dzText(3, L.x, 2103120, L.w, 2103120, [{ runs: dotRuns(s.title, C.ink), sz: 4000, b: 1, spc: -75, font: tf }]) +
+          dzText(4, L.x, 4343400, L.w, 731520, [{ t: s.subtitle || '', sz: 1700, color: C.gray2 }]);
+      } else if (s.layout === 'section') {
+        txt = dzText(2, L.x, 1737360, L.w, 457200, [{ t: s.number || '', sz: 1600, b: 1, color: AC, spc: 400 }]) +
+          dzText(3, L.x, 2286000, L.w, 1828800, [{ t: s.title, sz: 3600, b: 1, color: C.ink, font: tf, spc: -50 }]) +
+          dzText(4, L.x, 4229100, L.w, 548640, [{ t: s.subtitle || '', sz: 1500, color: C.gray }]);
+      } else if (s.layout === 'question') {
+        txt = dzText(2, L.x, 1188720, L.w, 1188720, [{ t: '?', sz: 7200, b: 1, color: C.tintNum }]) +
+          dzText(3, L.x, 2560320, L.w, 2103120, [{ t: s.question, sz: 2800, b: 1, color: C.ink, font: tf }]) +
+          dzText(4, L.x, 4800600, L.w, 457200, [{ t: s.subtitle || '', sz: 1400, color: C.gray }]);
+      } else if (s.layout === 'quote') {
+        txt = dzText(2, L.x, 1005840, L.w, 1371600, [{ t: '\u201C', sz: 9600, b: 1, color: C.tintNum, font: 'Cambria' }]) +
+          dzText(3, L.x, 2331720, L.w, 2103120, [{ t: s.quote, sz: 2400, color: C.ink, font: tf }]) +
+          dzText(4, L.x, 4663440, L.w, 457200, [{ t: s.source, sz: 1400, color: C.gray }]);
+      } else { // closing
+        txt = dzText(2, L.x, 1920240, L.w, 1188720, [{ t: s.main, sz: 1900, color: C.gray2 }]) +
+          dzText(3, L.x, 3291840, L.w, 1554480, [{ runs: dotRuns(s.charge, C.ink), sz: 3200, b: 1, spc: -50, font: tf }]);
+      }
+      return wrap(dzSlide(C.pageBg, txt + dzPhotoCard()));
     }
+
+    // ── 기본: 전부 흰 배경, 슬라이드마다 포컬 포인트 하나 ──
     switch (s.layout) {
-      case 'cover': // 다크 그라디언트 + 중앙 정렬 히어로 (잡스 키노트)
-        return dzSlide(C.darkBg,
-          dzText(2, 1097280, 2011680, 9966960, 457200, [{ t: s.kicker || '', sz: 1500, color: C.kicker, spc: 400, align: 'ctr' }]) +
-          dzText(3, 548640, 2469480, 11064240, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -100 }]) +
-          dzText(4, 1097280, 4114800, 9966960, 548640, [{ t: s.subtitle || '', sz: 1900, color: C.darkMain, align: 'ctr' }]), true);
-      case 'statement': // 큰 문장 하나 중앙 — 히어로 카피
+      case 'cover': // 포컬: 대제목 + 악센트 마침표
         return dzSlide(C.pageBg,
-          dzText(2, 822960, 2194560, 10515600, 2469480, [{ t: s.text || s.title, sz: 4000, b: 1, color: C.ink, align: 'ctr', font: tf, spc: -75 }], 'ctr'));
-      case 'section': // 거대한 틴트 숫자가 그래픽
+          dzText(2, 822960, 2011680, 10515600, 457200, [{ t: s.kicker || '', sz: 1500, color: AC, spc: 400 }]) +
+          dzText(3, 777240, 2469480, 10561320, 1554480, [{ runs: dotRuns(s.title, C.ink), sz: 5400, b: 1, spc: -100, font: tf }]) +
+          dzText(4, 822960, 4114800, 10515600, 548640, [{ t: s.subtitle || '', sz: 1900, color: C.gray2 }]));
+      case 'statement': { // 포컬: 하이라이트 단어
+        const runs = hlRuns(s.text || s.title, s.highlight, C.ink);
+        return dzSlide(C.pageBg,
+          dzText(2, 822960, 2194560, 10515600, 2469480,
+            [runs ? { runs, sz: 4000, b: 1, spc: -75, font: tf } : { t: s.text || s.title, sz: 4000, b: 1, color: C.ink, spc: -75, font: tf }]));
+      }
+      case 'section': // 포컬: 거대한 틴트 숫자
         return dzSlide(C.pageBg,
           dzText(2, 0, 365760, 11887200, 6035040, [{ t: s.number || '', sz: 30000, b: 1, color: C.tintNum, align: 'r' }]) +
           dzText(3, 822960, 4846320, 7315200, 914400, [{ t: s.title, sz: 4000, b: 1, color: C.ink, font: tf, spc: -75 }]) +
           dzText(4, 822960, 5760720, 7315200, 457200, [{ t: s.subtitle || '', sz: 1600, color: C.gray }]));
-      case 'quote': // 거대한 " 글리프 틴트 + 잉크 인용
+      case 'quote': // 포컬: 거대한 틴트 따옴표
         return dzSlide(C.pageBg,
-          dzText(2, 502920, 91440, 2743200, 2743200, [{ t: '“', sz: 20000, b: 1, color: C.tintNum, font: 'Cambria' }]) +
+          dzText(2, 502920, 91440, 2743200, 2743200, [{ t: '\u201C', sz: 20000, b: 1, color: C.tintNum, font: 'Cambria' }]) +
           dzText(3, 1554480, 2331720, 9144000, 1828800, [{ t: s.quote, sz: 3000, color: C.ink, font: tf }]) +
           dzText(4, 1554480, 4434840, 9144000, 457200, [{ t: s.source, sz: 1500, color: C.gray }]) + pageNo);
-      case 'question': // 다크, 질문 하나 중앙
-        return dzSlide(C.darkBg,
-          dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -75 }], 'ctr') +
-          dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.darkMain, align: 'ctr' }]), true);
-      case 'activity': { // 아이브로 라벨 + 큰 틴트 숫자 단계
-        let inner = dzText(2, 822960, 640080, 2743200, 365760, [{ t: '활동', sz: 1400, b: 1, color: C.accent || C.gray, spc: 600 }]) +
+      case 'question': // 포컬: 거대한 틴트 물음표 + 질문
+        return dzSlide(C.pageBg,
+          dzText(2, 822960, 594360, 10515600, 1737360, [{ t: '?', sz: 10800, b: 1, color: C.tintNum }]) +
+          dzText(3, 822960, 2743200, 10515600, 1828800, [{ t: s.question, sz: 3400, b: 1, color: C.ink, font: tf, spc: -50 }]) +
+          dzText(4, 822960, 4846320, 10515600, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.gray }]));
+      case 'activity': { // 포컬: 악센트 라벨 + 큰 틴트 숫자 단계
+        let inner = dzText(2, 822960, 640080, 2743200, 365760, [{ t: '활동', sz: 1400, b: 1, color: AC, spc: 600 }]) +
           dzText(3, 822960, 1097280, 10515600, 731520, [{ t: s.title, sz: 3000, b: 1, color: C.ink, font: tf }]);
         (s.steps || []).slice(0, 4).forEach((t, i) => {
           const y = 2149856 + i * 1280160;
@@ -699,33 +724,39 @@
         });
         return dzSlide(C.pageBg, inner + pageNo);
       }
-      case 'stat': // 거대 숫자 + 라벨
+      case 'stat': // 포컬: 거대한 악센트 숫자
         return dzSlide(C.pageBg,
-          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.accent || C.ink, align: 'ctr', font: tf, spc: -150 }], 'ctr') +
+          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: AC, align: 'ctr', font: tf, spc: -150 }], 'ctr') +
           dzText(3, 1097280, 4434840, 9966960, 731520, [{ t: s.label || '', sz: 1900, color: C.gray2, align: 'ctr' }]));
-      case 'compare': { // 두 칼럼 — 중립 카드
+      case 'compare': { // 포컬: 오른쪽 카드(틴트+악센트 헤드) — 시선이 결론 쪽에 머문다
         let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink, font: tf }]) +
           dzRect(3, 822960, 1737360, 5029200, 4206240, C.card, 'roundRect') +
-          dzRect(4, 6336792, 1737360, 5029200, 4206240, C.card, 'roundRect');
-        const colFn = (x, head, items, id) => {
-          let h = dzText(id, x + 457200, 2148840, 4114800, 548640, [{ t: head, sz: 2200, b: 1, color: C.ink }]);
+          dzRect(4, 6336792, 1737360, 5029200, 4206240, C.tintNum, 'roundRect');
+        const colFn = (x, head, items, headC, id) => {
+          let h = dzText(id, x + 457200, 2148840, 4114800, 548640, [{ t: head, sz: 2200, b: 1, color: headC }]);
           (items || []).slice(0, 4).forEach((t, i) => {
             h += dzText(id + 1 + i, x + 457200, 2926080 + i * 822960, 4114800, 731520, [{ t, sz: 1500, color: C.gray2 }]);
           });
           return h;
         };
-        inner += colFn(822960, s.leftHead || '', s.leftItems, 5);
-        inner += colFn(6336792, s.rightHead || '', s.rightItems, 11);
+        inner += colFn(822960, s.leftHead || '', s.leftItems, C.gray2, 5);
+        inner += colFn(6336792, s.rightHead || '', s.rightItems, AC, 11);
         return dzSlide(C.pageBg, inner);
       }
-      case 'closing': // 다크, 얻음 + 강조 결단
-        return dzSlide(C.darkBg,
-          dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2600, color: C.darkMain, align: 'ctr' }], 'ctr') +
-          dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: C.charge, align: 'ctr', font: tf, spc: -75 }]), true);
-      default: // content — 제목 + 마커 없는 행
+      case 'closing': // 포컬: 결단 문장 + 악센트 마침표
         return dzSlide(C.pageBg,
-          dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink, font: tf }], 'b') +
-          dzText(3, 822960, 1737360, 10515600, 4297680, (s.bullets || []).map(t => ({ t, sz: 1800, color: C.ink, spcAft: 1100 }))) + pageNo);
+          dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2200, color: C.gray2, align: 'ctr' }], 'ctr') +
+          dzText(3, 1097280, 4023360, 9966960, 1005840, [{ runs: dotRuns(s.charge, C.ink), sz: 3600, b: 1, align: 'ctr', spc: -75, font: tf }]));
+      default: { // content — 포컬: 리드 문장(lead), 불릿은 그레이로 물러남
+        let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink, font: tf }], 'b');
+        let y = 1737360;
+        if (s.lead) {
+          inner += dzText(3, 822960, y, 10515600, 1005840, [{ t: s.lead, sz: 2200, b: 1, color: AC }]);
+          y += 1188720;
+        }
+        inner += dzText(4, 822960, y, 10515600, 6035040 - y, (s.bullets || []).map(t => ({ t, sz: 1800, color: s.lead ? C.gray2 : C.ink, spcAft: 1100 })));
+        return dzSlide(C.pageBg, inner + pageNo);
+      }
     }
   }
   function buildDesignedPptx(design, userThemePick) {
@@ -746,7 +777,7 @@
       if (!LAY.includes(layout)) layout = 'content';
       return {
         layout, title: S(s.title), subtitle: S(s.subtitle), kicker: S(s.kicker), number: S(s.number),
-        imageQuery: S(s.imageQuery),
+        imageQuery: S(s.imageQuery), highlight: S(s.highlight), lead: S(s.lead),
         text: S(s.text), bullets: A(s.bullets, 5), steps: A(s.steps, 4),
         quote: S(s.quote), source: S(s.source), question: S(s.question),
         value: S(s.value), label: S(s.label),
@@ -762,10 +793,14 @@
 
   function slideDesignRules() {
     const themeLines = Object.keys(SLIDE_THEMES).map(k => `${k} = ${SLIDE_THEMES[k].name} (${SLIDE_THEMES[k].mood})`).join('\n');
-    return `[디자인 언어 — 삼성 스타일 기본]
-- 흰 배경 + 검은 글씨가 기본. 표지·질문·마무리만 다크 배경(기본 테마는 삼성 딥블루 그라디언트).
-- 포인트 컬러는 절제해서: 활동 라벨·통계 숫자 정도. 나머지 위계는 크기·굵기·그레이 단계로.
-- 밝고 친근하되 단정하게. 문장은 짧게, 마침표까지 신경 쓴 카피처럼.
+    return `[디자인 언어 — 화이트 + 포컬 포인트 (배경 칠하기 절대 금지)]
+- 모든 슬라이드는 흰 배경. 배경 전체를 색·사진으로 칠하는 것은 절대 금지.
+- 슬라이드마다 시선이 처음 닿는 **포컬 포인트를 정확히 하나** 설계하라:
+  하이라이트 단어(statement.highlight) / 거대 틴트 숫자(section) / 거대 통계 숫자(stat) /
+  리드 문장(content.lead) / 거대 물음표(question) / 오른쪽 사진 카드(imageQuery) 중 하나.
+- 색은 그 포컬 포인트에만. 나머지는 검정과 그레이 단계로 물러난다.
+- 사진은 배경이 아니라 요소 — 오른쪽 라운드 카드로 들어간다.
+- 문장은 짧게, 마침표까지 신경 쓴 카피처럼.
 
 [테마 — 주제에 어울리는 것 하나를 골라 theme 필드로 지정]
 ${themeLines}
@@ -786,10 +821,10 @@ ${themeLines}
 - 총 8~20장 권장.
 
 [레이아웃]
-cover(kicker,title,subtitle) · statement(text) · section(number,title,subtitle) · content(title,bullets[]) · quote(quote,source) · question(question,subtitle) · activity(title,steps[]) · stat(value,label) · compare(title,leftHead,leftItems[],rightHead,rightItems[]) · closing(main,charge)
+cover(kicker,title,subtitle) · statement(text,highlight=강조 단어) · section(number,title,subtitle) · content(title,lead=한 줄 핵심,bullets[]) · quote(quote,source) · question(question,subtitle) · activity(title,steps[]) · stat(value,label) · compare(title,leftHead,leftItems[],rightHead=결론 쪽,rightItems[]) · closing(main,charge)
 
 [출력 — 오직 JSON, 코드펜스·설명 금지]
-{"theme":"samsung","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"...","imageQuery":"open door light"},{"layout":"statement","text":"..."},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
+{"theme":"samsung","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"...","imageQuery":"open door light"},{"layout":"statement","text":"...","highlight":"강조단어"},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","lead":"한 줄 핵심","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
   }
   function buildSlideDesignPromptFromPlan(P) {
     const body = P.deep ? buildPlanMd(P) : `제목: ${P.title}\n${P.intent ? '설계 의도: ' + P.intent + '\n' : ''}슬라이드 개요:\n${P.slidesText || '(없음)'}`;
@@ -824,25 +859,26 @@ ${blocks}`;
   }
 
   /* ---------- 배경 사진: 크롭·소싱·완성 흐름 ---------- */
-  async function cropToJpeg(blobOrFile) {
+  async function cropToJpeg(blobOrFile, W, H) {
+    W = W || 1200; H = H || 1366; // 오른쪽 사진 카드 비율
     const bmp = await createImageBitmap(blobOrFile);
-    const cv = document.createElement('canvas'); cv.width = 1920; cv.height = 1080;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     const ctx = cv.getContext('2d');
-    const sc = Math.max(1920 / bmp.width, 1080 / bmp.height);
+    const sc = Math.max(W / bmp.width, H / bmp.height);
     const w = bmp.width * sc, h = bmp.height * sc;
-    ctx.drawImage(bmp, (1920 - w) / 2, (1080 - h) / 2, w, h);
+    ctx.drawImage(bmp, (W - w) / 2, (H - h) / 2, w, h);
     const out = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.82));
     if (!out) throw new Error('이미지 변환 실패');
     return new Uint8Array(await out.arrayBuffer());
   }
   async function fetchPexelsPhoto(query) {
-    const r = await fetch('https://api.pexels.com/v1/search?per_page=1&orientation=landscape&query=' + encodeURIComponent(query),
+    const r = await fetch('https://api.pexels.com/v1/search?per_page=1&orientation=portrait&query=' + encodeURIComponent(query),
       { headers: { Authorization: state.settings.pexelsKey } });
     if (!r.ok) throw new Error('Pexels ' + r.status);
     const d = await r.json();
     const p = d.photos && d.photos[0];
     if (!p) return null;
-    const url = (p.src.original || p.src.large2x) + '?auto=compress&cs=tinysrgb&fit=crop&w=1920&h=1080';
+    const url = (p.src.original || p.src.large2x) + '?auto=compress&cs=tinysrgb&fit=crop&w=1200&h=1366';
     const ir = await fetch(url);
     if (!ir.ok) throw new Error('사진 다운로드 실패');
     return await cropToJpeg(await ir.blob());
