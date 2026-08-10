@@ -13,7 +13,7 @@
 
   /* ============================ 상수/유틸 ============================ */
   const DB_NAME = 'lecture-studio';
-  const DB_VER = 2;
+  const DB_VER = 3;
   const ATOM_TYPES = ['개념', '정의', '사례', '예화', '비유', '통계', '인용', '질문', '적용', '실천', '반론', '전환'];
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -77,6 +77,7 @@
         if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv', { keyPath: 'k' });
         if (!db.objectStoreNames.contains('chunks')) db.createObjectStore('chunks', { keyPath: 'id' });        // 녹음 크래시 복구용 조각
         if (!db.objectStoreNames.contains('compositions')) db.createObjectStore('compositions', { keyPath: 'id' }); // 저장된 조립본
+        if (!db.objectStoreNames.contains('plans')) db.createObjectStore('plans', { keyPath: 'id' });        // 강의 전 설계
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
@@ -97,6 +98,7 @@
     lectures: [],     // {id,title,topic,date,tags[],notes,transcript,rawTranscript,markers[],durationSec,hasAudio,audioType,createdAt,atomized}
     atoms: [],        // {id,title,type,topic,tags[],summary,content,keypoints[],durationSec,lectureId,lectureTitle,createdAt,star,usedIn[]}
     compositions: [], // 저장된 조립본 {id,theme,audience,atomIds[],createdAt,updatedAt}
+    plans: [],        // 강의 전 설계 {id,title,topic,audience,intent,slidesText,deep,createdAt,updatedAt}
     settings: { speaker: '', transcribeUrl: '', transcribeKey: '', transcribeModel: 'whisper-1', anthropicKey: '', anthropicModel: 'claude-opus-4-8' },
     tray: [],         // 조립대에 담긴 atom id 목록(순서)
     ui: { atomQuery: '', atomType: '', atomTopic: '', atomTag: '', composeTheme: '', composeAudience: '', recoIds: [] }
@@ -107,11 +109,13 @@
     state.lectures = (await dbAll('lectures')) || [];
     state.atoms = (await dbAll('atoms')) || [];
     state.compositions = (await dbAll('compositions')) || [];
+    state.plans = (await dbAll('plans')) || [];
     state.settings = Object.assign(state.settings, (await kvGet('settings', {})) || {});
     state.tray = (await kvGet('tray', [])) || [];
     state.lectures.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     state.atoms.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     state.compositions.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+    state.plans.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
   }
   const saveSettings = () => kvSet('settings', state.settings);
   const saveTray = () => kvSet('tray', state.tray);
@@ -150,8 +154,8 @@
     recog: null, speechOn: false, finalText: '', interimText: '',
     // level meter
     audioCtx: null, analyser: null, rafId: 0, mimeType: '',
-    // 마커 · 크래시복구 · 화면꺼짐 방지
-    markers: [], chunkSeq: 0, wakeLock: null
+    // 마커 · 크래시복구 · 화면꺼짐 방지 · 연결된 설계
+    markers: [], chunkSeq: 0, wakeLock: null, planId: ''
   };
   let _lastPersist = 0;
 
@@ -166,7 +170,7 @@
       date: ($('#recDate') && $('#recDate').value) || '',
       tags: ($('#recTags') && $('#recTags').value) || '',
       notes: ($('#recNotes') && $('#recNotes').value) || '',
-      finalText: rec.finalText, markers: rec.markers,
+      finalText: rec.finalText, markers: rec.markers, planId: rec.planId,
       elapsed: currentElapsed(), mimeType: rec.mimeType
     }).catch(() => { });
   }
@@ -346,6 +350,7 @@
       transcript: transcript || '',
       rawTranscript: '',
       markers: markers || [],
+      planId: rec.planId || '',
       durationSec: durationSec || 0,
       hasAudio: !!blob, audioType: type || '',
       speaker: state.settings.speaker || '',
@@ -362,6 +367,350 @@
   }
   function parseTags(s) {
     return String(s || '').split(/[,#\n]/).map(x => x.trim()).filter(Boolean).slice(0, 20);
+  }
+
+  /* ============================ 뷰: 설계 (강의 전) ============================ */
+
+  /* PPTX(zip) 해체 — 라이브러리 없이 슬라이드/노트 텍스트 추출 */
+  async function extractPptxText(file) {
+    if (!('DecompressionStream' in window)) throw new Error('이 브라우저는 파일 해체를 지원하지 않습니다 — 슬라이드 개요를 복사해 붙여넣으세요');
+    const buf = new Uint8Array(await file.arrayBuffer());
+    const dv = new DataView(buf.buffer);
+    // End of Central Directory 찾기
+    let eocd = -1;
+    for (let i = buf.length - 22; i >= Math.max(0, buf.length - 22 - 65535); i--) {
+      if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error('PPTX(ZIP) 형식이 아닙니다');
+    const total = dv.getUint16(eocd + 10, true);
+    let p = dv.getUint32(eocd + 16, true);
+    const entries = [];
+    for (let n = 0; n < total; n++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) break;
+      const method = dv.getUint16(p + 10, true);
+      const csize = dv.getUint32(p + 20, true);
+      const nameLen = dv.getUint16(p + 28, true);
+      const extraLen = dv.getUint16(p + 30, true);
+      const cmtLen = dv.getUint16(p + 32, true);
+      const lho = dv.getUint32(p + 42, true);
+      const name = new TextDecoder().decode(buf.subarray(p + 46, p + 46 + nameLen));
+      entries.push({ name, method, csize, lho });
+      p += 46 + nameLen + extraLen + cmtLen;
+    }
+    async function readEntry(e) {
+      const q = e.lho;
+      if (dv.getUint32(q, true) !== 0x04034b50) throw new Error('손상된 항목');
+      const nameLen = dv.getUint16(q + 26, true);
+      const extraLen = dv.getUint16(q + 28, true);
+      const start = q + 30 + nameLen + extraLen;
+      const comp = buf.subarray(start, start + e.csize);
+      if (e.method === 0) return new TextDecoder().decode(comp);
+      if (e.method === 8) {
+        const stream = new Blob([comp]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        return await new Response(stream).text();
+      }
+      throw new Error('지원하지 않는 압축 방식');
+    }
+    const xmlText = (xml) => {
+      const out = []; const re = /<a:t[^>]*>([\s\S]*?)<\/a:t>/g; let m;
+      while ((m = re.exec(xml))) out.push(m[1]);
+      return out.join(' ')
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
+        .replace(/\s+/g, ' ').trim();
+    };
+    const slideRe = /^ppt\/slides\/slide(\d+)\.xml$/;
+    const noteRe = /^ppt\/notesSlides\/notesSlide(\d+)\.xml$/;
+    const slides = entries.filter(e => slideRe.test(e.name))
+      .sort((a, b) => Number(a.name.match(slideRe)[1]) - Number(b.name.match(slideRe)[1]));
+    if (!slides.length) throw new Error('슬라이드를 찾지 못했습니다');
+    const notes = {};
+    entries.forEach(e => { const m = e.name.match(noteRe); if (m) notes[m[1]] = e; });
+    let out = '';
+    for (const e of slides) {
+      const n = e.name.match(slideRe)[1];
+      out += `[슬라이드 ${n}] ${xmlText(await readEntry(e)) || '(텍스트 없음)'}\n`;
+      if (notes[n]) {
+        const nt = xmlText(await readEntry(notes[n]));
+        if (nt) out += `  └ 노트: ${nt}\n`;
+      }
+    }
+    return out.trim();
+  }
+
+  RENDER.design = function () {
+    const v = $('#view-design');
+    const list = state.plans;
+    v.innerHTML = `
+      <div class="view-head">
+        <div><h1>설계 <span class="badge">강의 전</span></h1><p class="lead">슬라이드가 유도하는 방향을 읽어내고, 단조로운 이득이 아닌 <b>깊이 있는 얻음과 통찰</b>까지 닿는 설계로 끌어올립니다.</p></div>
+        <div><button class="btn sm primary" id="btnNewPlan">＋ 새 설계</button></div>
+      </div>
+      <div class="card">
+        <div class="steps">
+          <span><b>1</b> 슬라이드 가져오기(.pptx 또는 개요 붙여넣기)</span> ›
+          <span><b>2</b> 내 설계 의도 쓰기</span> ›
+          <span><b>3</b> 클로드 심화 설계(통찰·질문·활동·책 인용)</span> ›
+          <span><b>4</b> [녹음]에서 이 설계를 연결해 강의</span>
+        </div>
+      </div>
+      ${list.length === 0
+        ? `<div class="empty" style="margin-top:14px">아직 설계가 없습니다. <b>＋ 새 설계</b>로 시작하세요.</div>`
+        : `<div class="grid cols-2" id="planList" style="margin-top:14px"></div>`}`;
+
+    $('#btnNewPlan').addEventListener('click', async () => {
+      const P = {
+        id: uid('plan_'), title: '새 강의 설계', topic: '', audience: '',
+        intent: '', slidesText: '', deep: null,
+        createdAt: nowISO(), updatedAt: nowISO()
+      };
+      await dbPut('plans', P); state.plans.unshift(P);
+      openPlan(P.id);
+    });
+
+    const wrap = $('#planList'); if (!wrap) return;
+    list.forEach(P => {
+      const el = document.createElement('div'); el.className = 'item';
+      const linked = state.lectures.filter(L => L.planId === P.id).length;
+      el.innerHTML = `
+        <div class="it-top">
+          <div>
+            <h3>${esc(P.title)}</h3>
+            <div class="meta">${esc(P.topic || '주제 미지정')} · ${fmtDay(P.updatedAt)}${linked ? ' · 강의 ' + linked + '회' : ''}</div>
+          </div>
+          <span class="badge">${P.deep ? '심화 설계됨' : (P.slidesText ? '슬라이드 있음' : '초안')}</span>
+        </div>
+        <div class="excerpt">${esc(clip(P.intent || P.slidesText || '(내용 없음)', 180))}</div>
+        <div class="row">
+          <button class="btn sm primary" data-act="open">열기 · 심화 설계</button>
+          ${P.deep ? `<button class="btn sm ghost" data-act="md">📄 .md</button>` : ''}
+          <button class="btn sm ghost danger right" data-act="del">삭제</button>
+        </div>`;
+      el.querySelector('[data-act="open"]').addEventListener('click', () => openPlan(P.id));
+      const md = el.querySelector('[data-act="md"]');
+      if (md) md.addEventListener('click', () => download(P.title.replace(/[^\w가-힣\- ]/g, '') + '-설계.md', buildPlanMd(P)));
+      el.querySelector('[data-act="del"]').addEventListener('click', async () => {
+        if (!confirm(`설계 "${P.title}"을(를) 삭제할까요?`)) return;
+        await dbDel('plans', P.id);
+        state.plans = state.plans.filter(x => x.id !== P.id);
+        RENDER.design();
+      });
+      wrap.appendChild(el);
+    });
+  };
+
+  function openPlan(id) {
+    const P = state.plans.find(x => x.id === id); if (!P) return;
+    openModal(P.title, `
+      <div class="stack">
+        <div class="grid cols-2">
+          <div><label class="field">강의 제목</label><input type="text" id="plTitle" value="${esc(P.title)}"></div>
+          <div><label class="field">주제/시리즈</label><input type="text" id="plTopic" value="${esc(P.topic || '')}"></div>
+        </div>
+        <div><label class="field">대상/길이·톤</label><input type="text" id="plAudience" value="${esc(P.audience || '')}" placeholder="예) 청년부 30명, 40분, 묵상형"></div>
+        <div><label class="field">내 설계 의도 — 이 강의로 참가자가 어디까지 가길 원하는가</label>
+          <textarea id="plIntent" style="min-height:80px" placeholder="예) 정보 전달이 아니라, 참가자 각자가 자기 두려움의 뿌리를 마주하고 자유의 첫걸음을 스스로 정의하게 하고 싶다.">${esc(P.intent || '')}</textarea></div>
+        <div>
+          <div class="row spread"><label class="field" style="margin:0">슬라이드 개요</label>
+            <label class="btn sm" style="cursor:pointer">📂 .pptx 가져오기<input type="file" id="plPptx" accept=".pptx" hidden></label>
+          </div>
+          <textarea id="plSlides" style="min-height:140px" placeholder="[슬라이드 1] 제목…&#10;[슬라이드 2] …  — .pptx를 가져오면 자동으로 채워집니다. 발표자 노트도 함께 추출됩니다.">${esc(P.slidesText || '')}</textarea>
+        </div>
+
+        <div class="card" style="box-shadow:none">
+          <div class="row spread">
+            <strong>심화 설계 — 유도 방향 읽기 · 통찰 · 활동 · 책 인용</strong>
+            ${P.deep ? '<span class="badge">설계 보드 생성됨</span>' : ''}
+          </div>
+          <p class="muted small" style="margin:6px 0 10px">슬라이드가 유도하고 있는 설계 방향을 읽어내고, 구간마다 심화 통찰·찌르는 질문·활동 가이드·전환 문장과 <b>실존하는 책 구절</b>(지어내기 금지)로 흐름을 여는 설계를 받습니다.</p>
+          <div class="row">
+            <button class="btn sm primary" id="plPrompt">① 심화 설계 프롬프트 복사</button>
+            <button class="btn sm" id="plPaste">② 결과(JSON) 붙여넣기</button>
+            ${state.settings.anthropicKey ? `<button class="btn sm green" id="plAuto">⚡ 자동 심화 설계</button>` : ''}
+          </div>
+        </div>
+
+        ${P.deep ? renderDeepBoard(P.deep) : ''}
+
+        <div class="row">
+          <button class="btn primary" id="plSave">저장</button>
+          ${P.deep ? `<button class="btn" id="plMd">📄 설계안(.md) 내보내기</button>` : ''}
+          <button class="btn ghost danger right" id="plDel">삭제</button>
+        </div>
+      </div>`, () => {
+      const save = async (silent) => {
+        P.title = $('#plTitle').value.trim() || P.title;
+        P.topic = $('#plTopic').value.trim();
+        P.audience = $('#plAudience').value.trim();
+        P.intent = $('#plIntent').value.trim();
+        P.slidesText = $('#plSlides').value;
+        P.updatedAt = nowISO();
+        await dbPut('plans', P);
+        if (!silent) { saveHint('설계 저장됨'); toast('저장되었습니다'); }
+      };
+      $('#plSave').addEventListener('click', () => save(false).then(() => { if (activeTab === 'design') RENDER.design(); }));
+      $('#plDel').addEventListener('click', async () => {
+        if (!confirm(`설계 "${P.title}"을(를) 삭제할까요?`)) return;
+        await dbDel('plans', P.id);
+        state.plans = state.plans.filter(x => x.id !== P.id);
+        closeModal(); if (activeTab === 'design') RENDER.design();
+      });
+      $('#plPptx').addEventListener('change', async (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        toast('슬라이드 해체 중…');
+        try {
+          const text = await extractPptxText(f);
+          const ta = $('#plSlides');
+          ta.value = (ta.value.trim() ? ta.value.trim() + '\n\n' : '') + text;
+          if (!$('#plTitle').value.trim() || $('#plTitle').value === '새 강의 설계') $('#plTitle').value = f.name.replace(/\.[^.]+$/, '');
+          await save(true);
+          toast('슬라이드 텍스트를 추출했습니다 (' + (text.match(/^\[슬라이드/gm) || []).length + '장)');
+        } catch (err) { toast('추출 실패: ' + err.message); }
+      });
+      $('#plPrompt').addEventListener('click', async () => { await save(true); copy(buildDeepenPrompt(P)); });
+      $('#plPaste').addEventListener('click', async () => { await save(true); openDeepenPaste(P); });
+      const auto = $('#plAuto'); if (auto) auto.addEventListener('click', async () => { await save(true); autoDeepen(P, auto); });
+      const md = $('#plMd'); if (md) md.addEventListener('click', () => download(P.title.replace(/[^\w가-힣\- ]/g, '') + '-설계.md', buildPlanMd(P)));
+    });
+  }
+
+  function buildDeepenPrompt(P) {
+    return `당신은 20년 경력의 강의 설계 컨설턴트입니다. 아래는 내가 준비 중인 강의의 슬라이드 개요와 나의 설계 의도입니다.
+슬라이드를 읽고 이 강의가 유도하고 있는 설계 방향을 먼저 읽어낸 뒤, 각 구간을 더 깊게 만들어 주세요.
+
+[목표]
+- 참가자가 단조로운 이득·정보가 아니라 **깊이 있는 얻음과 통찰**을 가져가게 하는 설계.
+- 구간(슬라이드 묶음)마다: 이 구간이 유도하는 것 / 한 층 더 내려간 심화 통찰 / 참가자를 찌르는 질문 / 통찰을 몸으로 겪게 하는 활동 가이드(진행 방법 포함) / 다음 구간으로의 전환 문장.
+- 흐름을 열거나 풀어낼 수 있는 **실존하는 책의 구절**을 제안하세요. 정확히 기억하는 인용만 쓰고(책·저자 명시), 확실하지 않으면 인용문을 지어내지 말고 quote.text를 비우고 quote.source에 "OO의 『책』 — 이런 주제의 대목" 형태로만 제안하세요.
+- 내 설계 의도를 존중하되, 의도와 슬라이드 사이의 간극(얕게 머무는 지점)을 솔직하게 지적하세요.
+
+[출력 스키마 — 오직 JSON만, 코드펜스·설명 금지]
+{"reading":{"arc":"전체 흐름을 한 문단으로 읽어낸 것","direction":"슬라이드가 유도하고 있는 설계 방향","gaps":["얕게 머무는 지점·의도와의 간극"]},
+"sections":[{"slideRef":"1-3","heading":"구간 이름","induces":"유도하는 것","insight":"심화 통찰","question":"찌르는 질문","activity":"활동 가이드","quote":{"text":"인용구(확실할 때만)","source":"『책』 · 저자"},"transition":"전환 문장"}],
+"closing":{"deepGain":"참가자가 최종적으로 가져갈 깊은 얻음","charge":"마지막 결단·도전 문장"}}
+
+[강의 정보]
+제목: ${P.title}
+${P.topic ? '주제: ' + P.topic + '\n' : ''}${P.audience ? '대상/길이·톤: ' + P.audience + '\n' : ''}
+[내 설계 의도]
+${P.intent || '(미작성 — 슬라이드에서 의도를 추정하되, 추정임을 reading.direction에 밝혀 주세요)'}
+
+[슬라이드 개요]
+${P.slidesText || '(없음)'}`;
+  }
+
+  function normalizeDeep(parsed) {
+    if (!parsed || typeof parsed !== 'object') return null;
+    const S = (x) => String(x == null ? '' : x).trim();
+    const r = parsed.reading || {};
+    const deep = {
+      reading: { arc: S(r.arc), direction: S(r.direction), gaps: Array.isArray(r.gaps) ? r.gaps.map(S).filter(Boolean) : [] },
+      sections: [], closing: { deepGain: S((parsed.closing || {}).deepGain), charge: S((parsed.closing || {}).charge) }
+    };
+    (Array.isArray(parsed.sections) ? parsed.sections : []).forEach(s => {
+      if (!s) return;
+      deep.sections.push({
+        slideRef: S(s.slideRef), heading: S(s.heading) || '구간', induces: S(s.induces),
+        insight: S(s.insight), question: S(s.question), activity: S(s.activity),
+        quote: s.quote ? { text: S(s.quote.text), source: S(s.quote.source) } : null,
+        transition: S(s.transition)
+      });
+    });
+    if (!deep.sections.length && !deep.reading.arc) return null;
+    return deep;
+  }
+
+  function renderDeepBoard(deep) {
+    const q = (s) => esc(s || '');
+    return `
+      <div class="card" style="box-shadow:none">
+        <strong>설계 리딩</strong>
+        ${deep.reading.arc ? `<p style="margin:8px 0 4px">${q(deep.reading.arc)}</p>` : ''}
+        ${deep.reading.direction ? `<p class="small" style="margin:4px 0"><b>유도하고 있는 방향:</b> ${q(deep.reading.direction)}</p>` : ''}
+        ${deep.reading.gaps.length ? `<div class="callout" style="margin-top:8px"><b>얕게 머무는 지점</b><ul style="margin:6px 0 0">${deep.reading.gaps.map(g => `<li>${q(g)}</li>`).join('')}</ul></div>` : ''}
+      </div>
+      ${deep.sections.map((s, i) => `
+      <div class="item">
+        <div class="it-top">
+          <h3>${i + 1}. ${q(s.heading)}</h3>
+          ${s.slideRef ? `<span class="badge">슬라이드 ${q(s.slideRef)}</span>` : ''}
+        </div>
+        ${s.induces ? `<div class="small"><b>유도:</b> ${q(s.induces)}</div>` : ''}
+        ${s.insight ? `<div class="callout">💡 <b>심화 통찰</b> — ${q(s.insight)}</div>` : ''}
+        ${s.question ? `<div class="small">❓ <b>찌르는 질문:</b> ${q(s.question)}</div>` : ''}
+        ${s.activity ? `<div class="small">🧪 <b>활동 가이드:</b> ${q(s.activity)}</div>` : ''}
+        ${s.quote && (s.quote.text || s.quote.source) ? `<div class="quoteblock">${s.quote.text ? '“' + q(s.quote.text) + '”' : '(인용 방향 제안)'}<span class="src">${q(s.quote.source)}</span></div>` : ''}
+        ${s.transition ? `<div class="meta small">→ 전환: ${q(s.transition)}</div>` : ''}
+      </div>`).join('')}
+      ${(deep.closing.deepGain || deep.closing.charge) ? `
+      <div class="card" style="box-shadow:none">
+        <strong>마무리</strong>
+        ${deep.closing.deepGain ? `<p style="margin:8px 0 4px"><b>깊은 얻음:</b> ${q(deep.closing.deepGain)}</p>` : ''}
+        ${deep.closing.charge ? `<p class="small" style="margin:4px 0"><b>결단·도전:</b> ${q(deep.closing.charge)}</p>` : ''}
+      </div>` : ''}`;
+  }
+
+  function openDeepenPaste(P) {
+    openModal('심화 설계 결과(JSON) 붙여넣기 — ' + P.title, `
+      <div class="stack">
+        <p class="muted small">클로드가 준 JSON을 그대로 붙여넣으면 설계 보드가 만들어집니다.</p>
+        <textarea id="dpIn" class="mono" style="min-height:220px" placeholder='{"reading":{...},"sections":[...],"closing":{...}}'></textarea>
+        <div class="row"><button class="btn primary" id="dpApply">적용</button><button class="btn ghost" id="dpCancel">취소</button></div>
+      </div>`, () => {
+      $('#dpCancel').addEventListener('click', () => openPlan(P.id));
+      $('#dpApply').addEventListener('click', async () => {
+        const deep = normalizeDeep(extractJSON($('#dpIn').value));
+        if (!deep) { toast('설계 JSON을 인식하지 못했습니다'); return; }
+        P.deep = deep; P.updatedAt = nowISO();
+        await dbPut('plans', P);
+        saveHint('설계 보드 저장됨'); toast('설계 보드가 만들어졌습니다');
+        if (activeTab === 'design') RENDER.design();
+        openPlan(P.id);
+      });
+    });
+  }
+
+  async function autoDeepen(P, btn) {
+    if (!state.settings.anthropicKey) { toast('설정에서 Anthropic API 키를 먼저 입력하세요'); return; }
+    btn.disabled = true; const old = btn.textContent; btn.textContent = '설계 중…';
+    try {
+      const text = await callClaude(buildDeepenPrompt(P), 8000);
+      const deep = normalizeDeep(extractJSON(text));
+      if (!deep) throw new Error('결과 파싱 실패');
+      P.deep = deep; P.updatedAt = nowISO();
+      await dbPut('plans', P);
+      toast('심화 설계 완료');
+      if (activeTab === 'design') RENDER.design();
+      openPlan(P.id);
+    } catch (e) { toast('자동 설계 실패: ' + e.message + ' — 프롬프트 복사 방식을 쓰세요'); }
+    finally { btn.disabled = false; btn.textContent = old; }
+  }
+
+  function buildPlanMd(P) {
+    let md = `# ${P.title} — 강의 설계안\n\n`;
+    if (P.topic) md += `주제: ${P.topic}  \n`;
+    if (P.audience) md += `대상: ${P.audience}  \n`;
+    md += `\n## 설계 의도\n${P.intent || '(미작성)'}\n\n`;
+    const d = P.deep;
+    if (d) {
+      md += `## 설계 리딩\n${d.reading.arc}\n\n**유도 방향:** ${d.reading.direction}\n`;
+      if (d.reading.gaps.length) md += `\n**얕게 머무는 지점**\n${d.reading.gaps.map(g => '- ' + g).join('\n')}\n`;
+      md += `\n## 구간 설계\n`;
+      d.sections.forEach((s, i) => {
+        md += `\n### ${i + 1}. ${s.heading}${s.slideRef ? ` (슬라이드 ${s.slideRef})` : ''}\n`;
+        if (s.induces) md += `- 유도: ${s.induces}\n`;
+        if (s.insight) md += `- 💡 심화 통찰: ${s.insight}\n`;
+        if (s.question) md += `- ❓ 질문: ${s.question}\n`;
+        if (s.activity) md += `- 🧪 활동: ${s.activity}\n`;
+        if (s.quote && (s.quote.text || s.quote.source)) md += `- 📖 인용: ${s.quote.text ? '“' + s.quote.text + '” — ' : ''}${s.quote.source}\n`;
+        if (s.transition) md += `- → 전환: ${s.transition}\n`;
+      });
+      md += `\n## 마무리\n`;
+      if (d.closing.deepGain) md += `- 깊은 얻음: ${d.closing.deepGain}\n`;
+      if (d.closing.charge) md += `- 결단·도전: ${d.closing.charge}\n`;
+    }
+    if (P.slidesText) md += `\n---\n\n## 슬라이드 개요(원본)\n\n${P.slidesText}\n`;
+    return md;
   }
 
   /* ============================ 뷰: 녹음 ============================ */
@@ -382,6 +731,10 @@
           <div><label class="field">태그(쉼표로 구분)</label><input type="text" id="recTags" placeholder="예) 성령, 자유, 양자됨"></div>
         </div>
         <div style="margin-top:10px"><label class="field">메모(강의 전 개요·의도)</label><textarea id="recNotes" placeholder="이 강의에서 다루려는 핵심, 대상, 흐름을 적어두면 원자화 품질이 좋아집니다."></textarea></div>
+        ${state.plans.length ? `<div style="margin-top:10px">
+          <label class="field">설계 연결(선택) — 선택하면 제목·주제·의도가 채워지고, 강의 원본에 설계가 연결됩니다</label>
+          <select id="recPlan"><option value="">(연결 안 함)</option>${state.plans.map(p => `<option value="${p.id}" ${rec.planId === p.id ? 'selected' : ''}>${esc(p.title)}</option>`).join('')}</select>
+        </div>` : ''}
       </div>
 
       <div class="card rec-hero">
@@ -427,6 +780,16 @@
       if (rec.state === 'recording') { if (e.target.checked) startSpeech(); else stopSpeech(true); }
     });
     $$('#view-record [data-marker]').forEach(b => b.addEventListener('click', () => addMarker(b.dataset.marker)));
+    on('recPlan', 'change', (e) => {
+      rec.planId = e.target.value;
+      const p = state.plans.find(x => x.id === rec.planId);
+      if (p) {
+        if ($('#recTitle')) $('#recTitle').value = p.title;
+        if ($('#recTopic')) $('#recTopic').value = p.topic || '';
+        if ($('#recNotes')) $('#recNotes').value = p.intent || '';
+        toast('설계가 연결되었습니다 — 제목·주제·의도를 채웠어요');
+      }
+    });
   };
 
   /* ============================ 뷰: 강의원본 ============================ */
@@ -638,12 +1001,14 @@
 
   /* ============================ 원자화 프롬프트/파싱 ============================ */
   function buildAtomizePrompt(L) {
+    const plan = L.planId ? state.plans.find(p => p.id === L.planId) : null;
     const meta = [
       L.title ? `강의 제목: ${L.title}` : '',
       L.topic ? `주제/시리즈: ${L.topic}` : '',
       L.date ? `날짜: ${L.date}` : '',
       (L.tags && L.tags.length) ? `태그: ${L.tags.join(', ')}` : '',
       L.notes ? `강의 의도 메모: ${L.notes}` : '',
+      (plan && plan.intent && plan.intent !== L.notes) ? `설계 의도(강의 전 설계): ${plan.intent}` : '',
       (L.markers && L.markers.length) ? `강사 마커(강의 중 직접 표시한 중요 지점): ${L.markers.map(m => fmtHMS(m.t) + ' 「' + m.label + '」').join(', ')}` : ''
     ].filter(Boolean).join('\n');
     const body = (L.transcript || L.notes || '').trim();
@@ -1471,7 +1836,7 @@ ${blocks}`;
     const payload = {
       app: 'lecture-studio', version: 1, exportedAt: nowISO(),
       settings: { speaker: state.settings.speaker }, // 키는 백업에 넣지 않음(보안)
-      lectures: state.lectures, atoms: state.atoms, compositions: state.compositions, tray: state.tray, audio: []
+      lectures: state.lectures, atoms: state.atoms, compositions: state.compositions, plans: state.plans, tray: state.tray, audio: []
     };
     if (withAudio) {
       toast('오디오 인코딩 중…');
@@ -1509,6 +1874,9 @@ ${blocks}`;
       for (const a of (data.atoms || [])) { if (!exAtom.has(a.id)) { await dbPut('atoms', a); state.atoms.push(a); na++; } }
       for (const c of (data.compositions || [])) { if (!exComp.has(c.id)) { await dbPut('compositions', c); state.compositions.push(c); } }
       state.compositions.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+      const exPlan = new Set(state.plans.map(p => p.id));
+      for (const p of (data.plans || [])) { if (!exPlan.has(p.id)) { await dbPut('plans', p); state.plans.push(p); } }
+      state.plans.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
       if (Array.isArray(data.audio)) {
         for (const au of data.audio) { if (au.dataUrl) await dbPut('audio', { id: au.id, blob: dataURLtoBlob(au.dataUrl) }); }
       }
@@ -1523,8 +1891,8 @@ ${blocks}`;
     if (!confirm('모든 강의·아톰·조립본·오디오를 삭제합니다. 계속할까요?')) return;
     if (!confirm('정말로 전부 삭제할까요? 되돌릴 수 없습니다.')) return;
     await dbClear('lectures'); await dbClear('atoms'); await dbClear('audio');
-    await dbClear('compositions'); await dbClear('chunks');
-    state.lectures = []; state.atoms = []; state.compositions = []; state.tray = []; saveTray();
+    await dbClear('compositions'); await dbClear('chunks'); await dbClear('plans');
+    state.lectures = []; state.atoms = []; state.compositions = []; state.plans = []; state.tray = []; saveTray();
     saveHint('초기화됨'); toast('모든 데이터를 삭제했습니다'); RENDER.data();
   }
 
@@ -1555,6 +1923,7 @@ ${blocks}`;
         notes: ((meta && meta.notes) || '').trim(),
         transcript: ((meta && meta.finalText) || '').trim(),
         rawTranscript: '', markers: (meta && meta.markers) || [],
+        planId: (meta && meta.planId) || '',
         durationSec: dur, hasAudio: true, audioType: type,
         speaker: state.settings.speaker || '', createdAt: nowISO(), atomized: false
       };
