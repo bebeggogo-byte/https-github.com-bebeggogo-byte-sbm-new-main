@@ -99,7 +99,7 @@
     atoms: [],        // {id,title,type,topic,tags[],summary,content,keypoints[],durationSec,lectureId,lectureTitle,createdAt,star,usedIn[]}
     compositions: [], // 저장된 조립본 {id,theme,audience,atomIds[],createdAt,updatedAt}
     plans: [],        // 강의 전 설계 {id,title,topic,audience,intent,slidesText,deep,createdAt,updatedAt}
-    settings: { speaker: '', transcribeUrl: '', transcribeKey: '', transcribeModel: 'whisper-1', anthropicKey: '', anthropicModel: 'claude-opus-4-8', autoDeleteAudio: true },
+    settings: { speaker: '', transcribeUrl: '', transcribeKey: '', transcribeModel: 'whisper-1', anthropicKey: '', anthropicModel: 'claude-opus-4-8', autoDeleteAudio: true, slideTheme: 'auto' },
     tray: [],         // 조립대에 담긴 atom id 목록(순서)
     ui: { atomQuery: '', atomType: '', atomTopic: '', atomTag: '', composeTheme: '', composeAudience: '', recoIds: [] }
   };
@@ -549,17 +549,44 @@
   /* ---------- 클로드 디자인 슬라이드: 레이아웃 렌더러 (안티 AI-slop)
      원칙: 장식 라인·스트라이프 금지 / white 지배·brown 보조·gold 악센트 1개 /
      한 슬라이드 한 개념 / 여백 40%+ / 본문 좌정렬 / 다크 샌드위치(표지·질문·마무리) */
-  /* 애플 스타일 토큰: 흰 배경 + 검은 글씨 기본, 다크는 순수 블랙.
-     색이 아니라 크기·굵기·그레이 단계로 위계를 만든다. */
-  const DZC = {
-    white: 'FFFFFF', black: '000000',
-    ink: '1D1D1F',      // 애플 본문 검정
-    gray: '86868B',     // 캡션·키커
-    gray2: '6E6E73',    // 진한 서브
-    grayD: 'A1A1A6',    // 다크 배경 위 서브
-    lightBg: 'F5F5F7',  // 카드·연한 섹션
-    tintNum: 'E8E8ED'   // 거대 숫자·글리프
+  /* 테마 라이브러리 — 품질 기준(레이아웃·여백·타이포·안티슬롭)은 고정,
+     토큰만 갈아끼운다. 기본은 애플 미니멀(흰 배경·검은 글씨).
+     tf = 제목 폰트 오버라이드(세리프 테마용). */
+  const SLIDE_THEMES = {
+    apple: {
+      name: '애플 미니멀', mood: '기본 — 어떤 주제든, 내용이 주인공일 때',
+      t: { pageBg: 'FFFFFF', ink: '1D1D1F', gray: '86868B', gray2: '6E6E73', card: 'F5F5F7', tintNum: 'E8E8ED', darkBg: '000000', darkMain: 'A1A1A6', kicker: '86868B', charge: 'FFFFFF' }
+    },
+    serif: {
+      name: '클래식 세리프', mood: '말씀 묵상·문학·역사 — 고전적인 무게',
+      t: { pageBg: 'FFFFFF', ink: '1F1A15', gray: '8A8175', gray2: '5F574B', card: 'F6F3EE', tintNum: 'EAE4DA', darkBg: '1F1A15', darkMain: 'C9C2B6', kicker: 'D9B96A', charge: 'D9B96A', tf: 'Cambria' }
+    },
+    nedabah: {
+      name: '네다바웨이 브라운', mood: '공동체 브랜드 행사·수료식',
+      t: { pageBg: 'FFFFFF', ink: '2C2118', gray: '9A8B77', gray2: '6E5F4E', card: 'F4EEE4', tintNum: 'E9DCC8', darkBg: '4E3117', darkMain: 'D8C9B4', kicker: 'E3C77E', charge: 'E3C77E' }
+    },
+    midnight: {
+      name: '미드나잇 네이비', mood: '리더십·비전·전략 — 단정한 신뢰감',
+      t: { pageBg: 'FFFFFF', ink: '1C2340', gray: '7A82A6', gray2: '4A5378', card: 'EEF2FB', tintNum: 'DEE7F8', darkBg: '1E2761', darkMain: 'CADCFC', kicker: '9FB8E8', charge: 'FFFFFF' }
+    },
+    forest: {
+      name: '포레스트 그린', mood: '성장·회복·습관·자연 주제',
+      t: { pageBg: 'FFFFFF', ink: '1E3320', gray: '7C8A7B', gray2: '4C5F4C', card: 'EFF4EC', tintNum: 'DDE8D5', darkBg: '2C5F2D', darkMain: 'CFE3C2', kicker: '97BC62', charge: 'FFFFFF' }
+    },
+    terracotta: {
+      name: '웜 테라코타', mood: '공동체·환대·가족 — 따뜻한 온도',
+      t: { pageBg: 'FFFFFF', ink: '3A2A26', gray: '9C8A83', gray2: '6B564E', card: 'F1EDE2', tintNum: 'EAD9D2', darkBg: '8E3B31', darkMain: 'EFE0D6', kicker: 'EAD3C4', charge: 'FFFFFF' }
+    },
+    cherry: {
+      name: '체리 볼드', mood: '도전·결단·회개 — 강한 촉구',
+      t: { pageBg: 'FFFFFF', ink: '2B1518', gray: '9B8B8D', gray2: '5F4A4E', card: 'FAF3F2', tintNum: 'F3DEDD', darkBg: '990011', darkMain: 'F2C9CE', kicker: 'F2C9CE', charge: 'FFFFFF' }
+    }
   };
+  function resolveSlideTheme(userPick, claudePick) {
+    if (userPick && userPick !== 'auto' && SLIDE_THEMES[userPick]) return userPick;
+    if (claudePick && SLIDE_THEMES[claudePick]) return claudePick;
+    return 'apple';
+  }
 
   function dzText(id, x, y, w, h, paras, anchor) {
     const ps = paras.filter(p => p && p.t).map(p => {
@@ -578,50 +605,51 @@
 <p:sld ${PPTX_NS}><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="${bg}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
   }
 
-  function renderDesignedSlide(s, idx) {
-    const C = DZC;
+  function renderDesignedSlide(s, idx, C) {
+    C = C || SLIDE_THEMES.apple.t;
+    const tf = C.tf; // 제목 폰트 오버라이드(세리프 테마)
     const pageNo = dzText(19, 11200000, 6400000, 700000, 300000, [{ t: String(idx + 1), sz: 1000, color: C.gray, align: 'r' }]);
     switch (s.layout) {
-      case 'cover': // 순수 블랙 + 중앙 정렬 — 애플 키노트
-        return dzSlide(C.black,
-          dzText(2, 1097280, 2011680, 9966960, 457200, [{ t: s.kicker || '', sz: 1500, color: C.gray, spc: 400, align: 'ctr' }]) +
-          dzText(3, 548640, 2469480, 11064240, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF', align: 'ctr' }]) +
-          dzText(4, 1097280, 4114800, 9966960, 548640, [{ t: s.subtitle || '', sz: 1900, color: C.grayD, align: 'ctr' }]));
-      case 'statement': // 흰 배경, 큰 검정 문장 하나 중앙 — 애플 히어로
-        return dzSlide(C.white,
-          dzText(2, 822960, 2194560, 10515600, 2469480, [{ t: s.text || s.title, sz: 4000, b: 1, color: C.ink, align: 'ctr' }], 'ctr'));
-      case 'section': // 거대한 라이트그레이 숫자가 그래픽
-        return dzSlide(C.white,
+      case 'cover': // 다크 + 중앙 정렬 히어로
+        return dzSlide(C.darkBg,
+          dzText(2, 1097280, 2011680, 9966960, 457200, [{ t: s.kicker || '', sz: 1500, color: C.kicker, spc: 400, align: 'ctr' }]) +
+          dzText(3, 548640, 2469480, 11064240, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF', align: 'ctr', font: tf }]) +
+          dzText(4, 1097280, 4114800, 9966960, 548640, [{ t: s.subtitle || '', sz: 1900, color: C.darkMain, align: 'ctr' }]));
+      case 'statement': // 큰 문장 하나 중앙 — 히어로 카피
+        return dzSlide(C.pageBg,
+          dzText(2, 822960, 2194560, 10515600, 2469480, [{ t: s.text || s.title, sz: 4000, b: 1, color: C.ink, align: 'ctr', font: tf }], 'ctr'));
+      case 'section': // 거대한 틴트 숫자가 그래픽
+        return dzSlide(C.pageBg,
           dzText(2, 0, 365760, 11887200, 6035040, [{ t: s.number || '', sz: 30000, b: 1, color: C.tintNum, align: 'r' }]) +
-          dzText(3, 822960, 4846320, 7315200, 914400, [{ t: s.title, sz: 4000, b: 1, color: C.ink }]) +
+          dzText(3, 822960, 4846320, 7315200, 914400, [{ t: s.title, sz: 4000, b: 1, color: C.ink, font: tf }]) +
           dzText(4, 822960, 5760720, 7315200, 457200, [{ t: s.subtitle || '', sz: 1600, color: C.gray }]));
-      case 'quote': // 거대한 " 글리프 라이트그레이 + 검정 인용
-        return dzSlide(C.white,
+      case 'quote': // 거대한 " 글리프 틴트 + 잉크 인용
+        return dzSlide(C.pageBg,
           dzText(2, 502920, 91440, 2743200, 2743200, [{ t: '“', sz: 20000, b: 1, color: C.tintNum, font: 'Cambria' }]) +
-          dzText(3, 1554480, 2331720, 9144000, 1828800, [{ t: s.quote, sz: 3000, color: C.ink }]) +
+          dzText(3, 1554480, 2331720, 9144000, 1828800, [{ t: s.quote, sz: 3000, color: C.ink, font: tf }]) +
           dzText(4, 1554480, 4434840, 9144000, 457200, [{ t: s.source, sz: 1500, color: C.gray }]) + pageNo);
-      case 'question': // 블랙, 흰 질문 하나 중앙
-        return dzSlide(C.black,
-          dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr' }], 'ctr') +
-          dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.grayD, align: 'ctr' }]));
-      case 'activity': { // 그레이 아이브로 + 큰 라이트그레이 숫자 단계
+      case 'question': // 다크, 질문 하나 중앙
+        return dzSlide(C.darkBg,
+          dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr', font: tf }], 'ctr') +
+          dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.darkMain, align: 'ctr' }]));
+      case 'activity': { // 아이브로 라벨 + 큰 틴트 숫자 단계
         let inner = dzText(2, 822960, 640080, 2743200, 365760, [{ t: '활동', sz: 1400, b: 1, color: C.gray, spc: 600 }]) +
-          dzText(3, 822960, 1097280, 10515600, 731520, [{ t: s.title, sz: 3000, b: 1, color: C.ink }]);
+          dzText(3, 822960, 1097280, 10515600, 731520, [{ t: s.title, sz: 3000, b: 1, color: C.ink, font: tf }]);
         (s.steps || []).slice(0, 4).forEach((t, i) => {
           const y = 2149856 + i * 1280160;
           inner += dzText(4 + i * 2, 822960, y - 137160, 914400, 1005840, [{ t: String(i + 1), sz: 5400, b: 1, color: C.tintNum }]) +
             dzText(5 + i * 2, 2011680, y + 91440, 8869680, 822960, [{ t, sz: 1800, b: 1, color: C.ink }]);
         });
-        return dzSlide(C.white, inner + pageNo);
+        return dzSlide(C.pageBg, inner + pageNo);
       }
-      case 'stat': // 거대 검정 숫자 + 그레이 라벨 — 애플식 빅 넘버
-        return dzSlide(C.white,
-          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.ink, align: 'ctr' }], 'ctr') +
+      case 'stat': // 거대 숫자 + 라벨
+        return dzSlide(C.pageBg,
+          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.ink, align: 'ctr', font: tf }], 'ctr') +
           dzText(3, 1097280, 4434840, 9966960, 731520, [{ t: s.label || '', sz: 1900, color: C.gray2, align: 'ctr' }]));
-      case 'compare': { // 두 칼럼 — 중립 그레이 카드 (애플 비교 카드)
-        let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink }]) +
-          dzRect(3, 822960, 1737360, 5029200, 4206240, C.lightBg, 'roundRect') +
-          dzRect(4, 6336792, 1737360, 5029200, 4206240, C.lightBg, 'roundRect');
+      case 'compare': { // 두 칼럼 — 중립 카드
+        let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink, font: tf }]) +
+          dzRect(3, 822960, 1737360, 5029200, 4206240, C.card, 'roundRect') +
+          dzRect(4, 6336792, 1737360, 5029200, 4206240, C.card, 'roundRect');
         const colFn = (x, head, items, id) => {
           let h = dzText(id, x + 457200, 2148840, 4114800, 548640, [{ t: head, sz: 2200, b: 1, color: C.ink }]);
           (items || []).slice(0, 4).forEach((t, i) => {
@@ -631,19 +659,23 @@
         };
         inner += colFn(822960, s.leftHead || '', s.leftItems, 5);
         inner += colFn(6336792, s.rightHead || '', s.rightItems, 11);
-        return dzSlide(C.white, inner);
+        return dzSlide(C.pageBg, inner);
       }
-      case 'closing': // 블랙, 그레이 얻음 + 흰색 굵은 결단
-        return dzSlide(C.black,
-          dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2600, color: C.grayD, align: 'ctr' }], 'ctr') +
-          dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr' }]));
-      default: // content — 검정 제목 + 마커 없는 행 (애플은 불릿 글리프를 안 쓴다)
-        return dzSlide(C.white,
-          dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink }], 'b') +
+      case 'closing': // 다크, 얻음 + 강조 결단
+        return dzSlide(C.darkBg,
+          dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2600, color: C.darkMain, align: 'ctr' }], 'ctr') +
+          dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: C.charge, align: 'ctr', font: tf }]));
+      default: // content — 제목 + 마커 없는 행
+        return dzSlide(C.pageBg,
+          dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink, font: tf }], 'b') +
           dzText(3, 822960, 1737360, 10515600, 4297680, (s.bullets || []).map(t => ({ t, sz: 1800, color: C.ink, spcAft: 1100 }))) + pageNo);
     }
   }
-  function buildDesignedPptx(ds) { return buildPptx(ds, (s, i) => renderDesignedSlide(s, i)); }
+  function buildDesignedPptx(design, userThemePick) {
+    const key = resolveSlideTheme(userThemePick, design.theme);
+    const C = SLIDE_THEMES[key].t;
+    return buildPptx(design.slides, (s, i) => renderDesignedSlide(s, i, C));
+  }
 
   function normalizeSlideDesign(parsed) {
     const arr = parsed && (Array.isArray(parsed.slides) ? parsed.slides : (Array.isArray(parsed) ? parsed : null));
@@ -665,14 +697,20 @@
         main: S(s.main), charge: S(s.charge)
       };
     }).filter(s => s && (s.title || s.text || s.quote || s.question || s.main || s.value || s.bullets.length || s.steps.length || s.leftItems.length));
-    return out.length ? out : null;
+    if (!out.length) return null;
+    const theme = parsed && !Array.isArray(parsed) ? String(parsed.theme || '').trim().toLowerCase() : '';
+    return { theme, slides: out };
   }
 
   function slideDesignRules() {
-    return `[디자인 언어 — 애플 스타일]
-- 흰 배경 + 검은 글씨가 기본. 표지·질문·마무리만 순수 블랙 배경.
+    const themeLines = Object.keys(SLIDE_THEMES).map(k => `${k} = ${SLIDE_THEMES[k].name} (${SLIDE_THEMES[k].mood})`).join('\n');
+    return `[디자인 언어]
+- 흰 배경 + 검은 글씨가 기본. 표지·질문·마무리만 다크 배경.
 - 색으로 꾸미지 않는다. 크기·굵기·그레이 단계로만 위계를 만든다.
 - 문장은 짧고 단정하게. 마침표까지 신경 쓴 카피처럼.
+
+[테마 — 주제에 어울리는 것 하나를 골라 theme 필드로 지정]
+${themeLines}
 
 [슬라이드 설계 규칙 — AI 느낌을 지우는 것이 목표]
 - 한 슬라이드 = 하나의 메시지. 3초 안에 파악되어야 한다. 원고를 옮겨 적지 말 것(강의는 말로, 슬라이드는 기억 장치로).
@@ -688,7 +726,7 @@
 cover(kicker,title,subtitle) · statement(text) · section(number,title,subtitle) · content(title,bullets[]) · quote(quote,source) · question(question,subtitle) · activity(title,steps[]) · stat(value,label) · compare(title,leftHead,leftItems[],rightHead,rightItems[]) · closing(main,charge)
 
 [출력 — 오직 JSON, 코드펜스·설명 금지]
-{"slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"..."},{"layout":"statement","text":"..."},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
+{"theme":"apple","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"..."},{"layout":"statement","text":"..."},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
   }
   function buildSlideDesignPromptFromPlan(P) {
     const body = P.deep ? buildPlanMd(P) : `제목: ${P.title}\n${P.intent ? '설계 의도: ' + P.intent + '\n' : ''}슬라이드 개요:\n${P.slidesText || '(없음)'}`;
@@ -709,6 +747,19 @@ ${slideDesignRules()}
 ${blocks}`;
   }
 
+  /* 테마 선택 셀렉트 (설계·조립대 공용, settings.slideTheme에 저장) */
+  function themeSelectHTML(id) {
+    const cur = state.settings.slideTheme || 'auto';
+    return `<select id="${id}" style="width:auto;max-width:100%">
+      <option value="auto" ${cur === 'auto' ? 'selected' : ''}>🎯 자동 — 클로드가 주제 보고 추천</option>
+      ${Object.keys(SLIDE_THEMES).map(k => `<option value="${k}" ${cur === k ? 'selected' : ''}>${SLIDE_THEMES[k].name} · ${esc(SLIDE_THEMES[k].mood)}</option>`).join('')}
+    </select>`;
+  }
+  function bindThemeSelect(id) {
+    const el = $('#' + id);
+    if (el) el.addEventListener('change', (e) => { state.settings.slideTheme = e.target.value; saveSettings(); saveHint('슬라이드 테마 저장됨'); });
+  }
+
   function openSlideDesignPaste(baseName) {
     openModal('슬라이드 디자인 결과(JSON) 붙여넣기', `
       <div class="stack">
@@ -720,8 +771,9 @@ ${blocks}`;
       $('#sdApply').addEventListener('click', () => {
         const ds = normalizeSlideDesign(extractJSON($('#sdIn').value));
         if (!ds) { toast('슬라이드 JSON을 인식하지 못했습니다'); return; }
-        download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-디자인슬라이드.pptx', buildDesignedPptx(ds));
-        closeModal(); toast(ds.length + '장 디자인 슬라이드(.pptx)를 내보냈습니다');
+        const key = resolveSlideTheme(state.settings.slideTheme, ds.theme);
+        download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-디자인슬라이드.pptx', buildDesignedPptx(ds, state.settings.slideTheme));
+        closeModal(); toast(ds.slides.length + '장 · ' + SLIDE_THEMES[key].name + ' 테마로 내보냈습니다');
       });
     });
   }
@@ -732,8 +784,9 @@ ${blocks}`;
     try {
       const ds = normalizeSlideDesign(extractJSON(await callClaude(promptText, 8000)));
       if (!ds) throw new Error('결과 파싱 실패');
-      download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-디자인슬라이드.pptx', buildDesignedPptx(ds));
-      toast(ds.length + '장 디자인 슬라이드(.pptx) 완성');
+      const key = resolveSlideTheme(state.settings.slideTheme, ds.theme);
+      download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-디자인슬라이드.pptx', buildDesignedPptx(ds, state.settings.slideTheme));
+      toast(ds.slides.length + '장 · ' + SLIDE_THEMES[key].name + ' 테마로 완성');
     } catch (e) { toast('자동 디자인 실패: ' + e.message + ' — 프롬프트 복사 방식을 쓰세요'); }
     finally { btn.disabled = false; btn.textContent = old; }
   }
@@ -878,6 +931,9 @@ ${blocks}`;
             ${state.settings.anthropicKey ? `<button class="btn sm green" id="plDzAuto">⚡ 자동 디자인 .pptx</button>` : ''}
             ${P.deep ? `<button class="btn sm ghost" id="plSlidesGen">🖼 빠른 초안</button>` : ''}
           </div>
+          <div class="row" style="margin-top:8px">
+            <span class="muted small">테마</span> ${themeSelectHTML('plTheme')}
+          </div>
         </div>
 
         <div class="row">
@@ -925,6 +981,7 @@ ${blocks}`;
         download(P.title.replace(/[^\w가-힣\- ]/g, '') + '-슬라이드초안.pptx', buildPptx(makeSlidesFromPlan(P)));
         toast('슬라이드 초안(.pptx)을 내보냈습니다 — PowerPoint/키노트/구글슬라이드에서 다듬으세요');
       });
+      bindThemeSelect('plTheme');
       $('#plDzPrompt').addEventListener('click', async () => { await save(true); copy(buildSlideDesignPromptFromPlan(P)); });
       $('#plDzPaste').addEventListener('click', async () => { await save(true); openSlideDesignPaste(P.title); });
       const dza = $('#plDzAuto'); if (dza) dza.addEventListener('click', async () => { await save(true); autoDesignSlides(buildSlideDesignPromptFromPlan(P), P.title, dza); });
@@ -1841,6 +1898,7 @@ ${(L.transcript || '').trim()}`;
               <button class="btn block" id="cDzPaste" ${picked.length ? '' : 'disabled'}>🎨 결과(JSON) → .pptx</button>
               ${state.settings.anthropicKey ? `<button class="btn green block" id="cDzAuto" ${picked.length ? '' : 'disabled'}>⚡ 자동 디자인 .pptx</button>` : ''}
               <button class="btn block ghost" id="cPptx" ${picked.length ? '' : 'disabled'}>🖼 빠른 초안(.pptx)</button>
+              <div class="row"><span class="muted small">테마</span> ${themeSelectHTML('cTheme2')}</div>
               ${state.settings.anthropicKey ? `<button class="btn green block" id="cAutoFuse" ${picked.length ? '' : 'disabled'}>⚡ 자동 융합(초안 생성)</button>` : ''}
               <button class="btn block" id="cSaveComp" ${picked.length ? '' : 'disabled'}>💾 조립본으로 저장</button>
             </div>
@@ -1862,6 +1920,7 @@ ${(L.transcript || '').trim()}`;
         buildPptx(makeSlidesFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked)));
       toast('슬라이드 초안(.pptx)을 내보냈습니다');
     });
+    bindThemeSelect('cTheme2');
     bind('cDzPrompt', 'click', () => copy(buildSlideDesignPromptFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked)));
     bind('cDzPaste', 'click', () => openSlideDesignPaste(ui.composeTheme.trim() || '새강의'));
     bind('cDzAuto', 'click', (e) => autoDesignSlides(buildSlideDesignPromptFromAtoms(ui.composeTheme.trim(), ui.composeAudience.trim(), picked), ui.composeTheme.trim() || '새강의', e.currentTarget));
