@@ -494,11 +494,11 @@
 </a:themeElements></a:theme>`;
     const slideXml = (s) => {
       const paras = (s.bullets || []).map(b => b
-        ? `<a:p><a:pPr marL="285750" indent="-285750"><a:buFont typeface="Arial"/><a:buChar char="•"/></a:pPr><a:r><a:rPr lang="ko-KR" sz="1800" dirty="0"><a:solidFill><a:srgbClr val="2C2118"/></a:solidFill></a:rPr><a:t>${xesc(b)}</a:t></a:r></a:p>`
+        ? `<a:p><a:pPr marL="285750" indent="-285750"><a:buFont typeface="Arial"/><a:buChar char="•"/></a:pPr><a:r><a:rPr lang="ko-KR" sz="1800" dirty="0"><a:solidFill><a:srgbClr val="1D1D1F"/></a:solidFill></a:rPr><a:t>${xesc(b)}</a:t></a:r></a:p>`
         : '<a:p><a:endParaRPr lang="ko-KR" sz="1800"/></a:p>').join('');
       return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:sld ${NS}><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="F7F1E8"/></a:solidFill><a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
-<p:sp><p:nvSpPr><p:cNvPr id="2" name="Title"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="838200" y="411480"/><a:ext cx="10515600" cy="1188720"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr wrap="square" anchor="b"/><a:lstStyle/><a:p><a:r><a:rPr lang="ko-KR" sz="3200" b="1" dirty="0"><a:solidFill><a:srgbClr val="4E3117"/></a:solidFill></a:rPr><a:t>${xesc(s.title || '')}</a:t></a:r></a:p></p:txBody></p:sp>
+<p:sld ${NS}><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+<p:sp><p:nvSpPr><p:cNvPr id="2" name="Title"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="838200" y="411480"/><a:ext cx="10515600" cy="1188720"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr wrap="square" anchor="b"/><a:lstStyle/><a:p><a:r><a:rPr lang="ko-KR" sz="3200" b="1" dirty="0"><a:solidFill><a:srgbClr val="1D1D1F"/></a:solidFill></a:rPr><a:t>${xesc(s.title || '')}</a:t></a:r></a:p></p:txBody></p:sp>
 <p:sp><p:nvSpPr><p:cNvPr id="3" name="Body"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="838200" y="1783080"/><a:ext cx="10515600" cy="4526280"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr wrap="square"><a:normAutofit/></a:bodyPr><a:lstStyle/>${paras || '<a:p><a:endParaRPr lang="ko-KR"/></a:p>'}</p:txBody></p:sp>
 </p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt2" tx1="dk1" bg2="lt1" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sld>`;
     };
@@ -549,10 +549,16 @@
   /* ---------- 클로드 디자인 슬라이드: 레이아웃 렌더러 (안티 AI-slop)
      원칙: 장식 라인·스트라이프 금지 / white 지배·brown 보조·gold 악센트 1개 /
      한 슬라이드 한 개념 / 여백 40%+ / 본문 좌정렬 / 다크 샌드위치(표지·질문·마무리) */
+  /* 애플 스타일 토큰: 흰 배경 + 검은 글씨 기본, 다크는 순수 블랙.
+     색이 아니라 크기·굵기·그레이 단계로 위계를 만든다. */
   const DZC = {
-    brown: '6B4423', brownD: '4E3117', white: 'FFFFFF', ink: '2C2118',
-    sub: '6E5F4E', mut: '9A8B77', gold: 'B08A2E', goldL: 'E3C77E',
-    green: '3F7D5A', tint: 'EFE6D8', tintNum: 'E9DCC8', creamTxt: 'D8C9B4', tintCard: 'F4EEE4'
+    white: 'FFFFFF', black: '000000',
+    ink: '1D1D1F',      // 애플 본문 검정
+    gray: '86868B',     // 캡션·키커
+    gray2: '6E6E73',    // 진한 서브
+    grayD: 'A1A1A6',    // 다크 배경 위 서브
+    lightBg: 'F5F5F7',  // 카드·연한 섹션
+    tintNum: 'E8E8ED'   // 거대 숫자·글리프
   };
 
   function dzText(id, x, y, w, h, paras, anchor) {
@@ -574,33 +580,33 @@
 
   function renderDesignedSlide(s, idx) {
     const C = DZC;
-    const pageNo = dzText(19, 11200000, 6400000, 700000, 300000, [{ t: String(idx + 1), sz: 1000, color: C.mut, align: 'r' }]);
+    const pageNo = dzText(19, 11200000, 6400000, 700000, 300000, [{ t: String(idx + 1), sz: 1000, color: C.gray, align: 'r' }]);
     switch (s.layout) {
-      case 'cover': // 다크 + 골드 키커(자간) + 대제목 — 장식 라인 없음
-        return dzSlide(C.brownD,
-          dzText(2, 822960, 1920240, 10515600, 457200, [{ t: s.kicker || '', sz: 1500, color: C.goldL, spc: 400 }]) +
-          dzText(3, 777240, 2331720, 10561320, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF' }]) +
-          dzText(4, 822960, 3977640, 10515600, 548640, [{ t: s.subtitle || '', sz: 1900, color: C.creamTxt }]));
-      case 'statement': // 흰 배경, 큰 문장 하나 — 여백이 디자인
+      case 'cover': // 순수 블랙 + 중앙 정렬 — 애플 키노트
+        return dzSlide(C.black,
+          dzText(2, 1097280, 2011680, 9966960, 457200, [{ t: s.kicker || '', sz: 1500, color: C.gray, spc: 400, align: 'ctr' }]) +
+          dzText(3, 548640, 2469480, 11064240, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF', align: 'ctr' }]) +
+          dzText(4, 1097280, 4114800, 9966960, 548640, [{ t: s.subtitle || '', sz: 1900, color: C.grayD, align: 'ctr' }]));
+      case 'statement': // 흰 배경, 큰 검정 문장 하나 중앙 — 애플 히어로
         return dzSlide(C.white,
-          dzText(2, 822960, 2194560, 10515600, 2469480, [{ t: s.text || s.title, sz: 4000, b: 1, color: C.ink }]));
-      case 'section': // 거대한 틴트 숫자가 그래픽 요소 (스트라이프 대신)
+          dzText(2, 822960, 2194560, 10515600, 2469480, [{ t: s.text || s.title, sz: 4000, b: 1, color: C.ink, align: 'ctr' }], 'ctr'));
+      case 'section': // 거대한 라이트그레이 숫자가 그래픽
         return dzSlide(C.white,
           dzText(2, 0, 365760, 11887200, 6035040, [{ t: s.number || '', sz: 30000, b: 1, color: C.tintNum, align: 'r' }]) +
-          dzText(3, 822960, 4846320, 7315200, 914400, [{ t: s.title, sz: 4000, b: 1, color: C.brownD }]) +
-          dzText(4, 822960, 5760720, 7315200, 457200, [{ t: s.subtitle || '', sz: 1600, color: C.mut }]));
-      case 'quote': // 거대한 따옴표 글리프 틴트 (골드 바 대신)
+          dzText(3, 822960, 4846320, 7315200, 914400, [{ t: s.title, sz: 4000, b: 1, color: C.ink }]) +
+          dzText(4, 822960, 5760720, 7315200, 457200, [{ t: s.subtitle || '', sz: 1600, color: C.gray }]));
+      case 'quote': // 거대한 " 글리프 라이트그레이 + 검정 인용
         return dzSlide(C.white,
-          dzText(2, 502920, 91440, 2743200, 2743200, [{ t: '“', sz: 20000, b: 1, color: C.tint, font: 'Cambria' }]) +
-          dzText(3, 1554480, 2331720, 9144000, 1828800, [{ t: s.quote, sz: 3000, i: 1, color: C.brownD }]) +
-          dzText(4, 1554480, 4434840, 9144000, 457200, [{ t: s.source, sz: 1500, color: C.mut }]) + pageNo);
-      case 'question': // 다크, 질문 하나만 — 청중을 멈추게
-        return dzSlide(C.brownD,
+          dzText(2, 502920, 91440, 2743200, 2743200, [{ t: '“', sz: 20000, b: 1, color: C.tintNum, font: 'Cambria' }]) +
+          dzText(3, 1554480, 2331720, 9144000, 1828800, [{ t: s.quote, sz: 3000, color: C.ink }]) +
+          dzText(4, 1554480, 4434840, 9144000, 457200, [{ t: s.source, sz: 1500, color: C.gray }]) + pageNo);
+      case 'question': // 블랙, 흰 질문 하나 중앙
+        return dzSlide(C.black,
           dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr' }], 'ctr') +
-          dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.goldL, align: 'ctr' }]));
-      case 'activity': { // 라벨은 자간 텍스트, 단계는 큰 틴트 숫자
-        let inner = dzText(2, 822960, 640080, 2743200, 365760, [{ t: '활동', sz: 1400, b: 1, color: C.green, spc: 600 }]) +
-          dzText(3, 822960, 1097280, 10515600, 731520, [{ t: s.title, sz: 3000, b: 1, color: C.brownD }]);
+          dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.grayD, align: 'ctr' }]));
+      case 'activity': { // 그레이 아이브로 + 큰 라이트그레이 숫자 단계
+        let inner = dzText(2, 822960, 640080, 2743200, 365760, [{ t: '활동', sz: 1400, b: 1, color: C.gray, spc: 600 }]) +
+          dzText(3, 822960, 1097280, 10515600, 731520, [{ t: s.title, sz: 3000, b: 1, color: C.ink }]);
         (s.steps || []).slice(0, 4).forEach((t, i) => {
           const y = 2149856 + i * 1280160;
           inner += dzText(4 + i * 2, 822960, y - 137160, 914400, 1005840, [{ t: String(i + 1), sz: 5400, b: 1, color: C.tintNum }]) +
@@ -608,33 +614,33 @@
         });
         return dzSlide(C.white, inner + pageNo);
       }
-      case 'stat': // 거대 숫자 + 라벨
+      case 'stat': // 거대 검정 숫자 + 그레이 라벨 — 애플식 빅 넘버
         return dzSlide(C.white,
-          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.brown, align: 'ctr' }], 'ctr') +
-          dzText(3, 1097280, 4434840, 9966960, 731520, [{ t: s.label || '', sz: 1900, color: C.sub, align: 'ctr' }]));
-      case 'compare': { // 두 칼럼 대비 카드 (틴트 vs 브라운)
-        let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.brownD }]) +
-          dzRect(3, 822960, 1737360, 5029200, 4206240, C.tintCard, 'roundRect') +
-          dzRect(4, 6336792, 1737360, 5029200, 4206240, C.brown, 'roundRect');
-        const colFn = (x, head, items, headC, txtC, id) => {
-          let h = dzText(id, x + 457200, 2148840, 4114800, 548640, [{ t: head, sz: 2200, b: 1, color: headC }]);
+          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.ink, align: 'ctr' }], 'ctr') +
+          dzText(3, 1097280, 4434840, 9966960, 731520, [{ t: s.label || '', sz: 1900, color: C.gray2, align: 'ctr' }]));
+      case 'compare': { // 두 칼럼 — 중립 그레이 카드 (애플 비교 카드)
+        let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink }]) +
+          dzRect(3, 822960, 1737360, 5029200, 4206240, C.lightBg, 'roundRect') +
+          dzRect(4, 6336792, 1737360, 5029200, 4206240, C.lightBg, 'roundRect');
+        const colFn = (x, head, items, id) => {
+          let h = dzText(id, x + 457200, 2148840, 4114800, 548640, [{ t: head, sz: 2200, b: 1, color: C.ink }]);
           (items || []).slice(0, 4).forEach((t, i) => {
-            h += dzText(id + 1 + i, x + 457200, 2926080 + i * 822960, 4114800, 731520, [{ t, sz: 1500, b: 1, color: txtC }]);
+            h += dzText(id + 1 + i, x + 457200, 2926080 + i * 822960, 4114800, 731520, [{ t, sz: 1500, color: C.gray2 }]);
           });
           return h;
         };
-        inner += colFn(822960, s.leftHead || '', s.leftItems, C.brownD, C.ink, 5);
-        inner += colFn(6336792, s.rightHead || '', s.rightItems, C.goldL, 'FFFFFF', 11);
+        inner += colFn(822960, s.leftHead || '', s.leftItems, 5);
+        inner += colFn(6336792, s.rightHead || '', s.rightItems, 11);
         return dzSlide(C.white, inner);
       }
-      case 'closing': // 다크, 결단 한 문장 — 장식 없음
-        return dzSlide(C.brownD,
-          dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2600, color: C.creamTxt, align: 'ctr' }], 'ctr') +
-          dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: C.goldL, align: 'ctr' }]));
-      default: // content — 제목 + 여백 있는 불릿 (밑줄·라인 없음)
+      case 'closing': // 블랙, 그레이 얻음 + 흰색 굵은 결단
+        return dzSlide(C.black,
+          dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2600, color: C.grayD, align: 'ctr' }], 'ctr') +
+          dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr' }]));
+      default: // content — 검정 제목 + 마커 없는 행 (애플은 불릿 글리프를 안 쓴다)
         return dzSlide(C.white,
-          dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.brownD }], 'b') +
-          dzText(3, 822960, 1737360, 10515600, 4297680, (s.bullets || []).map(t => ({ t, sz: 1800, color: C.ink, bullet: true, spcAft: 900 }))) + pageNo);
+          dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink }], 'b') +
+          dzText(3, 822960, 1737360, 10515600, 4297680, (s.bullets || []).map(t => ({ t, sz: 1800, color: C.ink, spcAft: 1100 }))) + pageNo);
     }
   }
   function buildDesignedPptx(ds) { return buildPptx(ds, (s, i) => renderDesignedSlide(s, i)); }
@@ -663,7 +669,12 @@
   }
 
   function slideDesignRules() {
-    return `[슬라이드 설계 규칙 — AI 느낌을 지우는 것이 목표]
+    return `[디자인 언어 — 애플 스타일]
+- 흰 배경 + 검은 글씨가 기본. 표지·질문·마무리만 순수 블랙 배경.
+- 색으로 꾸미지 않는다. 크기·굵기·그레이 단계로만 위계를 만든다.
+- 문장은 짧고 단정하게. 마침표까지 신경 쓴 카피처럼.
+
+[슬라이드 설계 규칙 — AI 느낌을 지우는 것이 목표]
 - 한 슬라이드 = 하나의 메시지. 3초 안에 파악되어야 한다. 원고를 옮겨 적지 말 것(강의는 말로, 슬라이드는 기억 장치로).
 - 제목 20자 이내, 불릿 5개 이하·각 40자 이내. 같은 레이아웃을 연속으로 쓰지 말 것.
 - 핵심 선언 문장은 statement로 독립. 숫자·통계가 있으면 stat으로 크게. 대비 구조(전/후, A/B)는 compare로.
