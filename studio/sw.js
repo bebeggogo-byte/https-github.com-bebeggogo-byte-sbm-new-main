@@ -1,6 +1,6 @@
 /* 강의 스튜디오 서비스워커 — 오프라인 셸 캐시
    앱 파일만 캐시한다. 녹음/자막/아톰 데이터는 IndexedDB(브라우저)에 저장되며 캐시하지 않는다. */
-const CACHE = 'lecture-studio-v9';
+const CACHE = 'lecture-studio-v10';
 const ASSETS = [
   './',
   './index.html',

@@ -553,8 +553,12 @@
      토큰만 갈아끼운다. 기본은 애플 미니멀(흰 배경·검은 글씨).
      tf = 제목 폰트 오버라이드(세리프 테마용). */
   const SLIDE_THEMES = {
+    samsung: {
+      name: '삼성 원UI', mood: '기본 — 밝고 친근한 신뢰감, 삼성 블루 포인트',
+      t: { pageBg: 'FFFFFF', ink: '000000', gray: '75777B', gray2: '4D5256', card: 'F7F7F7', tintNum: 'E4EAF9', darkBg: '1428A0', darkMain: 'B7C4EE', kicker: '8FA7E8', charge: 'FFFFFF', accent: '1428A0' }
+    },
     apple: {
-      name: '애플 미니멀', mood: '기본 — 어떤 주제든, 내용이 주인공일 때',
+      name: '애플 미니멀', mood: '무채색 절제 — 내용만 남기고 싶을 때',
       t: { pageBg: 'FFFFFF', ink: '1D1D1F', gray: '86868B', gray2: '6E6E73', card: 'F5F5F7', tintNum: 'E8E8ED', darkBg: '000000', darkMain: 'A1A1A6', kicker: '86868B', charge: 'FFFFFF' }
     },
     serif: {
@@ -585,7 +589,7 @@
   function resolveSlideTheme(userPick, claudePick) {
     if (userPick && userPick !== 'auto' && SLIDE_THEMES[userPick]) return userPick;
     if (claudePick && SLIDE_THEMES[claudePick]) return claudePick;
-    return 'apple';
+    return 'samsung';
   }
 
   function dzText(id, x, y, w, h, paras, anchor) {
@@ -616,7 +620,7 @@
   }
 
   function renderDesignedSlide(s, idx, C) {
-    C = C || SLIDE_THEMES.apple.t;
+    C = C || SLIDE_THEMES.samsung.t;
     const tf = C.tf; // 제목 폰트 오버라이드(세리프 테마)
     const pageNo = dzText(19, 11200000, 6400000, 700000, 300000, [{ t: String(idx + 1), sz: 1000, color: C.gray, align: 'r' }]);
     switch (s.layout) {
@@ -643,7 +647,7 @@
           dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -75 }], 'ctr') +
           dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.darkMain, align: 'ctr' }]), true);
       case 'activity': { // 아이브로 라벨 + 큰 틴트 숫자 단계
-        let inner = dzText(2, 822960, 640080, 2743200, 365760, [{ t: '활동', sz: 1400, b: 1, color: C.gray, spc: 600 }]) +
+        let inner = dzText(2, 822960, 640080, 2743200, 365760, [{ t: '활동', sz: 1400, b: 1, color: C.accent || C.gray, spc: 600 }]) +
           dzText(3, 822960, 1097280, 10515600, 731520, [{ t: s.title, sz: 3000, b: 1, color: C.ink, font: tf }]);
         (s.steps || []).slice(0, 4).forEach((t, i) => {
           const y = 2149856 + i * 1280160;
@@ -654,7 +658,7 @@
       }
       case 'stat': // 거대 숫자 + 라벨
         return dzSlide(C.pageBg,
-          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.ink, align: 'ctr', font: tf, spc: -150 }], 'ctr') +
+          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.accent || C.ink, align: 'ctr', font: tf, spc: -150 }], 'ctr') +
           dzText(3, 1097280, 4434840, 9966960, 731520, [{ t: s.label || '', sz: 1900, color: C.gray2, align: 'ctr' }]));
       case 'compare': { // 두 칼럼 — 중립 카드
         let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink, font: tf }]) +
@@ -714,10 +718,10 @@
 
   function slideDesignRules() {
     const themeLines = Object.keys(SLIDE_THEMES).map(k => `${k} = ${SLIDE_THEMES[k].name} (${SLIDE_THEMES[k].mood})`).join('\n');
-    return `[디자인 언어]
-- 흰 배경 + 검은 글씨가 기본. 표지·질문·마무리만 다크 배경.
-- 색으로 꾸미지 않는다. 크기·굵기·그레이 단계로만 위계를 만든다.
-- 문장은 짧고 단정하게. 마침표까지 신경 쓴 카피처럼.
+    return `[디자인 언어 — 삼성 스타일 기본]
+- 흰 배경 + 검은 글씨가 기본. 표지·질문·마무리만 다크 배경(기본 테마는 삼성 딥블루 그라디언트).
+- 포인트 컬러는 절제해서: 활동 라벨·통계 숫자 정도. 나머지 위계는 크기·굵기·그레이 단계로.
+- 밝고 친근하되 단정하게. 문장은 짧게, 마침표까지 신경 쓴 카피처럼.
 
 [테마 — 주제에 어울리는 것 하나를 골라 theme 필드로 지정]
 ${themeLines}
@@ -739,7 +743,7 @@ ${themeLines}
 cover(kicker,title,subtitle) · statement(text) · section(number,title,subtitle) · content(title,bullets[]) · quote(quote,source) · question(question,subtitle) · activity(title,steps[]) · stat(value,label) · compare(title,leftHead,leftItems[],rightHead,rightItems[]) · closing(main,charge)
 
 [출력 — 오직 JSON, 코드펜스·설명 금지]
-{"theme":"apple","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"..."},{"layout":"statement","text":"..."},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
+{"theme":"samsung","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"..."},{"layout":"statement","text":"..."},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
   }
   function buildSlideDesignPromptFromPlan(P) {
     const body = P.deep ? buildPlanMd(P) : `제목: ${P.title}\n${P.intent ? '설계 의도: ' + P.intent + '\n' : ''}슬라이드 개요:\n${P.slidesText || '(없음)'}`;
