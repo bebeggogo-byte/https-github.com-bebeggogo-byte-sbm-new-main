@@ -600,9 +600,19 @@
   function dzRect(id, x, y, w, h, fill, prst) {
     return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="r${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="${prst || 'rect'}"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${fill}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="ko-KR"/></a:p></p:txBody></p:sp>`;
   }
-  function dzSlide(bg, inner) {
+  /* 어두운 색을 살짝 밝게 — 다크 그라디언트 상단용 */
+  function dzLighten(hex, amt) {
+    const n = parseInt(hex, 16);
+    const c = (v) => Math.min(255, v + amt).toString(16).padStart(2, '0');
+    return (c((n >> 16) & 255) + c((n >> 8) & 255) + c(n & 255)).toUpperCase();
+  }
+  function dzSlide(bg, inner, grad) {
+    // grad: 잡스 키노트 시그니처 — 다크 배경의 미묘한 수직 그라디언트(위가 조금 밝음)
+    const fill = grad
+      ? `<a:gradFill><a:gsLst><a:gs pos="0"><a:srgbClr val="${dzLighten(bg, 26)}"/></a:gs><a:gs pos="100000"><a:srgbClr val="${bg}"/></a:gs></a:gsLst><a:lin ang="5400000" scaled="1"/></a:gradFill>`
+      : `<a:solidFill><a:srgbClr val="${bg}"/></a:solidFill>`;
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:sld ${PPTX_NS}><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="${bg}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
+<p:sld ${PPTX_NS}><p:cSld><p:bg><p:bgPr>${fill}<a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
   }
 
   function renderDesignedSlide(s, idx, C) {
@@ -610,18 +620,18 @@
     const tf = C.tf; // 제목 폰트 오버라이드(세리프 테마)
     const pageNo = dzText(19, 11200000, 6400000, 700000, 300000, [{ t: String(idx + 1), sz: 1000, color: C.gray, align: 'r' }]);
     switch (s.layout) {
-      case 'cover': // 다크 + 중앙 정렬 히어로
+      case 'cover': // 다크 그라디언트 + 중앙 정렬 히어로 (잡스 키노트)
         return dzSlide(C.darkBg,
           dzText(2, 1097280, 2011680, 9966960, 457200, [{ t: s.kicker || '', sz: 1500, color: C.kicker, spc: 400, align: 'ctr' }]) +
-          dzText(3, 548640, 2469480, 11064240, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF', align: 'ctr', font: tf }]) +
-          dzText(4, 1097280, 4114800, 9966960, 548640, [{ t: s.subtitle || '', sz: 1900, color: C.darkMain, align: 'ctr' }]));
+          dzText(3, 548640, 2469480, 11064240, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -100 }]) +
+          dzText(4, 1097280, 4114800, 9966960, 548640, [{ t: s.subtitle || '', sz: 1900, color: C.darkMain, align: 'ctr' }]), true);
       case 'statement': // 큰 문장 하나 중앙 — 히어로 카피
         return dzSlide(C.pageBg,
-          dzText(2, 822960, 2194560, 10515600, 2469480, [{ t: s.text || s.title, sz: 4000, b: 1, color: C.ink, align: 'ctr', font: tf }], 'ctr'));
+          dzText(2, 822960, 2194560, 10515600, 2469480, [{ t: s.text || s.title, sz: 4000, b: 1, color: C.ink, align: 'ctr', font: tf, spc: -75 }], 'ctr'));
       case 'section': // 거대한 틴트 숫자가 그래픽
         return dzSlide(C.pageBg,
           dzText(2, 0, 365760, 11887200, 6035040, [{ t: s.number || '', sz: 30000, b: 1, color: C.tintNum, align: 'r' }]) +
-          dzText(3, 822960, 4846320, 7315200, 914400, [{ t: s.title, sz: 4000, b: 1, color: C.ink, font: tf }]) +
+          dzText(3, 822960, 4846320, 7315200, 914400, [{ t: s.title, sz: 4000, b: 1, color: C.ink, font: tf, spc: -75 }]) +
           dzText(4, 822960, 5760720, 7315200, 457200, [{ t: s.subtitle || '', sz: 1600, color: C.gray }]));
       case 'quote': // 거대한 " 글리프 틴트 + 잉크 인용
         return dzSlide(C.pageBg,
@@ -630,8 +640,8 @@
           dzText(4, 1554480, 4434840, 9144000, 457200, [{ t: s.source, sz: 1500, color: C.gray }]) + pageNo);
       case 'question': // 다크, 질문 하나 중앙
         return dzSlide(C.darkBg,
-          dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr', font: tf }], 'ctr') +
-          dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.darkMain, align: 'ctr' }]));
+          dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -75 }], 'ctr') +
+          dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: C.darkMain, align: 'ctr' }]), true);
       case 'activity': { // 아이브로 라벨 + 큰 틴트 숫자 단계
         let inner = dzText(2, 822960, 640080, 2743200, 365760, [{ t: '활동', sz: 1400, b: 1, color: C.gray, spc: 600 }]) +
           dzText(3, 822960, 1097280, 10515600, 731520, [{ t: s.title, sz: 3000, b: 1, color: C.ink, font: tf }]);
@@ -644,7 +654,7 @@
       }
       case 'stat': // 거대 숫자 + 라벨
         return dzSlide(C.pageBg,
-          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.ink, align: 'ctr', font: tf }], 'ctr') +
+          dzText(2, 1097280, 1737360, 9966960, 2560320, [{ t: s.value || '', sz: 12000, b: 1, color: C.ink, align: 'ctr', font: tf, spc: -150 }], 'ctr') +
           dzText(3, 1097280, 4434840, 9966960, 731520, [{ t: s.label || '', sz: 1900, color: C.gray2, align: 'ctr' }]));
       case 'compare': { // 두 칼럼 — 중립 카드
         let inner = dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink, font: tf }]) +
@@ -664,7 +674,7 @@
       case 'closing': // 다크, 얻음 + 강조 결단
         return dzSlide(C.darkBg,
           dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2600, color: C.darkMain, align: 'ctr' }], 'ctr') +
-          dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: C.charge, align: 'ctr', font: tf }]));
+          dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: C.charge, align: 'ctr', font: tf, spc: -75 }]), true);
       default: // content — 제목 + 마커 없는 행
         return dzSlide(C.pageBg,
           dzText(2, 822960, 640080, 10515600, 822960, [{ t: s.title, sz: 3200, b: 1, color: C.ink, font: tf }], 'b') +
@@ -713,7 +723,10 @@
 ${themeLines}
 
 [슬라이드 설계 규칙 — AI 느낌을 지우는 것이 목표]
-- 한 슬라이드 = 하나의 메시지. 3초 안에 파악되어야 한다. 원고를 옮겨 적지 말 것(강의는 말로, 슬라이드는 기억 장치로).
+- 빌보드 테스트(스티브 잡스의 3초 규칙): 슬라이드는 광고판처럼 3초 안에 읽혀야 한다. 잡스는 12장에 단어 19개를 썼다.
+  한 단어·한 숫자·한 문장 슬라이드(statement/stat/question/quote/section)가 덱의 절반 이상이 되게 하라.
+  bullets가 있는 content 슬라이드는 전체의 1/3 이하로.
+- 한 슬라이드 = 하나의 메시지. 원고를 옮겨 적지 말 것(강의는 말로, 슬라이드는 기억 장치로).
 - 제목 20자 이내, 불릿 5개 이하·각 40자 이내. 같은 레이아웃을 연속으로 쓰지 말 것.
 - 핵심 선언 문장은 statement로 독립. 숫자·통계가 있으면 stat으로 크게. 대비 구조(전/후, A/B)는 compare로.
 - 청중을 멈추게 할 질문은 question으로, 인용구는 quote로 독립.
