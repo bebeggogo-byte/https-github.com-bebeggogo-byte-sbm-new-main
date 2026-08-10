@@ -99,7 +99,7 @@
     atoms: [],        // {id,title,type,topic,tags[],summary,content,keypoints[],durationSec,lectureId,lectureTitle,createdAt,star,usedIn[]}
     compositions: [], // 저장된 조립본 {id,theme,audience,atomIds[],createdAt,updatedAt}
     plans: [],        // 강의 전 설계 {id,title,topic,audience,intent,slidesText,deep,createdAt,updatedAt}
-    settings: { speaker: '', transcribeUrl: '', transcribeKey: '', transcribeModel: 'whisper-1', anthropicKey: '', anthropicModel: 'claude-opus-4-8', autoDeleteAudio: true, slideTheme: 'auto' },
+    settings: { speaker: '', transcribeUrl: '', transcribeKey: '', transcribeModel: 'whisper-1', anthropicKey: '', anthropicModel: 'claude-opus-4-8', autoDeleteAudio: true, slideTheme: 'auto', pexelsKey: '' },
     tray: [],         // 조립대에 담긴 atom id 목록(순서)
     ui: { atomQuery: '', atomType: '', atomTopic: '', atomTag: '', composeTheme: '', composeAudience: '', recoIds: [] }
   };
@@ -505,7 +505,7 @@
     const files = [];
     files.push({
       name: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${slides.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join('')}</Types>`
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpg" ContentType="image/jpeg"/><Default Extension="jpeg" ContentType="image/jpeg"/><Default Extension="png" ContentType="image/png"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${slides.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join('')}</Types>`
     });
     files.push({
       name: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -537,10 +537,18 @@
     });
     files.push({ name: 'ppt/theme/theme1.xml', data: theme });
     slides.forEach((s, i) => {
-      files.push({ name: `ppt/slides/slide${i + 1}.xml`, data: (renderFn || slideXml)(s, i) });
+      const out = (renderFn || slideXml)(s, i);
+      const xml = typeof out === 'string' ? out : out.xml;
+      const img = typeof out === 'string' ? null : out.img;
+      files.push({ name: `ppt/slides/slide${i + 1}.xml`, data: xml });
+      let rels = `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>`;
+      if (img) {
+        files.push({ name: `ppt/media/image${i + 1}.jpg`, data: img });
+        rels += `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image${i + 1}.jpg"/>`;
+      }
       files.push({
         name: `ppt/slides/_rels/slide${i + 1}.xml.rels`, data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/></Relationships>`
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${rels}</Relationships>`
       });
     });
     return zipStore(files);
@@ -619,10 +627,45 @@
 <p:sld ${PPTX_NS}><p:cSld><p:bg><p:bgPr>${fill}<a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
   }
 
+  /* 풀블리드 배경 사진(p:pic, rId2) + 다크 오버레이 — 사진 위 흰 글씨용 */
+  function dzPhotoBase(overlayAlpha) {
+    return `<p:pic><p:nvPicPr><p:cNvPr id="30" name="bgphoto"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="12192000" cy="6858000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>` +
+      `<p:sp><p:nvSpPr><p:cNvPr id="31" name="overlay"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="12192000" cy="6858000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="000000"><a:alpha val="${overlayAlpha}"/></a:srgbClr></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="ko-KR"/></a:p></p:txBody></p:sp>`;
+  }
+
   function renderDesignedSlide(s, idx, C) {
     C = C || SLIDE_THEMES.samsung.t;
     const tf = C.tf; // 제목 폰트 오버라이드(세리프 테마)
     const pageNo = dzText(19, 11200000, 6400000, 700000, 300000, [{ t: String(idx + 1), sz: 1000, color: C.gray, align: 'r' }]);
+    // 사진이 붙은 슬라이드: 풀블리드 사진 + 오버레이 + 흰 글씨 변형
+    if (s._img) {
+      const wrap = (xml) => ({ xml, img: s._img });
+      switch (s.layout) {
+        case 'cover':
+          return wrap(dzSlide('000000', dzPhotoBase(46000) +
+            dzText(2, 1097280, 2011680, 9966960, 457200, [{ t: s.kicker || '', sz: 1500, color: 'E8E8E8', spc: 400, align: 'ctr' }]) +
+            dzText(3, 548640, 2469480, 11064240, 1554480, [{ t: s.title, sz: 5400, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -100 }]) +
+            dzText(4, 1097280, 4114800, 9966960, 548640, [{ t: s.subtitle || '', sz: 1900, color: 'DCDCDC', align: 'ctr' }])));
+        case 'section':
+          return wrap(dzSlide('000000', dzPhotoBase(42000) +
+            dzText(2, 822960, 4480560, 10515600, 731520, [{ t: s.number || '', sz: 2000, b: 1, color: 'E8E8E8', spc: 400 }]) +
+            dzText(3, 822960, 4846320, 10515600, 914400, [{ t: s.title, sz: 4000, b: 1, color: 'FFFFFF', font: tf, spc: -75 }]) +
+            dzText(4, 822960, 5760720, 10515600, 457200, [{ t: s.subtitle || '', sz: 1600, color: 'D6D6D6' }])));
+        case 'question':
+          return wrap(dzSlide('000000', dzPhotoBase(52000) +
+            dzText(2, 1097280, 2286000, 9966960, 2286000, [{ t: s.question, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -75 }], 'ctr') +
+            dzText(3, 1097280, 4846320, 9966960, 457200, [{ t: s.subtitle || '', sz: 1500, color: 'D6D6D6', align: 'ctr' }])));
+        case 'quote':
+          return wrap(dzSlide('000000', dzPhotoBase(52000) +
+            dzText(2, 1554480, 2331720, 9144000, 1828800, [{ t: '“' + (s.quote || '') + '”', sz: 3000, color: 'FFFFFF', align: 'ctr', font: tf }], 'ctr') +
+            dzText(3, 1554480, 4434840, 9144000, 457200, [{ t: s.source, sz: 1500, color: 'D6D6D6', align: 'ctr' }])));
+        case 'closing':
+          return wrap(dzSlide('000000', dzPhotoBase(52000) +
+            dzText(2, 1097280, 2011680, 9966960, 1737360, [{ t: s.main, sz: 2600, color: 'DCDCDC', align: 'ctr' }], 'ctr') +
+            dzText(3, 1097280, 4114800, 9966960, 914400, [{ t: s.charge, sz: 3600, b: 1, color: 'FFFFFF', align: 'ctr', font: tf, spc: -75 }])));
+        // 그 외 레이아웃은 사진 무시하고 기본 렌더로
+      }
+    }
     switch (s.layout) {
       case 'cover': // 다크 그라디언트 + 중앙 정렬 히어로 (잡스 키노트)
         return dzSlide(C.darkBg,
@@ -703,6 +746,7 @@
       if (!LAY.includes(layout)) layout = 'content';
       return {
         layout, title: S(s.title), subtitle: S(s.subtitle), kicker: S(s.kicker), number: S(s.number),
+        imageQuery: S(s.imageQuery),
         text: S(s.text), bullets: A(s.bullets, 5), steps: A(s.steps, 4),
         quote: S(s.quote), source: S(s.source), question: S(s.question),
         value: S(s.value), label: S(s.label),
@@ -736,6 +780,8 @@ ${themeLines}
 - 청중을 멈추게 할 질문은 question으로, 인용구는 quote로 독립.
 - 구간이 바뀔 때 section(번호 01, 02…)으로 호흡. 활동 안내는 activity(단계 4개 이하).
 - 시작 cover(kicker=시리즈명·주최, subtitle=부제), 마지막 closing(main=깊은 얻음, charge=결단 문장).
+- 배경 사진이 힘을 실어줄 슬라이드(cover/section/question/quote/closing)에는 imageQuery를 넣어라
+  — 영어 구체 명사구(예: "open wooden door light", "misty forest path"). 덱당 2~4장만, 남발 금지.
 - 문구는 구체적으로. 클리셰 금지: "~의 여정", "함께 알아보겠습니다", "다양한", "효과적인" 같은 빈 말.
 - 총 8~20장 권장.
 
@@ -743,7 +789,7 @@ ${themeLines}
 cover(kicker,title,subtitle) · statement(text) · section(number,title,subtitle) · content(title,bullets[]) · quote(quote,source) · question(question,subtitle) · activity(title,steps[]) · stat(value,label) · compare(title,leftHead,leftItems[],rightHead,rightItems[]) · closing(main,charge)
 
 [출력 — 오직 JSON, 코드펜스·설명 금지]
-{"theme":"samsung","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"..."},{"layout":"statement","text":"..."},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
+{"theme":"samsung","slides":[{"layout":"cover","kicker":"시리즈명","title":"...","subtitle":"...","imageQuery":"open door light"},{"layout":"statement","text":"..."},{"layout":"section","number":"01","title":"...","subtitle":"..."},{"layout":"content","title":"...","bullets":["..."]},{"layout":"question","question":"...","subtitle":"30초, 눈을 감고"},{"layout":"quote","quote":"...","source":"..."},{"layout":"activity","title":"...","steps":["..."]},{"layout":"stat","value":"4:18","label":"..."},{"layout":"compare","title":"...","leftHead":"...","leftItems":["..."],"rightHead":"...","rightItems":["..."]},{"layout":"closing","main":"...","charge":"..."}]}`;
   }
   function buildSlideDesignPromptFromPlan(P) {
     const body = P.deep ? buildPlanMd(P) : `제목: ${P.title}\n${P.intent ? '설계 의도: ' + P.intent + '\n' : ''}슬라이드 개요:\n${P.slidesText || '(없음)'}`;
@@ -777,6 +823,76 @@ ${blocks}`;
     if (el) el.addEventListener('change', (e) => { state.settings.slideTheme = e.target.value; saveSettings(); saveHint('슬라이드 테마 저장됨'); });
   }
 
+  /* ---------- 배경 사진: 크롭·소싱·완성 흐름 ---------- */
+  async function cropToJpeg(blobOrFile) {
+    const bmp = await createImageBitmap(blobOrFile);
+    const cv = document.createElement('canvas'); cv.width = 1920; cv.height = 1080;
+    const ctx = cv.getContext('2d');
+    const sc = Math.max(1920 / bmp.width, 1080 / bmp.height);
+    const w = bmp.width * sc, h = bmp.height * sc;
+    ctx.drawImage(bmp, (1920 - w) / 2, (1080 - h) / 2, w, h);
+    const out = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.82));
+    if (!out) throw new Error('이미지 변환 실패');
+    return new Uint8Array(await out.arrayBuffer());
+  }
+  async function fetchPexelsPhoto(query) {
+    const r = await fetch('https://api.pexels.com/v1/search?per_page=1&orientation=landscape&query=' + encodeURIComponent(query),
+      { headers: { Authorization: state.settings.pexelsKey } });
+    if (!r.ok) throw new Error('Pexels ' + r.status);
+    const d = await r.json();
+    const p = d.photos && d.photos[0];
+    if (!p) return null;
+    const url = (p.src.original || p.src.large2x) + '?auto=compress&cs=tinysrgb&fit=crop&w=1920&h=1080';
+    const ir = await fetch(url);
+    if (!ir.ok) throw new Error('사진 다운로드 실패');
+    return await cropToJpeg(await ir.blob());
+  }
+
+  /* 디자인 JSON → (사진 소싱) → .pptx 저장 */
+  async function finishDesignedDeck(ds, baseName) {
+    const PHOTO_LAYOUTS = ['cover', 'section', 'question', 'quote', 'closing'];
+    const want = ds.slides.filter(sl => sl.imageQuery && PHOTO_LAYOUTS.includes(sl.layout)).slice(0, 6);
+    const doBuild = () => {
+      const key = resolveSlideTheme(state.settings.slideTheme, ds.theme);
+      const withImg = ds.slides.filter(x => x._img).length;
+      download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-디자인슬라이드.pptx', buildDesignedPptx(ds, state.settings.slideTheme));
+      toast(ds.slides.length + '장 · ' + SLIDE_THEMES[key].name + (withImg ? ' · 사진 ' + withImg + '장' : '') + ' 완성');
+    };
+    if (!want.length) { doBuild(); return; }
+    if (state.settings.pexelsKey) {
+      toast('배경 사진 검색 중… (' + want.length + '장)');
+      for (const sl of want) {
+        try { const img = await fetchPexelsPhoto(sl.imageQuery); if (img) sl._img = img; } catch (e) { /* 실패 시 그라디언트 유지 */ }
+      }
+      doBuild(); return;
+    }
+    // Pexels 키 없음 → 내 사진 직접 선택
+    openModal('배경 사진 넣기 (선택)', `
+      <div class="stack">
+        <p class="muted small">클로드가 이 슬라이드들에 사진을 추천했습니다. 폰/컴퓨터의 사진을 골라 넣거나, 건너뛰면 그라디언트 배경으로 만들어집니다.<br>
+        <b>자동으로 찾게 하려면</b>: [데이터] 탭에 무료 Pexels API 키를 넣으세요 (pexels.com/api).</p>
+        ${want.map((sl, i) => `
+          <div class="row" style="border:1px solid var(--line);border-radius:10px;padding:8px 12px">
+            <div style="flex:1"><b>${esc(sl.title || sl.question || sl.charge || sl.layout)}</b><div class="muted small">추천: ${esc(sl.imageQuery)}</div></div>
+            <input type="file" accept="image/*" data-photo-idx="${i}" style="width:auto">
+          </div>`).join('')}
+        <div class="row">
+          <button class="btn primary" id="phBuild">.pptx 만들기</button>
+          <button class="btn ghost" id="phSkip">사진 없이 계속</button>
+        </div>
+      </div>`, () => {
+      $('#phSkip').addEventListener('click', () => { closeModal(); doBuild(); });
+      $('#phBuild').addEventListener('click', async () => {
+        const inputs = $$('#modalBody input[data-photo-idx]');
+        for (const inp of inputs) {
+          const f = inp.files && inp.files[0];
+          if (f) { try { want[Number(inp.dataset.photoIdx)]._img = await cropToJpeg(f); } catch (e) { } }
+        }
+        closeModal(); doBuild();
+      });
+    });
+  }
+
   function openSlideDesignPaste(baseName) {
     openModal('슬라이드 디자인 결과(JSON) 붙여넣기', `
       <div class="stack">
@@ -788,9 +904,8 @@ ${blocks}`;
       $('#sdApply').addEventListener('click', () => {
         const ds = normalizeSlideDesign(extractJSON($('#sdIn').value));
         if (!ds) { toast('슬라이드 JSON을 인식하지 못했습니다'); return; }
-        const key = resolveSlideTheme(state.settings.slideTheme, ds.theme);
-        download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-디자인슬라이드.pptx', buildDesignedPptx(ds, state.settings.slideTheme));
-        closeModal(); toast(ds.slides.length + '장 · ' + SLIDE_THEMES[key].name + ' 테마로 내보냈습니다');
+        closeModal();
+        finishDesignedDeck(ds, baseName);
       });
     });
   }
@@ -801,9 +916,7 @@ ${blocks}`;
     try {
       const ds = normalizeSlideDesign(extractJSON(await callClaude(promptText, 8000)));
       if (!ds) throw new Error('결과 파싱 실패');
-      const key = resolveSlideTheme(state.settings.slideTheme, ds.theme);
-      download(baseName.replace(/[^\w가-힣\- ]/g, '') + '-디자인슬라이드.pptx', buildDesignedPptx(ds, state.settings.slideTheme));
-      toast(ds.slides.length + '장 · ' + SLIDE_THEMES[key].name + ' 테마로 완성');
+      await finishDesignedDeck(ds, baseName);
     } catch (e) { toast('자동 디자인 실패: ' + e.message + ' — 프롬프트 복사 방식을 쓰세요'); }
     finally { btn.disabled = false; btn.textContent = old; }
   }
@@ -2299,6 +2412,12 @@ ${blocks}`;
       </div>
 
       <div class="card">
+        <strong>배경 사진 API (선택) — Pexels</strong>
+        <p class="muted small" style="margin:6px 0 10px">키를 넣으면 슬라이드 만들 때 클로드가 추천한 검색어로 <b>주제에 맞는 무료 사진</b>(상업적 사용 가능)을 자동으로 찾아 넣습니다. 무료 발급: <span class="kbd">pexels.com/api</span>. 키가 없어도 내 사진을 직접 골라 넣을 수 있습니다.</p>
+        <div><label class="field">Pexels API Key</label><input type="password" id="setPexelsKey" value="${esc(s.pexelsKey || '')}" placeholder="선택"></div>
+      </div>
+
+      <div class="card">
         <strong>음성 전사 API (선택) — OpenAI 호환 Whisper</strong>
         <p class="muted small" style="margin:6px 0 10px">iOS 등 실시간 자막이 안 되는 기기에서, 녹음 파일을 자동으로 텍스트로 바꿀 때 사용합니다. (예: <span class="kbd">https://api.openai.com/v1/audio/transcriptions</span>)</p>
         <div class="grid cols-2">
@@ -2318,6 +2437,7 @@ ${blocks}`;
     const saveField = (id, key) => bind(id, 'change', (e) => { state.settings[key] = e.target.value.trim(); saveSettings(); saveHint('설정 저장됨'); });
     saveField('setSpeaker', 'speaker'); saveField('setAnthKey', 'anthropicKey'); saveField('setAnthModel', 'anthropicModel');
     saveField('setTrUrl', 'transcribeUrl'); saveField('setTrKey', 'transcribeKey'); saveField('setTrModel', 'transcribeModel');
+    saveField('setPexelsKey', 'pexelsKey');
 
     bind('setAutoDel', 'change', (e) => { state.settings.autoDeleteAudio = e.target.checked; saveSettings(); saveHint('설정 저장됨'); });
     bind('dBulkAudio', 'click', bulkDeleteAtomizedAudio);
