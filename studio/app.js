@@ -680,7 +680,7 @@
           ${P.deep ? `<button class="btn" id="plSlidesGen">🖼 슬라이드 초안(.pptx)</button>` : ''}
           <button class="btn ghost danger right" id="plDel">삭제</button>
         </div>
-        <p class="muted small" style="margin:0">.md 파일은 <b>NotebookLM 소스</b>로 바로 올릴 수 있습니다(드래그 업로드). NotebookLM이 만든 브리핑·정리는 슬라이드 개요 칸에 붙여넣어 다시 심화 설계에 쓰세요.</p>
+        <p class="muted small" style="margin:0">.md 파일은 <b>NotebookLM 소스</b>로 바로 올릴 수 있습니다(드래그 업로드). NotebookLM이 만든 브리핑·정리는 슬라이드 개요 칸에 붙여넣어 다시 심화 설계에 쓰세요. 업로드·슬라이드 생성까지 클로드로 자동화하려면 저장소의 <b>docs/notebooklm-연동.md</b>(notebooklm-py MCP/스킬 설치법)를 참고하세요.</p>
       </div>`, () => {
       const save = async (silent) => {
         P.title = $('#plTitle').value.trim() || P.title;
