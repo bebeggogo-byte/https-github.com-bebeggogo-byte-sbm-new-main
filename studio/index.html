@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>강의 스튜디오 — 녹음·원자화·조립 · 네다바웨이</title>
+<meta name="description" content="강의를 녹음·자막화하고 지식 아톰으로 원자화·분류한 뒤, 새 강의로 조립·융합하는 개인 스튜디오. 컴퓨터·폰에 설치해서 오프라인으로 사용.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#6b4423">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="강의 스튜디오">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="stylesheet" href="studio.css">
+</head>
+<body>
+<div id="app" aria-live="polite">
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot" aria-hidden="true"></span>
+      <div class="brand-txt">
+        <strong>강의 스튜디오</strong>
+        <span class="sub">녹음 → 원자화 → 조립</span>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs" role="tablist">
+      <button data-tab="design" role="tab"><span class="ti">📐</span><span class="tl">설계</span></button>
+      <button data-tab="record" class="active" role="tab"><span class="ti">●</span><span class="tl">녹음</span></button>
+      <button data-tab="lectures" role="tab"><span class="ti">🎧</span><span class="tl">강의원본</span></button>
+      <button data-tab="atoms" role="tab"><span class="ti">🧩</span><span class="tl">아톰</span></button>
+      <button data-tab="compose" role="tab"><span class="ti">🛠</span><span class="tl">조립대</span></button>
+      <button data-tab="data" role="tab"><span class="ti">⚙</span><span class="tl">데이터</span></button>
+    </nav>
+    <div class="topbar-actions">
+      <span class="savehint" id="saveHint">준비됨</span>
+    </div>
+  </header>
+
+  <main id="views">
+    <section class="view" id="view-design" role="tabpanel" hidden></section>
+    <section class="view" id="view-record" role="tabpanel"></section>
+    <section class="view" id="view-lectures" role="tabpanel" hidden></section>
+    <section class="view" id="view-atoms" role="tabpanel" hidden></section>
+    <section class="view" id="view-compose" role="tabpanel" hidden></section>
+    <section class="view" id="view-data" role="tabpanel" hidden></section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head"><h3 id="modalTitle"></h3><button class="icon-btn" id="modalClose" aria-label="닫기">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
