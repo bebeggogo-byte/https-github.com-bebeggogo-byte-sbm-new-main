@@ -3,27 +3,11 @@
   "title": "Nedabah Way 글",
   "home_page_url": "https://nedabah.org/notes/",
   "feed_url": "https://nedabah.org/feed.json",
-  "description": "네다바웨이가 검증된 자료에 근거해 쓰는 묵상·학습·관점·AI·자동화 글",
+  "description": "네다바웨이가 검증된 자료에 근거해 쓰는 학습·관점·AI·자동화 글",
   "language": "ko",
   "icon": "https://nedabah.org/icons/icon-512.png",
   "favicon": "https://nedabah.org/icons/icon-192.png",
   "items": [
-    {
-      "id": "https://nedabah.org/programs/sbm/honest-sharing/",
-      "url": "https://nedabah.org/programs/sbm/honest-sharing/",
-      "title": "나눔이 어색한 사람을 위한 안내 — 솔직함이 정답을 이긴다",
-      "content_text": "나눔에서 중요한 건 정답이 아니라 솔직함입니다. 심리적 안전감을 근거로 안전한 나눔을 만드는 3가지.",
-      "date_published": "2026-05-31T00:00:00+09:00",
-      "language": "ko"
-    },
-    {
-      "id": "https://nedabah.org/programs/sbm/read-together/",
-      "url": "https://nedabah.org/programs/sbm/read-together/",
-      "title": "혼자 하던 묵상이 멈추는 이유, 그리고 함께 읽기",
-      "content_text": "혼자 하던 묵상이 멈추는 이유는 의지가 아니라 구조입니다. 하브루타와 탈무드를 근거로 함께 읽기를 정리합니다.",
-      "date_published": "2026-05-31T00:00:00+09:00",
-      "language": "ko"
-    },
     {
       "id": "https://nedabah.org/programs/leadership/praise-the-process/",
       "url": "https://nedabah.org/programs/leadership/praise-the-process/",
