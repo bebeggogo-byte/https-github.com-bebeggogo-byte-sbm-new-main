@@ -18,6 +18,11 @@
     });
   });
   // 프로모션 마감 카운트다운
+  var END=new Date('2026-12-31T23:59:59+09:00');
   var el=document.getElementById('promoLeft');
-  if(el){ var d=Math.ceil((new Date('2026-12-31T23:59:59+09:00')-new Date())/864e5); el.textContent=d>0?('마감까지 '+d+'일'):'프로모션 종료'; }
+  if(el){ var d=Math.ceil((END-new Date())/864e5); el.textContent=d>0?('마감까지 '+d+'일'):'프로모션 종료'; }
+  var cd=document.querySelector('[data-countdown]');
+  if(cd){ var tick=function(){ var t=Math.max(0,END-new Date()), v={d:Math.floor(t/864e5),h:Math.floor(t/36e5)%24,m:Math.floor(t/6e4)%60,s:Math.floor(t/1e3)%60};
+    for(var k in v){ var e=cd.querySelector('[data-'+k+']'); if(e) e.textContent=(v[k]<10&&k!=='d'?'0':'')+v[k]; } };
+    tick(); setInterval(tick,1000); }
 })();
