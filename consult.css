@@ -1,0 +1,36 @@
+/* 취업 컨설팅·기관 의뢰 페이지 공용 */
+.k-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.2rem 0}
+.k-card{border:1px solid rgba(107,68,35,.22);border-radius:12px;padding:1.1rem 1.2rem;background:rgba(255,255,255,.6)}
+.k-card b.n{display:block;font-size:.8rem;letter-spacing:.12em;color:#b0632e;margin-bottom:.3rem}
+.k-card h3{margin:.1rem 0 .45rem;font-size:1.08rem}
+.k-card p{margin:0;font-size:.95rem}
+.price{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.98rem}
+.price th,.price td{border-bottom:1px solid rgba(107,68,35,.2);padding:.7rem .5rem;text-align:left;vertical-align:top}
+.price .strike{text-decoration:line-through;opacity:.6}
+.price .hot{background:rgba(207,138,52,.12);font-weight:600}
+.badge{display:inline-block;font-size:.78rem;padding:.15rem .6rem;border-radius:999px;background:#6b4423;color:#fff;margin-left:.3rem}
+.deadline{border-left:4px solid #cf8a34;background:rgba(207,138,52,.1);padding:.8rem 1rem;border-radius:0 10px 10px 0;margin:1rem 0}
+.sample{border:1px dashed rgba(107,68,35,.4);border-radius:12px;padding:1rem 1.2rem;background:#fffdf8}
+.sample table{width:100%;border-collapse:collapse;font-size:.92rem}
+.sample th,.sample td{border-bottom:1px solid rgba(107,68,35,.15);padding:.5rem .4rem;text-align:left;vertical-align:top}
+.sample .lbl{font-size:.8rem;color:#b0632e;letter-spacing:.08em}
+.cform{display:grid;gap:.85rem;margin-top:1rem}
+.cform .row{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+.cform label{display:block;font-size:.88rem;margin-bottom:.25rem;font-weight:600}
+.cform input,.cform select,.cform textarea{width:100%;padding:.65rem .7rem;border:1px solid rgba(107,68,35,.3);border-radius:8px;font:inherit;background:#fff;box-sizing:border-box}
+.cform textarea{min-height:90px}
+.cform fieldset{border:1px solid rgba(107,68,35,.2);border-radius:10px;padding:.8rem 1rem}
+.cform legend{font-weight:700;padding:0 .3rem}
+.cform .agree{display:flex;gap:.5rem;align-items:flex-start;font-size:.88rem}
+.cform .agree input{width:auto;margin-top:.2rem}
+.cform button{padding:.85rem 1.2rem;border:0;border-radius:999px;background:#6b4423;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.done{border:1px solid #2f7a4a;background:rgba(47,122,74,.08);border-radius:10px;padding:1rem;margin-top:1rem}
+.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:.6rem}
+.steps li{counter-increment:s;padding:.7rem .9rem .7rem 3rem;position:relative;border:1px solid rgba(107,68,35,.18);border-radius:10px;background:rgba(255,255,255,.55)}
+.steps li::before{content:counter(s);position:absolute;left:.9rem;top:.65rem;width:1.5rem;height:1.5rem;border-radius:50%;background:#6b4423;color:#fff;font-size:.8rem;display:grid;place-items:center}
+.docs{width:100%;border-collapse:collapse;font-size:.95rem}
+.docs th,.docs td{border-bottom:1px solid rgba(107,68,35,.2);padding:.55rem .45rem;text-align:left;vertical-align:top}
+.sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:50;display:none;gap:.5rem;padding:.6rem 16px;background:#6b4423}
+.sticky-cta a{flex:1;text-align:center;color:#fff;font-weight:700;text-decoration:none;padding:.55rem;border:1px solid rgba(255,255,255,.5);border-radius:999px}
+@media (max-width:720px){.cform .row{grid-template-columns:1fr}.sticky-cta{display:flex}body{padding-bottom:64px}}
+@media print{.nav,.sticky-cta,.cform,.cat-cta,.no-print{display:none!important}.cat-main{padding-top:0}}
