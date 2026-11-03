@@ -316,7 +316,7 @@
   <div class="wrap nav-in">
     <a href="/" class="logo">NEDABAH <b>WAY</b></a>
     <nav class="nav-links" aria-label="주요">
-      <a class="item" href="/consulting/">취업 컨설팅</a>
+      <a class="item" href="/consulting/">커리어 클리닉</a>
       <a class="item" href="/colleges/">기관 의뢰</a>
       <a class="item" href="#offer">교육</a>
       <a class="item" href="/growth/">성장 기록</a>
@@ -330,7 +330,7 @@
   <section class="hero-sec">
     <div class="wrap hero2">
       <div class="hero2-copy reveal">
-        <div class="hero2-eyebrow">1:1 취업 컨설팅 · 온라인 2회 + 보고서</div>
+        <div class="hero2-eyebrow">커리어 클리닉 · 병원 전 직종 1:1 취업 진단</div>
         <h1>자소서는 잘 썼는데<br><span class="hl">떨어지는 이유</span>를 찾습니다</h1>
         <p>전문 컨설턴트의 합격 전략과 AI 데이터 분석으로 자기소개서와 면접을 2회 만에 바꿉니다. 끝나면 컨설팅 보고서를 드립니다.</p>
         <p class="hero-promo" style="margin-top:.4rem;padding:.6rem .9rem;border-radius:10px;background:rgba(245,179,1,.15);font-size:.95rem">연말 프로모션 · 2회 정가 <s>80만원</s> → 친구 2명과 함께 신청 시 <b>1인 10만원</b> · 1명과 함께 <b>17만원</b> · 12월 31일까지</p>
@@ -393,8 +393,8 @@
         <a class="oc reveal" href="/consulting/">
           <div class="ph" data-label="사진 자리 · 1:1 취업 컨설팅(얼굴 가림)"></div>
           <div class="body">
-            <div class="row1"><span class="pill">NEW</span><span class="meta">간호학과·전문대·특성화고 · 온라인 1:1 · 2회</span></div>
-            <h3 class="serif">1:1 취업 컨설팅</h3>
+            <div class="row1"><span class="pill">NEW</span><span class="meta">간호·임상병리·방사선·물리치료 등 병원 전 직종 · 온라인 1:1 · 2회</span></div>
+            <h3 class="serif">커리어 클리닉 · 1:1 취업 진단</h3>
             <p>합격 전략 + AI 데이터 분석으로 자소서·면접을 2회 만에. 마지막에 컨설팅 보고서. 학교 단위 운영은 <u>기관 의뢰</u>로.</p>
             <span class="go">자세히 보기 →</span>
           </div>
@@ -607,6 +607,38 @@
       }
     });
   })();
+</script>
+
+<!-- 연말 프로모션 팝업 (2026-12-31까지) -->
+<div id="promoPop" role="dialog" aria-modal="true" aria-labelledby="promoPopTitle" hidden style="position:fixed;inset:0;z-index:9999;background:rgba(8,14,30,.62);display:grid;place-items:center;padding:16px">
+  <div style="position:relative;width:min(420px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 30px 70px rgba(0,0,0,.35)">
+    <button type="button" data-pop-close aria-label="닫기" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.9);font-size:20px;cursor:pointer;z-index:2">×</button>
+    <a href="/consulting/?utm_source=home&amp;utm_medium=popup&amp;utm_campaign=yearend2026#price"><img src="/og/promo-1080x1350.png" width="1080" height="1350" alt="커리어 클리닉 연말 프로모션: 친구 2명과 함께 신청하면 1인 10만원(정가 80만원), 12월 31일 마감" style="display:block;width:100%;height:auto"></a>
+    <div style="padding:14px 16px 16px">
+      <p id="promoPopTitle" style="margin:0 0 10px;font-weight:800;font-size:1.02rem;color:#0f1b33">2026 연말 프로모션 · <span id="popLeft">12월 31일 마감</span></p>
+      <div style="display:flex;gap:8px">
+        <a href="/consulting/?utm_source=home&amp;utm_medium=popup&amp;utm_campaign=yearend2026#apply" style="flex:1;text-align:center;background:#2350b8;color:#fff;font-weight:800;text-decoration:none;padding:.8rem;border-radius:10px">3명이 10만원으로 신청</a>
+        <a href="/consulting/?utm_source=home&amp;utm_medium=popup&amp;utm_campaign=yearend2026" style="flex:0 0 auto;text-align:center;border:1px solid #c9d1e0;color:#0f1b33;font-weight:700;text-decoration:none;padding:.8rem 1rem;border-radius:10px">자세히</a>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:.85rem;color:#6b7891;cursor:pointer"><input type="checkbox" id="popToday"> 오늘 하루 보지 않기</label>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var END=new Date('2026-12-31T23:59:59+09:00'); if(new Date()>END) return;
+  var pop=document.getElementById('promoPop'); if(!pop) return;
+  var KEY='nw_promo_hide_until', until=0;
+  try{ until=+localStorage.getItem(KEY)||0; }catch(e){}
+  if(Date.now()<until) return;
+  var d=Math.ceil((END-new Date())/864e5), l=document.getElementById('popLeft'); if(l) l.textContent='마감까지 '+d+'일';
+  var last=null;
+  function close(){ if(document.getElementById('popToday').checked){ var t=new Date(); t.setHours(24,0,0,0); try{ localStorage.setItem(KEY,String(t.getTime())); }catch(e){} }
+    pop.hidden=true; document.removeEventListener('keydown',esc); if(last) last.focus(); }
+  function esc(e){ if(e.key==='Escape') close(); }
+  setTimeout(function(){ last=document.activeElement; pop.hidden=false; pop.querySelector('[data-pop-close]').focus(); document.addEventListener('keydown',esc); },800);
+  pop.addEventListener('click',function(e){ if(e.target===pop||e.target.hasAttribute('data-pop-close')) close(); });
+})();
 </script>
 </body>
 </html>
