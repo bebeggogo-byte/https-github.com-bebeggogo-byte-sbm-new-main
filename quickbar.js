@@ -3,16 +3,13 @@
   if(document.getElementById('aqb')) return;
   var here=location.pathname;
   var items=[
-    {t:'신청',s:'1인 15만원',h:'/consulting/#apply',k:'apply',p:1},
-    {t:'가격',s:'15만원',h:'/consulting/#price',k:'price'},
-    {t:'키워드',s:'무료 테스트',h:'/keyword/',k:'keyword'},
-    {t:'진행 과정',s:'순서·가격',h:'/consulting/process/',k:'process'},
-    {t:'분야별',s:'안내 보기',h:'/fields/',k:'fields'},
+    {t:'병원 취업',s:'안내 보기',h:'/#hospital',k:'hospital',p:1},
+    {t:'국시생 취업',s:'시험 직후',h:'/#exam',k:'exam'},
     {t:'진로 코칭',s:'진로 설정',h:'/career/',k:'career'},
-    {t:'시험 달력',s:'사전예약',h:'/calendar/',k:'exam'},
-    {t:'학교·기관',s:'견적 요청',h:'/colleges/#quote',k:'b2b'},
-    {t:'DM 문의',s:'인스타',h:'https://instagram.com/nedabah_way',k:'dm',x:1}
+    {t:'키워드',s:'무료 테스트',h:'/keyword/',k:'keyword'},
+    {t:'학교·기관',s:'견적 요청',h:'/colleges/#quote',k:'b2b'}
   ];
+
   var css='#aqb{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;font-family:inherit}'
   +'#aqb a{display:block;width:76px;padding:9px 4px;border-radius:12px;background:#fff;border:1px solid #e5e8eb;color:#191f28;text-decoration:none;text-align:center;font-weight:800;font-size:13px;line-height:1.25;transition:transform .15s}'
   +'#aqb a small{display:block;font-weight:500;font-size:10.5px;color:#8b95a1;margin-top:2px}'
