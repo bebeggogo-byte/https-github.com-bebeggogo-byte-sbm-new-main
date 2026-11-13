@@ -12,13 +12,13 @@
     {t:'DM 문의',s:'인스타',h:'https://instagram.com/nedabah_way',k:'dm',x:1}
   ];
   var css='#aqb{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;font-family:inherit}'
-  +'#aqb a{display:block;width:76px;padding:9px 4px;border-radius:12px;background:#fff;border:1px solid #dfe4ee;color:#0f1b33;text-decoration:none;text-align:center;font-weight:800;font-size:13px;line-height:1.25;box-shadow:0 6px 16px rgba(15,27,51,.10);transition:transform .15s}'
-  +'#aqb a small{display:block;font-weight:500;font-size:10.5px;color:#6b7891;margin-top:2px}'
+  +'#aqb a{display:block;width:76px;padding:9px 4px;border-radius:12px;background:#fff;border:1px solid #e5e8eb;color:#191f28;text-decoration:none;text-align:center;font-weight:800;font-size:13px;line-height:1.25;transition:transform .15s}'
+  +'#aqb a small{display:block;font-weight:500;font-size:10.5px;color:#8b95a1;margin-top:2px}'
   +'#aqb a:hover{transform:translateX(-3px)}'
-  +'#aqb a.p{background:#2350b8;border-color:#2350b8;color:#fff}#aqb a.p small{color:#dbe5fb}'
-  +'#aqb button{width:76px;padding:7px 0;border-radius:12px;border:1px solid #dfe4ee;background:#0f1b33;color:#fff;font-weight:800;font-size:12px;cursor:pointer}'
-  +'#aqb .pg{width:76px;height:5px;border-radius:3px;background:#dfe4ee;overflow:hidden}#aqb .pg i{display:block;height:100%;width:0;background:#c9a24a}'
-  +'#aqb .d{font-size:10.5px;text-align:center;color:#c8423b;font-weight:800;background:#fff;border-radius:8px;padding:3px 0;border:1px solid #f3c9c6}'
+  +'#aqb a.p{background:#2f6bff;border-color:#2f6bff;color:#fff}#aqb a.p small{color:#dbe5fb}'
+  +'#aqb button{width:76px;padding:7px 0;border-radius:12px;border:1px solid #e5e8eb;background:#191f28;color:#fff;font-weight:800;font-size:12px;cursor:pointer}'
+  +'#aqb .pg{width:76px;height:5px;border-radius:3px;background:#e5e8eb;overflow:hidden}#aqb .pg i{display:block;height:100%;width:0;background:#2f6bff}'
+  +'#aqb .d{font-size:10.5px;text-align:center;color:#e5484d;font-weight:800;background:#fff;border-radius:8px;padding:3px 0;border:1px solid #e5e8eb}'
   +'@media(max-width:1100px){#aqb{display:none}}@media print{#aqb{display:none}}';
   var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
   var bar=document.createElement('nav'); bar.id='aqb'; bar.setAttribute('aria-label','바로가기');
