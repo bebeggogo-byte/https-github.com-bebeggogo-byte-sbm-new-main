@@ -191,7 +191,7 @@ const initShareBar = () => {
     bar.className = 'share-bar';
     bar.setAttribute('aria-label', '이 페이지 공유');
     bar.innerHTML = `
-        <span class="share-label">이 글이 떠오르는 사람에게 전해주세요</span>
+        <span class="share-label">이 글 공유하기</span>
         <div class="share-actions">
             <button type="button" class="share-btn" data-act="native" hidden>공유</button>
             <a class="share-btn" data-act="x" href="https://twitter.com/intent/tweet?text=${enc(title)}&url=${enc(url)}" target="_blank" rel="noopener">X</a>
