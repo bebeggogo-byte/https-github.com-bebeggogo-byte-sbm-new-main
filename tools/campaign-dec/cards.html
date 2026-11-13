@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>12월 의료기사 국가시험 캠페인 카드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* 색: 글자 #191f28, 보조 #4e5968 / #8b95a1, 선 #e5e8eb, 상자 #f5f6f8, 강조 #2f6bff 하나 */
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#e5e8eb;font-family:'Noto Sans KR',sans-serif;color:#191f28;padding:40px;display:flex;flex-wrap:wrap;gap:40px}
+.card{width:1080px;height:1350px;background:#fff;padding:84px 80px 0;position:relative;overflow:hidden;word-break:keep-all}
+.label{font-size:28px;font-weight:700;color:#2f6bff;letter-spacing:-.2px}
+h1{font-size:104px;font-weight:900;line-height:1.16;letter-spacing:-3.5px;margin-top:36px}
+h2{font-size:76px;font-weight:900;line-height:1.2;letter-spacing:-2.5px;margin-top:32px}
+.blue{color:#2f6bff}
+.sub{font-size:38px;font-weight:400;line-height:1.55;color:#4e5968;margin-top:40px;letter-spacing:-.6px}
+.sub b{font-weight:700;color:#191f28}
+.note{font-size:27px;font-weight:400;line-height:1.55;color:#8b95a1;letter-spacing:-.3px}
+.box{background:#f5f6f8;border-radius:28px;padding:44px 46px}
+.foot{position:absolute;left:80px;right:80px;bottom:0;height:152px;border-top:2px solid #e5e8eb;display:flex;align-items:center;justify-content:space-between;font-size:30px;letter-spacing:-.3px}
+.foot .l{color:#4e5968;font-weight:500}
+.foot .r{color:#2f6bff;font-weight:500}
+.bottom{position:absolute;left:80px;right:80px;bottom:190px}
+
+/* 가격 상자 */
+.pbox .t{font-size:34px;font-weight:700}
+.pbox .n{font-size:170px;font-weight:900;line-height:1;letter-spacing:-6px;margin-top:4px;white-space:nowrap}
+.pbox .n small{font-size:48px;font-weight:700;letter-spacing:-1px;margin-left:8px}
+.pbox .d{font-size:30px;color:#4e5968;margin-top:28px;letter-spacing:-.4px}
+
+/* 02 표 */
+table{width:100%;border-collapse:collapse;margin-top:40px}
+th{font-size:27px;font-weight:500;color:#8b95a1;text-align:left;padding:0 0 18px;border-bottom:2px solid #191f28}
+td{font-size:36px;font-weight:500;padding:0;height:104px;border-bottom:2px solid #e5e8eb;letter-spacing:-.8px;vertical-align:middle;white-space:nowrap}
+td.job{font-weight:900;font-size:38px}
+td.start{font-weight:900;color:#2f6bff}
+td small{display:block;font-size:24px;color:#8b95a1;font-weight:500;line-height:1;margin-bottom:0;letter-spacing:-.2px}
+td .w{font-size:27px;color:#8b95a1;font-weight:500}
+
+/* 03 일정 */
+.steps{margin-top:40px}
+.step{display:flex;align-items:flex-start;padding:22px 0;border-bottom:2px solid #e5e8eb}
+.step:first-child{border-top:2px solid #191f28}
+.step .when{flex:0 0 300px;font-size:36px;font-weight:900;letter-spacing:-1px;line-height:1.35}
+.step .what{font-size:35px;font-weight:500;line-height:1.35;letter-spacing:-.8px}
+.step .what span{display:block;font-size:28px;font-weight:400;color:#4e5968;margin-top:6px;letter-spacing:-.4px}
+.step.on .when{color:#2f6bff}
+
+/* 04 경쟁률 */
+.ratio{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0 14px;border-bottom:2px solid #e5e8eb}
+.ratio:first-child{border-top:2px solid #191f28}
+.ratio .j{font-size:40px;font-weight:700;letter-spacing:-.8px}
+.ratio .v{font-size:76px;font-weight:900;letter-spacing:-3px;line-height:1.1}
+.ratio .v small{font-size:40px;font-weight:700;letter-spacing:-1px}
+.facts{margin-top:30px;font-size:33px;line-height:1.6;color:#4e5968;letter-spacing:-.5px}
+.facts b{color:#191f28;font-weight:700}
+.prep .t{font-size:30px;font-weight:700;color:#2f6bff}
+.prep .i{font-size:38px;font-weight:900;letter-spacing:-1px;line-height:1.45;margin-top:10px}
+
+/* 05 가격표 */
+.comp{font-size:36px;font-weight:700;line-height:1.5;letter-spacing:-.8px;margin-top:22px}
+.price{display:flex;align-items:center;justify-content:space-between;padding:0;height:136px;border-bottom:2px solid #e5e8eb}
+.price:first-child{border-top:2px solid #191f28}
+.price .k{font-size:38px;font-weight:700;letter-spacing:-.8px}
+.price .k span{display:block;font-size:27px;font-weight:500;color:#4e5968;margin-top:4px;letter-spacing:-.3px}
+.price .p{font-size:72px;font-weight:900;letter-spacing:-2.5px;white-space:nowrap}
+.price .p small{font-size:32px;font-weight:700;letter-spacing:-.5px;margin-left:4px}
+.price.on .p,.price.on .k{color:#2f6bff}
+.price.on .k span{color:#2f6bff}
+.cond{margin-top:24px;font-size:29px;line-height:1.55;color:#4e5968;letter-spacing:-.5px}
+.who .t{font-size:27px;font-weight:700;color:#8b95a1}
+.who .i{font-size:30px;font-weight:700;line-height:1.45;letter-spacing:-.6px;margin-top:6px}
+
+/* 06 방법 */
+.how{margin-top:44px}
+.how .row{display:flex;align-items:flex-start;padding:27px 0;border-bottom:2px solid #e5e8eb}
+.how .row:first-child{border-top:2px solid #191f28}
+.how .no{flex:0 0 76px;font-size:44px;font-weight:900;color:#2f6bff;line-height:1.2}
+.how .tx{font-size:36px;font-weight:700;line-height:1.35;letter-spacing:-.8px}
+.how .tx span{display:block;font-size:28px;font-weight:400;color:#4e5968;margin-top:6px;letter-spacing:-.4px}
+.url .t{font-size:30px;font-weight:700}
+.url .u{font-size:46px;font-weight:900;color:#2f6bff;letter-spacing:-1.5px;margin-top:6px;white-space:nowrap}
+.url .d{font-size:28px;color:#4e5968;margin-top:10px;letter-spacing:-.4px}
+
+/* 직종별 표지 */
+.cells{display:flex;margin-top:40px;border-top:2px solid #191f28;border-bottom:2px solid #e5e8eb}
+.cell{flex:1;padding:22px 0 24px}
+.cell + .cell{padding-left:28px;border-left:2px solid #e5e8eb}
+.cell .t{font-size:27px;font-weight:500;color:#8b95a1}
+.cell .v{font-size:50px;font-weight:900;letter-spacing:-1.8px;margin-top:6px;white-space:nowrap}
+.cell .y{font-size:26px;font-weight:500;color:#8b95a1;margin-top:2px}
+.cell.on .v{color:#2f6bff}
+.cover h1{font-size:88px;margin-top:30px}
+</style>
+</head>
+<body>
+
+<!-- 01 표지 -->
+<section class="card" id="c01">
+  <div class="label">AURATO 아우라토 · 12월 의료기사 국가시험 응시자</div>
+  <h1>시험 다음 날부터<br><span class="blue">취업 컨설팅 시작</span></h1>
+  <p class="sub">작업치료사 · 물리치료사 · 임상병리사<br>치과위생사 · 방사선사<br>화상 1:1 60분 × 2회 + 개인 키워드 분석 보고서</p>
+  <div class="bottom box pbox">
+    <div class="t">총 3인 신청 (본인 포함)</div>
+    <div class="n">100,000<small>원 / 1인</small></div>
+    <div class="d">2026년 12월 31일 신청분까지 적용합니다</div>
+  </div>
+  <div class="foot"><span class="l">합격자 발표 전 자기소개서 완성</span><span class="r">nedabah.org/consulting/after-exam</span></div>
+</section>
+
+<!-- 02 시험일·발표일 -->
+<section class="card" id="c02">
+  <div class="label">AURATO 아우라토 · 2026년 12월 의료기사 국가시험</div>
+  <h2 style="font-size:68px">직종별 시험일과<br>합격자 발표일</h2>
+  <table>
+    <tr><th>직종</th><th>시험일</th><th>합격자 발표</th><th>컨설팅 시작</th></tr>
+    <tr><td class="job">작업치료사</td><td>12월 5일 <span class="w">토</span></td><td>12월 23일 <span class="w">수</span></td><td class="start">12월 6일</td></tr>
+    <tr><td class="job">물리치료사</td><td>12월 13일 <span class="w">일</span></td><td>12월 30일 <span class="w">수</span></td><td class="start">12월 14일</td></tr>
+    <tr><td class="job">임상병리사</td><td>12월 13일 <span class="w">일</span></td><td>12월 30일 <span class="w">수</span></td><td class="start">12월 14일</td></tr>
+    <tr><td class="job">치과위생사</td><td>12월 13일 <span class="w">일</span></td><td>12월 30일 <span class="w">수</span></td><td class="start">12월 14일</td></tr>
+    <tr><td class="job">방사선사</td><td>12월 19일 <span class="w">토</span></td><td><small>2027년</small>1월 8일 <span class="w">금</span></td><td class="start">12월 20일</td></tr>
+  </table>
+  <div class="bottom">
+    <p class="sub" style="margin-top:0;font-size:33px;line-height:1.5">시험일부터 합격자 발표까지 17~20일입니다.<br>컨설팅은 <b>시험 다음 날</b>부터 시작합니다.</p>
+    <p class="note" style="margin-top:14px">출처: 한국보건의료인국가시험원 직종별 시험정보</p>
+  </div>
+  <div class="foot"><span class="l">2 / 6 · 시험일과 발표일</span><span class="r">nedabah.org/calendar</span></div>
+</section>
+
+<!-- 03 시험 후 일정 -->
+<section class="card" id="c03">
+  <div class="label">AURATO 아우라토 · 시험 후 일정</div>
+  <h2>시험 후 일정</h2>
+  <div class="steps">
+    <div class="step"><div class="when">시험일 저녁</div><div class="what">1회차 일정 문자 수신<span>시험 전에는 연락하지 않습니다</span></div></div>
+    <div class="step on"><div class="when">시험 다음 날~</div><div class="what">1회차 60분<span>자기소개서 분석·수정</span></div></div>
+    <div class="step"><div class="when">1주 뒤</div><div class="what">2회차 60분<span>키워드 확정·면접 연습</span></div></div>
+    <div class="step"><div class="when">발표 전</div><div class="what">자기소개서 완성<span>개인 키워드 분석 보고서 전달</span></div></div>
+    <div class="step"><div class="when">합격자 발표일</div><div class="what">채용 공고 지원</div></div>
+  </div>
+  <div class="bottom box" style="padding:34px 40px">
+    <div style="font-size:27px;font-weight:700;color:#8b95a1">물리치료사 일정 예시</div>
+    <div style="font-size:35px;font-weight:700;letter-spacing:-.9px;margin-top:8px;line-height:1.45">12월 13일 시험 → <span class="blue">12월 14일 1회차</span> → 12월 30일 발표</div>
+  </div>
+  <div class="foot"><span class="l">3 / 6 · 시험 후 일정</span><span class="r">nedabah.org/consulting/after-exam</span></div>
+</section>
+
+<!-- 04 채용 경쟁률 -->
+<section class="card" id="c04">
+  <div class="label">AURATO 아우라토 · 채용 경쟁률</div>
+  <h2 style="font-size:68px">한 공공병원의<br>의료기사 채용 경쟁률</h2>
+  <div style="margin-top:34px">
+    <div class="ratio"><span class="j">물리치료사</span><span class="v blue">19.3<small>대 1</small></span></div>
+    <div class="ratio"><span class="j">임상병리사</span><span class="v">7.7<small>대 1</small></span></div>
+    <div class="ratio"><span class="j">방사선사</span><span class="v">4<small>대 1</small></span></div>
+  </div>
+  <p class="facts">2025년 물리치료사 국가시험은 5,359명이 응시해 <b>4,304명</b>이 합격했습니다(80.3%). 방사선사는 2,819명이 응시해 <b>2,348명</b>이 합격했습니다(83.3%).</p>
+  <div class="bottom box prep" style="padding:28px 40px;bottom:236px">
+    <div class="t">합격자 발표 전에 준비하는 3가지</div>
+    <div class="i">자기소개서 완성본 · 면접 예상 질문 · 지원 일정표</div>
+  </div>
+  <p class="note" style="position:absolute;left:80px;right:80px;bottom:176px;font-size:24px">출처: 울산매일 보도(울주병원 채용), 한국보건의료인국가시험원 연도별 합격 현황</p>
+  <div class="foot"><span class="l">4 / 6 · 채용 경쟁률</span><span class="r">nedabah.org/consulting/after-exam</span></div>
+</section>
+
+<!-- 05 구성과 가격 -->
+<section class="card" id="c05">
+  <div class="label">AURATO 아우라토 · 구성과 가격</div>
+  <h2>연말 프로모션 가격</h2>
+  <p class="comp">화상 1:1 60분 × 2회 + 개인 키워드 분석 보고서</p>
+  <div style="margin-top:28px">
+    <div class="price on"><div class="k">총 3인 신청<span>총 1인 신청보다 180,000원 낮음</span></div><div class="p">100,000<small>원 / 1인</small></div></div>
+    <div class="price"><div class="k">총 2인 신청<span>총 1인 신청보다 110,000원 낮음</span></div><div class="p">170,000<small>원 / 1인</small></div></div>
+    <div class="price"><div class="k">총 1인 신청</div><div class="p">280,000<small>원</small></div></div>
+  </div>
+  <p class="cond">인원은 본인을 포함한 총 신청 인원입니다.<br>2인·3인으로 신청해도 컨설팅은 각자 1:1로 진행합니다.<br>2026년 12월 31일 신청분까지 이 가격을 적용합니다.</p>
+  <div class="bottom box who" style="padding:26px 40px;bottom:178px">
+    <div class="t">컨설턴트 김창환</div>
+    <div class="i">교육 현장 12년 · 국제코칭연맹 인증 코치(ACC) 출신<br>2026년 130명 진행</div>
+  </div>
+  <div class="foot"><span class="l">5 / 6 · 구성과 가격</span><span class="r">nedabah.org/consulting/after-exam</span></div>
+</section>
+
+<!-- 06 사전예약 방법 -->
+<section class="card" id="c06">
+  <div class="label">AURATO 아우라토 · 사전예약 방법</div>
+  <h2>사전예약 방법</h2>
+  <div class="how">
+    <div class="row"><div class="no">1</div><div class="tx">사전예약 페이지에서 신청서 작성<span>이름, 휴대폰, 응시 시험, 신청 인원을 입력합니다</span></div></div>
+    <div class="row"><div class="no">2</div><div class="tx">시험 전에는 연락을 받지 않음<span>아우라토는 시험일까지 연락하지 않습니다</span></div></div>
+    <div class="row"><div class="no">3</div><div class="tx">시험일 저녁에 일정 문자 수신<span>1회차 날짜와 시간을 정합니다</span></div></div>
+    <div class="row"><div class="no">4</div><div class="tx">시험 다음 날부터 1회차 시작<span>화상으로 진행합니다</span></div></div>
+  </div>
+  <div class="bottom box url" style="padding:38px 42px">
+    <div class="t">사전예약 주소</div>
+    <div class="u">nedabah.org/consulting/after-exam</div>
+    <div class="d">2026년 12월 31일까지 사전예약하면 연말 프로모션 가격을 적용합니다</div>
+  </div>
+  <div class="foot" style="font-size:27px"><span class="l">키워드 테스트 nedabah.org/keyword</span><span class="r">시험 달력 nedabah.org/calendar</span></div>
+</section>
+
+<!-- 직종별 표지: 아래 자료로 5장을 만듭니다 -->
+<script>
+var COVERS = [
+  {id:'cover-jageopchiryosa',   job:'작업치료사', exam:'12월 5일',  examW:'토', start:'12월 6일',  startW:'일', result:'12월 23일', resultW:'수', resultY:'2026년'},
+  {id:'cover-mullichiryosa',    job:'물리치료사', exam:'12월 13일', examW:'일', start:'12월 14일', startW:'월', result:'12월 30일', resultW:'수', resultY:'2026년'},
+  {id:'cover-imsangbyeongnisa', job:'임상병리사', exam:'12월 13일', examW:'일', start:'12월 14일', startW:'월', result:'12월 30일', resultW:'수', resultY:'2026년'},
+  {id:'cover-chigwawisaengsa',  job:'치과위생사', exam:'12월 13일', examW:'일', start:'12월 14일', startW:'월', result:'12월 30일', resultW:'수', resultY:'2026년'},
+  {id:'cover-bangsaseonsa',     job:'방사선사',   exam:'12월 19일', examW:'토', start:'12월 20일', startW:'일', result:'1월 8일',   resultW:'금', resultY:'2027년'}
+];
+COVERS.forEach(function(c){
+  var s = document.createElement('section');
+  s.className = 'card cover';
+  s.id = c.id;
+  s.innerHTML =
+    '<div class="label">AURATO 아우라토 · ' + c.job + ' 국가시험 응시자</div>' +
+    '<h1>' + c.job + ' 시험<br>다음 날 <span class="blue">' + c.start + '</span>부터<br>취업 컨설팅 시작</h1>' +
+    '<div class="cells">' +
+      '<div class="cell"><div class="t">시험일</div><div class="v">' + c.exam + '</div><div class="y">2026년 · ' + c.examW + '요일</div></div>' +
+      '<div class="cell on"><div class="t">컨설팅 시작</div><div class="v">' + c.start + '</div><div class="y">2026년 · ' + c.startW + '요일</div></div>' +
+      '<div class="cell"><div class="t">합격자 발표</div><div class="v">' + c.result + '</div><div class="y">' + c.resultY + ' · ' + c.resultW + '요일</div></div>' +
+    '</div>' +
+    '<p class="sub" style="font-size:33px;margin-top:26px">화상 1:1 60분 × 2회 + 개인 키워드 분석 보고서</p>' +
+    '<div class="bottom box pbox" style="padding:32px 46px;bottom:182px">' +
+      '<div class="t">총 3인 신청 (본인 포함)</div>' +
+      '<div class="n" style="font-size:128px">100,000<small>원 / 1인</small></div>' +
+      '<div class="d">2026년 12월 31일 신청분까지 적용합니다</div>' +
+    '</div>' +
+    '<div class="foot"><span class="l">합격자 발표 전 자기소개서 완성</span><span class="r">nedabah.org/consulting/after-exam</span></div>';
+  document.body.appendChild(s);
+});
+</script>
+</body>
+</html>
