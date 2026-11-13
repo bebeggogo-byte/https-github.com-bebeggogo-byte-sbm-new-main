@@ -166,3 +166,6 @@ section[id]{scroll-margin-top:64px}
 h3.rg{font-size:.95rem;color:var(--blue);margin:1.2rem 0 .2rem}
 .chips.big .tile{display:inline-flex;align-items:center;gap:.45rem;border-radius:10px;padding:.35rem .7rem .35rem .35rem;background:#fff}
 .chips.big .tile i{font-style:normal;display:grid;place-items:center;width:28px;height:28px;border-radius:7px;color:#fff;font-weight:800;font-size:.85rem;flex:none}
+.card,.tk,.seg a{min-width:0}
+.big{font-size:clamp(1.35rem,5.2vw,2.2rem);overflow-wrap:anywhere}
+@media(max-width:520px){.grid4{grid-template-columns:1fr}.cmp{display:block;overflow-x:auto}}
