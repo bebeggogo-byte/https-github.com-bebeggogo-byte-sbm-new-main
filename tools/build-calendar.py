@@ -22,12 +22,12 @@ for ym in sorted(months):
     rows+='<h3 class="rg" style="font-size:1.15rem;color:var(--ink);margin-top:1.6rem">%s년 %d월</h3>\n<table class="cmp"><thead><tr><th>시험</th><th>시험일</th><th>합격 발표·다음 일정</th><th>컨설팅 시작 가능일</th><th>준비 내용</th></tr></thead><tbody>\n'%(y,int(m))
     for e in sorted(months[ym],key=lambda x:x['exam']):
         nxt=(f(e['result'])+(' · '+e['season'] if e['season'] else '')) if e['result'] else (e['season'] or '공고 확인 후 안내')
-        rows+='<tr><td><b>%s</b><br><span style="font-size:.82rem;color:var(--mut)">%s</span></td><td>%s</td><td>%s</td><td class="us">%s</td><td>%s</td></tr>\n'%(html.escape(e['job']),e['cat'],f(e['exam']),nxt,start(e['exam']),html.escape(e['focus']))
+        rows+='<tr><td><b><a href="'+e.get('link','/consulting/')+'">%s</a></b><br><span style="font-size:.82rem;color:var(--mut)">%s</span></td><td>%s</td><td>%s</td><td class="us">%s</td><td>%s</td></tr>\n'%(html.escape(e['job']),e['cat'],f(e['exam']),nxt,start(e['exam']),html.escape(e['focus']))
     rows+='</tbody></table>\n'
 und='<table class="cmp"><thead><tr><th>시험</th><th>시기</th><th>준비 내용</th><th>일정 근거</th></tr></thead><tbody>\n'
 for e in items:
     if not e['exam']:
-        und+='<tr><td><b>%s</b><br><span style="font-size:.82rem;color:var(--mut)">%s</span></td><td>%s</td><td>%s</td><td>%s</td></tr>\n'%(html.escape(e['job']),e['cat'],e['season'],html.escape(e['focus']),e['src'])
+        und+='<tr><td><b><a href="'+e.get('link','/consulting/')+'">%s</a></b><br><span style="font-size:.82rem;color:var(--mut)">%s</span></td><td>%s</td><td>%s</td><td>%s</td></tr>\n'%(html.escape(e['job']),e['cat'],e['season'],html.escape(e['focus']),e['src'])
 und+='</tbody></table>'
 c=open('calendar/index.html',encoding='utf-8').read()
 c,n1=re.subn(r'<h3 class="rg" style="font-size:1\.15rem.*?(?=\s*<p class="src">출처:)',lambda m:rows.rstrip('\n'),c,count=1,flags=re.S)
