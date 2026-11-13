@@ -242,3 +242,7 @@ body{letter-spacing:-.01em}
 .kwchip small{font-size:.74rem;font-weight:600;color:var(--ink2)}
 .kwfirst{font-size:1.1rem;font-weight:600;line-height:1.7;margin:.5rem 0 0}
 button.btn{cursor:pointer;font:inherit;font-weight:800}
+.tickets.one{grid-template-columns:minmax(0,440px);justify-content:center}
+.deck{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:10px;-webkit-overflow-scrolling:touch}
+.deck a{flex:0 0 min(86%,760px);scroll-snap-align:start;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.deck img{display:block;width:100%;height:auto}

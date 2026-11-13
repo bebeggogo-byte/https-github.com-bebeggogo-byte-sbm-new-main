@@ -24,7 +24,7 @@
   });
   // 프로모션 마감 카운트다운
   document.querySelectorAll('[data-share]').forEach(function(b){ b.addEventListener('click',function(){
-    var u=location.origin+'/?utm_source=share&utm_medium=friend&utm_campaign=yearend2026', t='아우라토 병원 취업 1:1 컨설팅. 총 3인 신청 시 1인 10만원(12월 31일까지).';
+    var u=location.origin+'/?utm_source=share&utm_medium=share&utm_campaign=yearend2026', t='아우라토 병원 취업 1:1 컨설팅. 화상 1:1 2회와 보고서, 1인 15만원(12월 31일 신청분까지).';
     if(navigator.share){ navigator.share({title:'아우라토 AURATO',text:t,url:u}).catch(function(){}); }
     else if(navigator.clipboard){ navigator.clipboard.writeText(t+' '+u).then(function(){ var d=b.parentNode.querySelector('[data-share-done]'); if(d) d.hidden=false; }); }
   }); });
