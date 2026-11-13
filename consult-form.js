@@ -6,6 +6,7 @@
       ev.preventDefault();
       var fd=new FormData(f), memo=[];
       f.querySelectorAll('[data-memo]').forEach(function(el){
+        if(el.type==='radio'&&!el.checked) return;
         var v=el.type==='checkbox'?(el.checked?'예':'아니오'):el.value;
         if(v) memo.push(el.getAttribute('data-memo')+': '+v);
       });
