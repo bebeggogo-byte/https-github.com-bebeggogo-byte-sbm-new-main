@@ -11,8 +11,8 @@ expected={  # (차액, 퍼센트) 허용 조합
  (won(SOLO-TRIO),pct(SOLO,TRIO)),(won(SOLO-PAIR),pct(SOLO,PAIR)),
  (won(combo-TRIO),pct(combo,TRIO)),(won(MKT_ACAD-TRIO),pct(MKT_ACAD,TRIO))}
 must={won(combo):'시중 조합 합계',won(MKT_ITEM*MKT_ITEMS):'문항 첨삭 합계',won(MKT_INT30*2):'모의면접 60분',won(TRIO//2):'시간당 금액'}
-ok_pct={'95.4','57.4','42.7'}|{str(p) for _,p in expected}
-pages=['index.html','consulting/index.html','consulting/process/index.html','consulting/after-exam/index.html','colleges/index.html','references/index.html']
+ok_pct={'95.4','57.4','42.7','80.3'}|{str(p) for _,p in expected}
+pages=['index.html','consulting/index.html','consulting/process/index.html','consulting/after-exam/index.html','colleges/index.html','references/index.html','calendar/index.html','keyword/index.html']
 bad=0
 for f in pages:
     s=re.sub(r'<style.*?</style>|<script(?! type="application/ld).*?</script>|style="[^"]*"','',open(f,encoding='utf-8').read(),flags=re.S)
