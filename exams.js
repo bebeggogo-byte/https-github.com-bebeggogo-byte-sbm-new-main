@@ -177,7 +177,7 @@ window.NW_EXAMS=[
       when='시험 '+fmt(e.exam)+(e.result?' · 발표 '+fmt(e.result):'')+(e.season?' · '+e.season:'');
       badge=dd>0?('시험까지 D-'+dd):(dd>-28?'지금 시작 가능':'상시 진행');
     }
-    return '<div class="card exam"><span class="tagb">'+badge+'</span><h3>'+e.job+'</h3><p>'+when+'</p><p style="font-size:.85rem;color:var(--mut)">'+e.focus+'</p><a class="btn g" href="/consulting/after-exam/#reserve" data-job="'+e.job+'">시험 다음 날 시작 예약</a>'+(e.link?'<a href="'+e.link+'" style="font-size:.85rem;text-align:center;margin-top:.4rem">분야 안내 보기</a>':'')+'</div>';
+    return '<div class="card exam"><span class="tagb">'+badge+'</span><h3>'+e.job+'</h3><p>'+when+'</p><p style="font-size:.85rem;color:var(--mut)">'+e.focus+'</p><a class="btn g" href="/consulting/after-exam/#reserve" data-job="'+e.job+'">시험 다음 날 시작 예약</a>'+(e.link?'<a href="'+e.link+'" style="display:block;font-size:.9rem;text-align:center;padding:.7rem 0 .2rem">분야 안내 보기</a>':'')+'</div>';
   }).join('');
   box.addEventListener('click',function(ev){
     var a=ev.target.closest('[data-job]'); if(!a) return;
