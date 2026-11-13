@@ -16,7 +16,7 @@ pages=['index.html','consulting/index.html','consulting/process/index.html','con
 bad=0
 for f in pages:
     s=re.sub(r'<style.*?</style>|<script(?! type="application/ld).*?</script>|style="[^"]*"','',open(f,encoding='utf-8').read(),flags=re.S)
-    for d,p in re.findall(r'([\d,]+)원 낮(?:음|습니다)\((\d+)%\)',s):
+    for d,p in re.findall(r'([\d,]+)원(?:이)? 낮(?:음|습니다)\((\d+)%\)',s):
         if (d,int(p)) not in expected: print('불일치',f,d,p); bad+=1
     for p in re.findall(r'(\d+(?:\.\d+)?)%',s):
         if p not in ok_pct: print('미등록 퍼센트',f,p+'%'); bad+=1
