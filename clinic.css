@@ -231,3 +231,14 @@ body{letter-spacing:-.01em}
 .quote .by{color:var(--ink2)}
 .quote .by::before{content:none}
 .quote .by b{color:var(--ink)}
+/* 아우라토 키워드 테스트 */
+.kwrow{border:1px solid var(--line);border-radius:12px;padding:1rem 1.1rem;margin:0 0 12px;background:#fff}
+.kwrow legend{font-weight:800;padding:0 .4rem}
+.kwrow input[type=text]{width:100%;padding:.7rem .75rem;border:1px solid #c9d1e0;border-radius:8px;font:inherit;margin-bottom:.4rem}
+.kwrow .kl{display:block;font-size:.86rem;font-weight:700;margin:.7rem 0 .35rem}
+.kwcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.4rem}
+.kwline{display:flex;flex-wrap:wrap;gap:10px;margin-top:.5rem}
+.kwchip{display:inline-flex;flex-direction:column;border-radius:12px;background:var(--blue2);color:var(--blue);font-weight:800;font-size:1.5rem;padding:.6rem 1rem;line-height:1.2}
+.kwchip small{font-size:.74rem;font-weight:600;color:var(--ink2)}
+.kwfirst{font-size:1.1rem;font-weight:600;line-height:1.7;margin:.5rem 0 0}
+button.btn{cursor:pointer;font:inherit;font-weight:800}

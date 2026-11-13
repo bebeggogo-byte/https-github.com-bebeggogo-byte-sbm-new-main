@@ -5,6 +5,7 @@
   var items=[
     {t:'신청',s:'10만원~',h:'/consulting/#apply',k:'apply',p:1},
     {t:'가격',s:'연말 할인',h:'/consulting/#price',k:'price'},
+    {t:'키워드',s:'무료 테스트',h:'/keyword/',k:'keyword'},
     {t:'진행 과정',s:'순서·가격',h:'/consulting/process/',k:'process'},
     {t:'지원 기관',s:'목록 보기',h:'/references/',k:'refs'},
     {t:'시험 달력',s:'사전예약',h:'/calendar/',k:'exam'},
