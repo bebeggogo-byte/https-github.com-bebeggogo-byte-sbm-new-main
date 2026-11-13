@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프롬프트에 넣을 4가지: 역할·맥락·예시·형식 | 네다바웨이 AI 작업실</title>
+    <meta name="description" content="AI가 요청과 다른 답을 주는 원인은 대개 모호한 지시입니다. 지시문에 역할·맥락·예시·형식 네 가지를 넣는 방법을 OpenAI·Anthropic의 프롬프트 가이드를 근거로 정리합니다.">
+    <meta name="keywords" content="프롬프트, 프롬프트 작성법, AI 지시, 역할 맥락 예시 형식, few-shot, ChatGPT 프롬프트, AI 작업실">
+    <link rel="canonical" href="https://nedabah.org/programs/ai-lab/how-to-prompt/">
+    <link rel="alternate" type="application/rss+xml" title="Nedabah Way 글" href="/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Nedabah Way">
+    <meta property="og:url" content="https://nedabah.org/programs/ai-lab/how-to-prompt/">
+    <meta property="og:image" content="https://nedabah.org/og/cat-ai-lab.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:image" content="https://nedabah.org/og/cat-ai-lab.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="프롬프트에 넣을 4가지: 역할·맥락·예시·형식">
+    <meta property="og:description" content="지시문에 역할·맥락·예시·형식 네 가지를 넣는 방법을 정리합니다.">
+    <meta property="og:locale" content="ko_KR">
+    <meta name="theme-color" content="#6b4423">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/manifest.json">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+      {"@type":"ListItem","position":1,"name":"홈","item":"https://nedabah.org/"},
+      {"@type":"ListItem","position":2,"name":"프로그램","item":"https://nedabah.org/programs/"},
+      {"@type":"ListItem","position":3,"name":"AI 작업실","item":"https://nedabah.org/programs/ai-lab/"},
+      {"@type":"ListItem","position":4,"name":"프롬프트에 넣을 4가지","item":"https://nedabah.org/programs/ai-lab/how-to-prompt/"}]}
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Article","headline":"프롬프트에 넣을 4가지: 역할·맥락·예시·형식","inLanguage":"ko-KR","datePublished":"2026-05-31","author":{"@type":"Organization","name":"Nedabah Way"},"publisher":{"@type":"Organization","name":"Nedabah Way","url":"https://nedabah.org"},"mainEntityOfPage":"https://nedabah.org/programs/ai-lab/how-to-prompt/","about":["프롬프트","AI 활용","프롬프트 엔지니어링"]}
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+      {"@type":"Question","name":"AI가 자꾸 엉뚱한 답을 주는 이유는 무엇인가요?","acceptedAnswer":{"@type":"Answer","text":"대개 지시가 모호하기 때문입니다. 누구로서(역할), 왜·무엇을(맥락), 어떻게(예시), 어떤 모양으로(형식)를 빠뜨리면 AI는 추측으로 채웁니다."}},
+      {"@type":"Question","name":"프롬프트에 예시를 꼭 넣어야 하나요?","acceptedAnswer":{"@type":"Answer","text":"넣으면 결과가 크게 좋아집니다. 원하는 형식과 톤을 보여주는 예시 3~5개가 말로 설명하는 것보다 정확합니다."}}]}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/category.css">
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/nedabah/" class="logo">NEDABAH WAY</a>
+            <div class="nav-links">
+                <a href="/consulting/">취업 컨설팅</a>
+                <a href="/programs/">프로그램</a>
+                <a href="/notes/">글</a>
+                <a href="/support/">후원</a>
+                <a href="/nedabah/#contact" class="nav-cta">문의</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="cat-main">
+        <nav class="breadcrumb" aria-label="현재 위치">
+            <a href="/nedabah/">홈</a> › <a href="/programs/">프로그램</a> › <a href="/programs/ai-lab/">AI 작업실</a> › <span aria-current="page">프롬프트에 넣을 4가지</span>
+        </nav>
+
+        <header class="cat-hero">
+            <span class="cat-kicker">AI 작업실</span>
+            <h1 class="cat-title">프롬프트에 넣을 4가지: 역할·맥락·예시·형식</h1>
+            <p class="cat-lead">AI가 요청과 다른 답을 주는 원인은 대개 <strong>모호한 지시</strong>입니다. 이 글은 지시문에 역할·맥락·예시·형식 네 가지를 넣는 방법을 정리합니다.</p>
+        </header>
+
+        <section class="cat-section cat-prose">
+            <h2>지시가 모호할 때 생기는 문제</h2>
+            <p>AI는 빠진 정보를 추측으로 채웁니다. 추측이 틀리면 요청과 다른 답이 나옵니다. 결과를 가장 빨리 개선하는 방법은 <strong>지시를 더 분명하게 쓰는 것</strong>입니다. OpenAI와 Anthropic의 프롬프트 가이드가 공통으로 강조하는 네 가지를 씁니다.</p>
+
+            <h2>지시문에 넣을 4가지</h2>
+            <ol class="flow-steps">
+                <li><strong>역할</strong> — "너는 누구로서 답하는가?" 예: "너는 비영리 단체의 홍보 담당자다."</li>
+                <li><strong>맥락</strong> — "왜, 무엇을 위해?" 대상·목적·제약을 준다. 예: "회원에게 보낼 공지다. 5문장 이내."</li>
+                <li><strong>예시</strong> — "이렇게." 원하는 형식·톤을 보여주는 예 3~5개가 설명보다 정확하다.</li>
+                <li><strong>형식</strong> — "어떤 모양으로?" 목록·표·글자 수 등 출력 형태를 지정한다.</li>
+            </ol>
+
+            <h2>모호한 지시와 구체적인 지시의 예</h2>
+            <p><strong>모호한 지시:</strong> "모임 공지 좀 써줘." → AI가 대상, 길이, 말투를 추측합니다.</p>
+            <p><strong>구체적인 지시:</strong> "너는 우리 모임 담당자다(역할). 수요일 저녁 7시 모임을 회원에게 알리는 공지다(맥락). 따뜻한 말투로, 5문장 이내, 마지막에 한 줄 안내 문구(형식). 예시 톤: '한 주 잘 보내셨나요…'(예시)." → 바로 쓸 수 있는 결과가 나옵니다.</p>
+
+            <h2>결과가 부족할 때: 조건을 하나씩 추가하기</h2>
+            <p>한 번에 완성하지 않아도 됩니다. 결과를 보고 <strong>"더 짧게", "날짜를 맨 앞에", "존댓말로"</strong>처럼 한 가지씩 고칩니다. AI 답은 초안으로 두고, 사실·숫자는 사람이 확인합니다.</p>
+        </section>
+
+        <section class="cat-section">
+            <h2>자주 묻는 질문</h2>
+            <div class="faq">
+                <details><summary>AI가 자꾸 엉뚱한 답을 주는 이유는 무엇인가요?</summary><p>지시가 모호하기 때문입니다. 역할·맥락·예시·형식을 빠뜨리면 AI가 추측으로 채웁니다.</p></details>
+                <details><summary>프롬프트에 예시를 꼭 넣어야 하나요?</summary><p>넣으면 결과가 크게 좋아집니다. 형식·톤을 보여주는 예시 3~5개가 설명보다 정확합니다.</p></details>
+            </div>
+        </section>
+
+        <section class="cat-section cat-prose">
+            <h2>참고</h2>
+            <ul>
+                <li>OpenAI, Prompt engineering 가이드 — 명확한 지시·역할·맥락·출력 형식</li>
+                <li>Anthropic(Claude), Prompting best practices — 역할 부여·예시(few-shot 3~5개)·구조화</li>
+            </ul>
+        </section>
+
+        <div class="cat-cta">
+            <h2>오늘 실행할 일: 지시문에 역할·맥락·예시·형식 넣기</h2>
+            <p>AI 작업실에서는 그 과제를 AI로 함께 만듭니다.</p>
+            <a href="/programs/ai-lab/" class="btn-primary">AI 작업실 소개로 →</a>
+        </div>
+
+        <section class="cat-siblings">
+            <h2>관련 글과 프로그램</h2>
+            <div class="sibling-grid">
+                <a class="sibling-card" href="/programs/ai-lab/first-ai-task/"><strong>AI 첫 과제 고르는 법</strong><span>처음 30분에 할 일</span></a>
+                <a class="sibling-card" href="/programs/automation/start-automation/"><strong>자동화 시작하기</strong><span>코딩 없이 반복 업무 줄이기</span></a>
+                <a class="sibling-card" href="/notes/"><strong>글 모아보기</strong><span>전체 글</span></a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="cat-foot">
+        <p>© 2026 Nedabah Way · 제주특별자치도 서귀포시 일주동로 9141, 2층 · <a href="mailto:nedabah.way@gmail.com">nedabah.way@gmail.com</a></p>
+    </footer>
+    <script src="/script.js"></script>
+    <!-- 검수기준 v1 통과 -->
+</body>
+</html>

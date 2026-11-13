@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" fill="none" stroke="#3a2817" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- sprout: 자발성으로 자라는 공동체 -->
+  <path d="M32 60 V30" stroke="#6b4423"/>
+  <path d="M32 38 C 22 38, 16 30, 16 20 C 26 20, 32 28, 32 38 Z" fill="#8b7355" stroke="none"/>
+  <path d="M32 32 C 42 32, 48 24, 48 14 C 38 14, 32 22, 32 32 Z" fill="#b85c3c" stroke="none"/>
+  <line x1="18" y1="60" x2="46" y2="60" stroke-width="1.8"/>
+</svg>

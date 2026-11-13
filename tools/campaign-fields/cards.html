@@ -1,0 +1,92 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>분야 캠페인 카드: 기업·임용</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet"><style>
+/* 색: 글자 #191f28, 보조 #4e5968 / #8b95a1, 선 #e5e8eb, 상자 #f5f6f8, 강조 #2f6bff 하나 */
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#e5e8eb;font-family:'Noto Sans KR',sans-serif;color:#191f28;padding:40px;display:flex;flex-wrap:wrap;gap:40px}
+.card{width:1080px;height:1350px;background:#fff;padding:84px 80px 0;position:relative;overflow:hidden;word-break:keep-all}
+.label{font-size:28px;font-weight:700;color:#2f6bff;letter-spacing:-.2px}
+h1{font-size:104px;font-weight:900;line-height:1.16;letter-spacing:-3.5px;margin-top:36px}
+h2{font-size:76px;font-weight:900;line-height:1.2;letter-spacing:-2.5px;margin-top:32px}
+.blue{color:#2f6bff}
+.sub{font-size:38px;font-weight:400;line-height:1.55;color:#4e5968;margin-top:40px;letter-spacing:-.6px}
+.sub b{font-weight:700;color:#191f28}
+.note{font-size:27px;font-weight:400;line-height:1.55;color:#8b95a1;letter-spacing:-.3px}
+.box{background:#f5f6f8;border-radius:28px;padding:44px 46px}
+.foot{position:absolute;left:80px;right:80px;bottom:0;height:152px;border-top:2px solid #e5e8eb;display:flex;align-items:center;justify-content:space-between;font-size:30px;letter-spacing:-.3px}
+.foot .l{color:#4e5968;font-weight:500}
+.foot .r{color:#2f6bff;font-weight:500}
+.bottom{position:absolute;left:80px;right:80px;bottom:190px}
+
+/* 가격 상자 */
+.pbox .t{font-size:34px;font-weight:700}
+.pbox .n{font-size:170px;font-weight:900;line-height:1;letter-spacing:-6px;margin-top:4px;white-space:nowrap}
+.pbox .n small{font-size:48px;font-weight:700;letter-spacing:-1px;margin-left:8px}
+.pbox .d{font-size:30px;color:#4e5968;margin-top:28px;letter-spacing:-.4px}
+
+/* 02 표 */
+table{width:100%;border-collapse:collapse;margin-top:40px}
+th{font-size:27px;font-weight:500;color:#8b95a1;text-align:left;padding:0 0 18px;border-bottom:2px solid #191f28}
+td{font-size:36px;font-weight:500;padding:0;height:104px;border-bottom:2px solid #e5e8eb;letter-spacing:-.8px;vertical-align:middle;white-space:nowrap}
+td.job{font-weight:900;font-size:38px}
+td.start{font-weight:900;color:#2f6bff}
+td small{display:block;font-size:24px;color:#8b95a1;font-weight:500;line-height:1;margin-bottom:0;letter-spacing:-.2px}
+td .w{font-size:27px;color:#8b95a1;font-weight:500}
+
+/* 03 일정 */
+.steps{margin-top:40px}
+.step{display:flex;align-items:flex-start;padding:22px 0;border-bottom:2px solid #e5e8eb}
+.step:first-child{border-top:2px solid #191f28}
+.step .when{flex:0 0 300px;font-size:36px;font-weight:900;letter-spacing:-1px;line-height:1.35}
+.step .what{font-size:35px;font-weight:500;line-height:1.35;letter-spacing:-.8px}
+.step .what span{display:block;font-size:28px;font-weight:400;color:#4e5968;margin-top:6px;letter-spacing:-.4px}
+.step.on .when{color:#2f6bff}
+
+/* 04 경쟁률 */
+.ratio{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0 14px;border-bottom:2px solid #e5e8eb}
+.ratio:first-child{border-top:2px solid #191f28}
+.ratio .j{font-size:40px;font-weight:700;letter-spacing:-.8px}
+.ratio .v{font-size:76px;font-weight:900;letter-spacing:-3px;line-height:1.1}
+.ratio .v small{font-size:40px;font-weight:700;letter-spacing:-1px}
+.facts{margin-top:30px;font-size:33px;line-height:1.6;color:#4e5968;letter-spacing:-.5px}
+.facts b{color:#191f28;font-weight:700}
+.prep .t{font-size:30px;font-weight:700;color:#2f6bff}
+.prep .i{font-size:38px;font-weight:900;letter-spacing:-1px;line-height:1.45;margin-top:10px}
+
+/* 05 가격표 */
+.comp{font-size:36px;font-weight:700;line-height:1.5;letter-spacing:-.8px;margin-top:22px}
+.price{display:flex;align-items:center;justify-content:space-between;padding:0;height:136px;border-bottom:2px solid #e5e8eb}
+.price:first-child{border-top:2px solid #191f28}
+.price .k{font-size:38px;font-weight:700;letter-spacing:-.8px}
+.price .k span{display:block;font-size:27px;font-weight:500;color:#4e5968;margin-top:4px;letter-spacing:-.3px}
+.price .p{font-size:72px;font-weight:900;letter-spacing:-2.5px;white-space:nowrap}
+.price .p small{font-size:32px;font-weight:700;letter-spacing:-.5px;margin-left:4px}
+.price.on .p,.price.on .k{color:#2f6bff}
+.price.on .k span{color:#2f6bff}
+.cond{margin-top:24px;font-size:29px;line-height:1.55;color:#4e5968;letter-spacing:-.5px}
+.who .t{font-size:27px;font-weight:700;color:#8b95a1}
+.who .i{font-size:30px;font-weight:700;line-height:1.45;letter-spacing:-.6px;margin-top:6px}
+
+/* 06 방법 */
+.how{margin-top:44px}
+.how .row{display:flex;align-items:flex-start;padding:27px 0;border-bottom:2px solid #e5e8eb}
+.how .row:first-child{border-top:2px solid #191f28}
+.how .no{flex:0 0 76px;font-size:44px;font-weight:900;color:#2f6bff;line-height:1.2}
+.how .tx{font-size:36px;font-weight:700;line-height:1.35;letter-spacing:-.8px}
+.how .tx span{display:block;font-size:28px;font-weight:400;color:#4e5968;margin-top:6px;letter-spacing:-.4px}
+.url .t{font-size:30px;font-weight:700}
+.url .u{font-size:46px;font-weight:900;color:#2f6bff;letter-spacing:-1.5px;margin-top:6px;white-space:nowrap}
+.url .d{font-size:28px;color:#4e5968;margin-top:10px;letter-spacing:-.4px}
+
+/* 직종별 표지 */
+.cells{display:flex;margin-top:40px;border-top:2px solid #191f28;border-bottom:2px solid #e5e8eb}
+.cell{flex:1;padding:22px 0 24px}
+.cell + .cell{padding-left:28px;border-left:2px solid #e5e8eb}
+.cell .t{font-size:27px;font-weight:500;color:#8b95a1}
+.cell .v{font-size:50px;font-weight:900;letter-spacing:-1.8px;margin-top:6px;white-space:nowrap}
+.cell .y{font-size:26px;font-weight:500;color:#8b95a1;margin-top:2px}
+.cell.on .v{color:#2f6bff}
+.cover h1{font-size:88px;margin-top:30px}
+</style><style>
+.rows{margin-top:44px}.rows div{display:flex;justify-content:space-between;align-items:center;height:104px;border-bottom:2px solid #e5e8eb;font-size:36px;letter-spacing:-.8px}
+.rows div:first-child{border-top:2px solid #191f28}.rows b{font-weight:900}.rows span{color:#4e5968;font-weight:500}.rows .u b,.rows .u span{color:#2f6bff}
+.li{margin-top:40px}.li p{font-size:38px;line-height:1.5;padding:22px 0;border-bottom:2px solid #e5e8eb;letter-spacing:-.6px;font-weight:500}
+</style></head><body><div class="card" id="corp-01"><div class="label">AURATO 아우라토 · 기업 지원자</div><h2>자기소개서와 면접 답변을<br><span class="blue">같은 키워드</span>로 정리합니다</h2><p class="sub">1회차에 경험을 정리하고 자기소개서를 수정합니다. 2회차에 그 내용으로 면접을 연습합니다.</p><div class="bottom"><div class="box pbox"><div class="t">1인 금액 · 2회 + 보고서</div><div class="n">150,000<small>원</small></div><div class="d">2026년 12월 31일 신청분까지 적용합니다</div></div></div><div class="foot"><span class="l">화상 1:1 · 60분 × 2회 · 보고서 포함</span><span class="r">nedabah.org/fields/corporate</span></div></div><div class="card" id="corp-02"><div class="label">AURATO 아우라토 · 시중 서비스 가격</div><h2>면접 준비 서비스<br>가격 비교</h2><div class="rows"><div><b>현직자 모의면접</b><span>시간당 45,000~50,000원</span></div><div><b>면접 컨설팅 평균</b><span>시간당 70,000원</span></div><div><b>자기소개서 첨삭</b><span>40,000원대부터</span></div><div class="u"><b>아우라토</b><span>2시간 + 보고서 150,000원</span></div></div><p class="note" style="margin-top:36px">출처: 한국경제신문 2026년 7월 7일 보도, 숨고 견적 안내. 판매자와 조건에 따라 다릅니다. 아우라토는 자기소개서 수정을 포함합니다.</p><div class="foot"><span class="l">화상 1:1 · 60분 × 2회 · 보고서 포함</span><span class="r">nedabah.org/fields/corporate</span></div></div><div class="card" id="teach-01"><div class="label">AURATO 아우라토 · 임용 2차 응시자</div><h2>심층면접 답변을<br><span class="blue">1:1로 점검</span>합니다</h2><p class="sub">1회차에 교육 경험과 키워드를 정리합니다. 2회차에 구상형과 즉답형 형식으로 연습합니다. 수업실연은 다루지 않습니다.</p><div class="bottom"><div class="box pbox"><div class="t">1인 금액 · 2회 + 보고서</div><div class="n">150,000<small>원</small></div><div class="d">2026년 12월 31일 신청분까지 적용합니다</div></div></div><div class="foot"><span class="l">화상 1:1 · 60분 × 2회 · 보고서 포함</span><span class="r">nedabah.org/fields/teacher</span></div></div><div class="card" id="teach-02"><div class="label">AURATO 아우라토 · 임용 2차 일정</div><h2>1차 발표부터<br>2차까지 <span class="blue">22일</span></h2><div class="rows"><div><b>유·초등 2차</b><span>2027년 1월 6~8일</span></div><div><b>중등 1차 합격자 발표</b><span>12월 29일</span></div><div><b>중등 2차 심층면접</b><span>2027년 1월 20~21일</span></div><div class="u"><b>아우라토 진행 기간</b><span>지금부터 2차 전날까지</span></div></div><p class="note" style="margin-top:36px">경기도교육청 공고 기준입니다. 시·도교육청에 따라 일정이 다릅니다. 응시 지역 공고를 확인해야 합니다.</p><div class="foot"><span class="l">화상 1:1 · 60분 × 2회 · 보고서 포함</span><span class="r">nedabah.org/fields/teacher</span></div></div></body></html>
