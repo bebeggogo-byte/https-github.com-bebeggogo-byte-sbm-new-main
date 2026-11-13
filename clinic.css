@@ -169,3 +169,26 @@ h3.rg{font-size:.95rem;color:var(--blue);margin:1.2rem 0 .2rem}
 .card,.tk,.seg a{min-width:0}
 .big{font-size:clamp(1.35rem,5.2vw,2.2rem);overflow-wrap:anywhere}
 @media(max-width:520px){.grid4{grid-template-columns:1fr}.cmp{display:block;overflow-x:auto}}
+/* 대표의 한마디 */
+.quote{background:radial-gradient(120% 120% at 85% 0%,#2350b8 0%,#14275a 45%,#0b1530 100%);color:#fff;padding:72px 0;position:relative;overflow:hidden}
+.quote::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.16) 1.2px,transparent 1.4px);background-size:28px 28px;opacity:.3}
+.quote .w{position:relative;max-width:900px}
+.quote .mk{font-size:5rem;line-height:.6;color:var(--gold);font-weight:900;display:block;height:2.2rem}
+.quote blockquote{margin:0;font-size:clamp(1.25rem,3vw,1.9rem);line-height:1.6;font-weight:800;letter-spacing:-.01em}
+.quote blockquote em{font-style:normal;color:#e7c56a}
+.quote p.pre{margin:0 0 1.2rem;font-size:clamp(1rem,2vw,1.15rem);line-height:1.7;color:#dbe5fb;font-weight:500}
+.quote .by{margin-top:1.6rem;display:flex;align-items:center;gap:.8rem;font-size:.95rem;color:#dbe5fb}
+.quote .by::before{content:"";width:44px;height:2px;background:var(--gold)}
+.quote .by b{color:#fff}
+/* 시중 가격 비교 막대 */
+.bars{display:grid;gap:10px;margin:1rem 0}
+.bar{display:grid;grid-template-columns:minmax(120px,15rem) 1fr;gap:12px;align-items:center}
+.bar .n{font-weight:700;font-size:.94rem}
+.bar .n small{display:block;font-weight:500;color:var(--mut);font-size:.8rem}
+.bar .t{background:#e9edf5;border-radius:8px;height:38px;position:relative;overflow:hidden}
+.bar .t i{display:block;height:100%;border-radius:8px;background:#9aa7bf}
+.bar .t b{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.92rem;color:#0f1b33;white-space:nowrap}
+.bar.us .t i{background:var(--blue)}
+.bar.us .t b{color:#fff}
+.save{display:inline-block;background:var(--red);color:#fff;font-weight:800;border-radius:8px;padding:.3rem .7rem;font-size:.95rem}
+@media(max-width:620px){.bar{grid-template-columns:1fr;gap:4px}}
