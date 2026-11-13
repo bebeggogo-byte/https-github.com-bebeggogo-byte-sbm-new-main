@@ -1,3 +1,4 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 :root {
     /* Drip Lines palette — 교보 라운지 무드: 벽돌·앰버·크라프트 종이 */
     --color-cream: #f7f1e8;        /* steamed milk */
@@ -1836,3 +1837,242 @@ body {
     border-color: var(--color-amber);
     transform: translateY(-1px);
 }
+
+/* ============================================================
+   design v2 override (2026-11-13)
+   docs/디자인-레퍼런스.md 기준: 흰색·연회색 배경, 파랑 #2f6bff 1개,
+   Pretendard, 그라데이션·그림자·장식 배경 없음.
+   위쪽 규칙은 그대로 두고 이 블록에서 변수와 구성 요소를 다시 정의한다.
+   ============================================================ */
+:root {
+    --v2-ink: #191f28;
+    --v2-ink2: #4e5968;
+    --v2-mut: #8b95a1;
+    --v2-line: #e5e8eb;
+    --v2-paper: #f5f6f8;
+    --v2-blue: #2f6bff;
+    --v2-blue-dark: #1f56e0;
+
+    --color-cream: #ffffff;
+    --color-sand: #f5f6f8;
+    --color-latte: #e5e8eb;
+    --color-clay: #e5e8eb;
+    --color-kraft: #f5f6f8;
+    --color-crema: #8b95a1;
+    --color-accent: #2f6bff;
+    --color-terracotta: #2f6bff;
+    --color-amber: #2f6bff;
+    --color-mocha: #191f28;
+    --color-earth: #8b95a1;
+    --color-stone: #4e5968;
+    --color-espresso: #191f28;
+    --color-night: #191f28;
+    --color-light: #ffffff;
+
+    --font-serif: 'Pretendard Variable','Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+    --font-display: 'Pretendard Variable','Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+
+    --max-width: 1120px;
+    --border-radius: 12px;
+    --paper-grain: none;
+}
+
+body {
+    font-family: var(--font-serif);
+    color: var(--v2-ink);
+    background: #ffffff;
+    letter-spacing: -0.01em;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+}
+
+::selection {
+    background: var(--v2-blue);
+    color: #ffffff;
+}
+
+h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.02em;
+}
+
+/* 내비게이션: 흰 배경, 선 1개, 본문과 겹치지 않도록 sticky */
+.nav {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: 1px solid var(--v2-line);
+    padding: 0;
+}
+
+.nav-container {
+    min-height: 60px;
+    padding: 0 20px;
+    gap: 12px;
+}
+
+.logo {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: var(--v2-ink);
+}
+
+.logo:hover {
+    color: var(--v2-ink);
+}
+
+.nav-links {
+    gap: 20px;
+}
+
+.nav-links a {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--v2-ink2);
+}
+
+.nav-links a:hover {
+    color: var(--v2-ink);
+}
+
+.nav-links a.nav-cta {
+    padding: 0.5rem 1rem;
+    background: var(--v2-blue);
+    border: 1px solid var(--v2-blue);
+    border-radius: 8px;
+    color: #ffffff !important;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.nav-links a.nav-cta:hover {
+    background: var(--v2-blue-dark);
+    border-color: var(--v2-blue-dark);
+    color: #ffffff !important;
+    transform: none;
+}
+
+@media (max-width: 768px) {
+    .nav {
+        position: static;
+    }
+
+    .nav-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        padding: 12px 16px 10px;
+    }
+
+    .nav-links {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 6px 12px;
+        margin-top: 8px;
+    }
+
+    .nav-links a {
+        font-size: 0.88rem;
+        white-space: nowrap;
+    }
+
+    .nav-links a.nav-cta {
+        padding: 0.3rem 0.75rem;
+    }
+}
+
+/* 예전 홈 구성 요소: 장식 배경, 그라데이션, 그림자 제거 */
+.hero,
+.about,
+.programs,
+.approach,
+.roadmap,
+.metrics,
+.support,
+.drip-lines {
+    background: #ffffff;
+    background-image: none;
+}
+
+.footer {
+    background: var(--v2-paper);
+    background-image: none;
+    color: var(--v2-ink2);
+}
+
+.hero-decoration,
+.hero-drip,
+.drip-dot,
+.roadmap::before,
+.metrics::before,
+.footer::before,
+.value-card::before,
+.support-card::before,
+.metric-item::after,
+.timeline-content::before,
+.drip-card::before,
+.drip-card::after,
+.program-card-featured::before {
+    display: none;
+}
+
+.value-card,
+.program-card,
+.support-card,
+.metric-item,
+.timeline-content,
+.drip-card,
+.drip-form,
+.program-card-featured {
+    background: #ffffff;
+    background-image: none;
+    border: 1px solid var(--v2-line);
+    box-shadow: none;
+    animation: none;
+    transform: none;
+    color: var(--v2-ink);
+}
+
+.value-card:hover,
+.program-card:hover,
+.support-card:hover,
+.metric-item:hover,
+.drip-card:hover {
+    box-shadow: none;
+    transform: none;
+    border-color: var(--v2-blue);
+}
+
+.section-label,
+.drip-kicker,
+.hero-badge {
+    font-family: var(--font-serif);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--v2-blue);
+    font-weight: 700;
+}
+
+.hero-button,
+.drip-form-submit {
+    background: var(--v2-blue);
+    border: 1px solid var(--v2-blue);
+    color: #ffffff;
+    letter-spacing: 0;
+    box-shadow: none;
+}
+
+.hero-button:hover,
+.drip-form-submit:hover {
+    background: var(--v2-blue-dark);
+    border-color: var(--v2-blue-dark);
+    color: #ffffff;
+    transform: none;
+}
+/* ===== design v2 override 끝 ===== */
