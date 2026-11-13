@@ -19,6 +19,11 @@
     });
   });
   // 프로모션 마감 카운트다운
+  document.querySelectorAll('[data-share]').forEach(function(b){ b.addEventListener('click',function(){
+    var u=location.origin+'/?utm_source=share&utm_medium=friend&utm_campaign=yearend2026', t='아우라토 병원 취업 1:1 컨설팅. 3명 함께 신청하면 1인 10만원(12월 31일까지).';
+    if(navigator.share){ navigator.share({title:'아우라토 AURATO',text:t,url:u}).catch(function(){}); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(t+' '+u).then(function(){ var d=b.parentNode.querySelector('[data-share-done]'); if(d) d.hidden=false; }); }
+  }); });
   var END=new Date('2026-12-31T23:59:59+09:00');
   var el=document.getElementById('promoLeft');
   if(el){ var d=Math.ceil((END-new Date())/864e5); el.textContent=d>0?('마감까지 '+d+'일'):'프로모션 종료'; }
