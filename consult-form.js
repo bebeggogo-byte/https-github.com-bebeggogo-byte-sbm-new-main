@@ -1,6 +1,8 @@
-// 컨설팅·기관 의뢰 폼 → Make 웹훅(시나리오 #8318069) → Notion「강의·코칭 의뢰 접수」DB
+// 컨설팅·기관 의뢰 폼 → ① Make 웹훅(시나리오 #8318069) → Notion「강의·코칭 의뢰 접수」DB
+//                       ② FormSubmit → 운영자 메일 알림(Make와 별도 경로. 한쪽이 실패해도 다른 쪽이 도착한다)
 (function(){
   var ENDPOINT='https://hook.eu1.make.com/y4hn30wkxapmynqh7hdeoocnfvbqcdjr';
+  var MAIL='https://formsubmit.co/ajax/nedabah.way@gmail.com';
   document.querySelectorAll('form[data-consult]').forEach(function(f){
     f.addEventListener('submit',function(ev){
       ev.preventDefault();
@@ -14,6 +16,8 @@
       ['utm_source','utm_medium','utm_campaign'].forEach(function(k){ if(p.get(k)) memo.push(k+': '+p.get(k)); });
       var data={name:fd.get('name')||'',org:fd.get('org')||'',topic:f.getAttribute('data-consult'),date:fd.get('date')||'',contact:fd.get('contact')||'',memo:memo.join('\n'),page:location.pathname+(document.referrer?' ← '+document.referrer:'')};
       try{ fetch(ENDPOINT,{method:'POST',mode:'no-cors',body:new URLSearchParams(data)}); }catch(e){}
+      try{ var m=new URLSearchParams({_subject:'[아우라토 신청] '+data.name+' / '+data.topic,_template:'table',_captcha:'false','이름':data.name,'연락처':data.contact,'주제':data.topic,'소속':data.org,'희망 일정':data.date,'메모':data.memo,'페이지':data.page});
+        fetch(MAIL,{method:'POST',mode:'no-cors',body:m}); }catch(e){}
       f.reset();
       var done=f.parentNode.querySelector('.done'); if(done){ done.hidden=false; done.scrollIntoView({block:'center'}); }
     });
