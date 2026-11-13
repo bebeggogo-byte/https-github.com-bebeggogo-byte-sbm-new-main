@@ -123,3 +123,10 @@ footer.cf{padding:32px 0 90px;font-size:.85rem;color:var(--mut)}
 @media(max-width:720px){.cform .row{grid-template-columns:1fr}.mbar{display:flex}.cmp{font-size:.85rem}.cmp th,.cmp td{padding:.6rem .5rem}}
 .tk .off{align-self:flex-start}
 section[id]{scroll-margin-top:64px}
+.exam{display:flex;flex-direction:column;gap:.3rem}
+.exam .btn{margin-top:auto;text-align:center;font-size:.9rem;padding:.6rem}
+.tagb{align-self:flex-start;font-size:.74rem;font-weight:800;background:var(--blue2);color:var(--blue);padding:.15rem .55rem;border-radius:6px}
+.tl{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.tl li{display:grid;grid-template-columns:7.5rem 1fr;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem}
+.tl b.t{font-family:var(--mono);color:var(--blue);font-size:.85rem}
+@media(max-width:720px){.tl li{grid-template-columns:1fr}}
