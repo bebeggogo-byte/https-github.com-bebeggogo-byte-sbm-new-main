@@ -8,6 +8,7 @@
     {t:'키워드',s:'무료 테스트',h:'/keyword/',k:'keyword'},
     {t:'진행 과정',s:'순서·가격',h:'/consulting/process/',k:'process'},
     {t:'분야별',s:'안내 보기',h:'/fields/',k:'fields'},
+    {t:'진로 코칭',s:'진로 설정',h:'/career/',k:'career'},
     {t:'시험 달력',s:'사전예약',h:'/calendar/',k:'exam'},
     {t:'학교·기관',s:'견적 요청',h:'/colleges/#quote',k:'b2b'},
     {t:'DM 문의',s:'인스타',h:'https://instagram.com/nedabah_way',k:'dm',x:1}
