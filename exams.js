@@ -170,6 +170,7 @@ window.NW_EXAMS=[
   var t0=now.getTime();
   function key(e){ if(!e.exam) return 9e15; var t=new Date(e.exam+'T18:00:00+09:00').getTime(); return t>=t0?t:8e15+t; }
   list=list.slice().sort(function(a,b){ return key(a)-key(b); });
+  var lim=+box.getAttribute('data-limit')||0; if(lim) list=list.filter(function(e){ return e.exam && key(e)<8e15; }).slice(0,lim);
   box.innerHTML=list.map(function(e){
     var when=e.season||'', badge='사전예약 접수 중';
     if(e.exam){

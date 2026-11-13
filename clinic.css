@@ -249,3 +249,29 @@ button.btn{cursor:pointer;font:inherit;font-weight:800}
 .prof{margin-top:20px;border:1px solid var(--line);border-radius:14px;background:#fff;padding:22px 24px}
 .prof h3{margin:0 0 .6rem;font-size:1.05rem}
 .prof ul{margin:0;padding-left:1.1rem;color:var(--ink2);line-height:1.8}
+.h1c{font-size:clamp(1.9rem,6vw,3rem);line-height:1.2;letter-spacing:-.03em;margin:.4rem 0 .6rem;font-weight:800}
+.choose{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.tile{display:flex;flex-direction:column;gap:.45rem;border:2px solid var(--line);border-radius:18px;background:#fff;padding:22px 20px;color:var(--ink);text-decoration:none;min-width:0}
+.tile svg{color:var(--blue)}
+.tile b{font-size:1.35rem;letter-spacing:-.02em}
+.tile span{color:var(--ink2);font-size:.95rem;line-height:1.55}
+.tile i{font-style:normal;font-weight:800;color:var(--blue);margin-top:.3rem}
+.tile:hover,.tile.on{border-color:var(--blue)}
+.tile.on{background:var(--blue2)}
+.others{margin-top:16px;color:var(--mut);font-size:.92rem}
+.track[hidden]{display:none}
+.two{display:grid;grid-template-columns:1.1fr 1fr;gap:22px;align-items:start;margin-top:18px}
+.two>div{min-width:0}
+.steps3{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:8px}
+.steps3 li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:2px}
+.steps3 span{color:var(--ink2);font-size:.95rem}
+.two .tickets.one{grid-template-columns:1fr;justify-content:stretch}
+.accs{margin-top:18px;display:grid;gap:8px}
+.acc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 16px}
+.acc summary{cursor:pointer;font-weight:800;padding:14px 0;list-style:none}
+.acc summary::after{content:"+";float:right;color:var(--mut);font-weight:500}
+.acc[open] summary::after{content:"−"}
+.acc>*:not(summary){margin-top:0;margin-bottom:14px}
+.rows2 div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:.95rem}
+.rows2 div:first-child b{color:var(--blue)}
+@media(max-width:900px){.choose,.two{grid-template-columns:1fr}}
