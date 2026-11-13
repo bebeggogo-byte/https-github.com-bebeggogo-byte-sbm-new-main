@@ -246,3 +246,6 @@ button.btn{cursor:pointer;font:inherit;font-weight:800}
 .deck{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:10px;-webkit-overflow-scrolling:touch}
 .deck a{flex:0 0 min(86%,760px);scroll-snap-align:start;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
 .deck img{display:block;width:100%;height:auto}
+.prof{margin-top:20px;border:1px solid var(--line);border-radius:14px;background:#fff;padding:22px 24px}
+.prof h3{margin:0 0 .6rem;font-size:1.05rem}
+.prof ul{margin:0;padding-left:1.1rem;color:var(--ink2);line-height:1.8}
