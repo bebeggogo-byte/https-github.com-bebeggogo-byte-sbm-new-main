@@ -12,37 +12,37 @@ window.NW_EXAMS=[
  {
   "cat": "보건의료 국가시험",
   "job": "임상병리사",
-  "exam": null,
-  "result": null,
-  "season": "예년 12월",
-  "src": "국시원 공고 확인 필요",
+  "exam": "2026-12-13",
+  "result": "2026-12-30",
+  "season": "",
+  "src": "국시원 직종별 시험정보",
   "focus": "병원 자기소개서, 직무 면접"
  },
  {
   "cat": "보건의료 국가시험",
   "job": "물리치료사",
-  "exam": null,
-  "result": null,
-  "season": "예년 12월",
-  "src": "국시원 공고 확인 필요",
+  "exam": "2026-12-13",
+  "result": "2026-12-30",
+  "season": "",
+  "src": "국시원 직종별 시험정보",
   "focus": "병원 자기소개서, 직무 면접"
  },
  {
   "cat": "보건의료 국가시험",
   "job": "작업치료사",
-  "exam": null,
-  "result": null,
-  "season": "예년 12월",
-  "src": "국시원 공고 확인 필요",
+  "exam": "2026-12-05",
+  "result": "2026-12-23",
+  "season": "",
+  "src": "국시원 직종별 시험정보",
   "focus": "병원 자기소개서, 직무 면접"
  },
  {
   "cat": "보건의료 국가시험",
   "job": "치과위생사",
-  "exam": null,
-  "result": null,
-  "season": "예년 12월",
-  "src": "국시원 공고 확인 필요",
+  "exam": "2026-12-13",
+  "result": "2026-12-30",
+  "season": "",
+  "src": "국시원 직종별 시험정보",
   "focus": "치과·병원 자기소개서, 면접"
  },
  {
@@ -79,7 +79,7 @@ window.NW_EXAMS=[
   "result": "2027-02-16",
   "season": "",
   "src": "국시원 직종별 시험정보",
-  "focus": "병원 자기소개서, 직무·인성 면접, AI면접"
+  "focus": "수시채용·추가모집·종합병원·공공기관 자기소개서, 면접(대학병원 공채는 4~9월)"
  },
  {
   "cat": "보건의료 국가시험",
@@ -150,6 +150,10 @@ window.NW_EXAMS=[
   var now=new Date(), cat=box.getAttribute('data-cat');
   function fmt(s){ return s.replace(/^(\d+)-(\d+)-(\d+)$/,function(_,y,m,dd){return y+'.'+(+m)+'.'+(+dd)+'.';}); }
   var list=window.NW_EXAMS.filter(function(e){ return !cat||e.cat===cat; });
+  // 시험일이 가까운 순서. 지난 시험과 날짜 미확인 시험은 뒤로 보낸다.
+  var t0=now.getTime();
+  function key(e){ if(!e.exam) return 9e15; var t=new Date(e.exam+'T18:00:00+09:00').getTime(); return t>=t0?t:8e15+t; }
+  list=list.slice().sort(function(a,b){ return key(a)-key(b); });
   box.innerHTML=list.map(function(e){
     var when=e.season||'', badge='사전예약 접수 중';
     if(e.exam){
