@@ -36,3 +36,12 @@
     for(var k in v){ var e=cd.querySelector('[data-'+k+']'); if(e) e.textContent=(v[k]<10&&k!=='d'?'0':'')+v[k]; } };
     tick(); setInterval(tick,1000); }
 })();
+// 접힌 영역: 주소의 #id나 페이지 안 링크가 접힌 영역을 가리키면 펼친다
+(function(){
+  function openFor(id){ if(!id) return; var el=document.getElementById(id); if(!el) return;
+    var d=el.matches('details')?el:(el.querySelector('details.acc.big')||el.closest('details'));
+    while(d){ d.open=true; d=d.parentElement&&d.parentElement.closest('details'); }
+    setTimeout(function(){ el.scrollIntoView({block:'start'}); },30); }
+  window.addEventListener('hashchange',function(){ openFor(location.hash.slice(1)); });
+  if(location.hash) openFor(location.hash.slice(1));
+})();
