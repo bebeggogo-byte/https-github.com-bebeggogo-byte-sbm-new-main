@@ -11,7 +11,7 @@ expected={  # (차액, 퍼센트) 허용 조합
  (won(combo-PRICE),pct(combo,PRICE)),(won(MKT_ACAD-PRICE),pct(MKT_ACAD,PRICE))}
 must={won(combo):'시중 조합 합계',won(MKT_ITEM*MKT_ITEMS):'문항 첨삭 합계',won(MKT_INT30*2):'모의면접 60분',won(PRICE//2):'시간당 금액'}
 ok_pct={'6.0','7.0','9.2','10.2','12.4','13','14.5','18.4','22','22.6','23.4','30.6','31','34','35.0','39.4','42','42.7','54.8','54.9','57.4','66.6','67','67.6','80','80.3','95.4'}|{str(p) for _,p in expected}
-pages=['fields/index.html','index.html','consulting/index.html','consulting/process/index.html','consulting/after-exam/index.html','colleges/index.html','references/index.html','calendar/index.html','keyword/index.html','nursing/index.html','fields/civil-service/index.html','fields/public-sector/index.html','fields/social-work/index.html','fields/teacher/index.html','fields/corporate/index.html']
+pages=['career/index.html','fields/index.html','index.html','consulting/index.html','consulting/process/index.html','consulting/after-exam/index.html','colleges/index.html','references/index.html','calendar/index.html','keyword/index.html','nursing/index.html','fields/civil-service/index.html','fields/public-sector/index.html','fields/social-work/index.html','fields/teacher/index.html','fields/corporate/index.html']
 bad=0
 for f in pages:
     s=re.sub(r'<style.*?</style>|<script(?! type="application/ld).*?</script>|style="[^"]*"','',open(f,encoding='utf-8').read(),flags=re.S)
