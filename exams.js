@@ -1,29 +1,169 @@
-// 국가시험 직후 컨설팅 일정표 — 국시원 공고가 나오면 end(시험 종료일)만 채우면 페이지가 자동 갱신된다.
-// end: 'YYYY-MM-DD' 또는 null(미공고). season: 미공고일 때 보여줄 예년 시기.
+// 시험 일정 데이터. 원본: tools/exam-data.json (수정 후 python3 tools/build-calendar.py 실행)
 window.NW_EXAMS=[
-  {job:'간호사',season:'예년 1월 하순 (2026년은 1월 23일 시행, 2월 12일 발표)',end:null},
-  {job:'임상병리사',season:'예년 12월',end:null},
-  {job:'방사선사',season:'예년 12월',end:null},
-  {job:'물리치료사',season:'예년 12월',end:null},
-  {job:'작업치료사',season:'예년 12월',end:null},
-  {job:'치과위생사',season:'예년 12월',end:null},
-  {job:'보건의료정보관리사',season:'예년 12월',end:null},
-  {job:'응급구조사',season:'국시원 공고 확인 후 안내',end:null}
+ {
+  "cat": "보건의료 국가시험",
+  "job": "방사선사",
+  "exam": "2026-12-19",
+  "result": "2027-01-08",
+  "season": "",
+  "src": "국시원 직종별 시험정보",
+  "focus": "병원 자기소개서, 직무 면접"
+ },
+ {
+  "cat": "보건의료 국가시험",
+  "job": "임상병리사",
+  "exam": null,
+  "result": null,
+  "season": "예년 12월",
+  "src": "국시원 공고 확인 필요",
+  "focus": "병원 자기소개서, 직무 면접"
+ },
+ {
+  "cat": "보건의료 국가시험",
+  "job": "물리치료사",
+  "exam": null,
+  "result": null,
+  "season": "예년 12월",
+  "src": "국시원 공고 확인 필요",
+  "focus": "병원 자기소개서, 직무 면접"
+ },
+ {
+  "cat": "보건의료 국가시험",
+  "job": "작업치료사",
+  "exam": null,
+  "result": null,
+  "season": "예년 12월",
+  "src": "국시원 공고 확인 필요",
+  "focus": "병원 자기소개서, 직무 면접"
+ },
+ {
+  "cat": "보건의료 국가시험",
+  "job": "치과위생사",
+  "exam": null,
+  "result": null,
+  "season": "예년 12월",
+  "src": "국시원 공고 확인 필요",
+  "focus": "치과·병원 자기소개서, 면접"
+ },
+ {
+  "cat": "보건의료 국가시험",
+  "job": "보건의료정보관리사",
+  "exam": null,
+  "result": null,
+  "season": "예년 12월",
+  "src": "국시원 공고 확인 필요",
+  "focus": "병원 행정 자기소개서, 면접"
+ },
+ {
+  "cat": "보건의료 국가시험",
+  "job": "한의사",
+  "exam": "2027-01-15",
+  "result": "2027-02-02",
+  "season": "",
+  "src": "국시원 직종별 시험정보",
+  "focus": "병원·한방병원 지원서, 면접"
+ },
+ {
+  "cat": "보건의료 국가시험",
+  "job": "약사",
+  "exam": "2027-01-21",
+  "result": null,
+  "season": "",
+  "src": "대학 공지(국시원 시행계획 인용)",
+  "focus": "병원 약제부·제약회사 자기소개서, 면접"
+ },
+ {
+  "cat": "보건의료 국가시험",
+  "job": "간호사",
+  "exam": "2027-01-22",
+  "result": "2027-02-16",
+  "season": "",
+  "src": "국시원 직종별 시험정보",
+  "focus": "병원 자기소개서, 직무·인성 면접, AI면접"
+ },
+ {
+  "cat": "보건의료 국가시험",
+  "job": "응급구조사",
+  "exam": null,
+  "result": null,
+  "season": "국시원 공고 확인 후 안내",
+  "src": "국시원 공고 확인 필요",
+  "focus": "소방·병원 자기소개서, 면접"
+ },
+ {
+  "cat": "사회복지",
+  "job": "사회복지사 1급",
+  "exam": "2027-01-16",
+  "result": null,
+  "season": "합격 발표는 예년 3월",
+  "src": "큐넷 시행계획(제25회)",
+  "focus": "복지관·공공기관 자기소개서, 면접"
+ },
+ {
+  "cat": "교원 임용",
+  "job": "유·초등 교사 임용",
+  "exam": "2026-11-07",
+  "result": null,
+  "season": "2차 면접 2027년 1월 6~8일, 최종 발표 1월 27일(부산 기준, 시·도별 상이)",
+  "src": "시·도교육청 시행계획 보도",
+  "focus": "1차 시험 후부터 2차 교직적성 심층면접 대비(수업실연은 다루지 않습니다)"
+ },
+ {
+  "cat": "교원 임용",
+  "job": "중등 교사 임용",
+  "exam": "2026-11-28",
+  "result": null,
+  "season": "1차 발표 12월 29일, 2차 면접 2027년 1월 20~21일, 최종 발표 2월 5일(경기 기준, 시·도별 상이)",
+  "src": "경기도교육청 공고, 시·도교육청 시행계획 보도",
+  "focus": "1차 시험 후부터 2차 교직적성 심층면접 대비(수업실연은 다루지 않습니다)"
+ },
+ {
+  "cat": "공무원",
+  "job": "국가직 9급(간호·보건·행정 등)",
+  "exam": "2027-03-27",
+  "result": null,
+  "season": "면접은 예년 5~6월",
+  "src": "인사혁신처 발표 보도",
+  "focus": "필기 직후부터 자기기술서, 면접 대비"
+ },
+ {
+  "cat": "공무원",
+  "job": "지방직 9급·8급 간호직",
+  "exam": null,
+  "result": null,
+  "season": "필기 예년 6월, 면접 예년 7~8월",
+  "src": "시·도 공고 확인 필요",
+  "focus": "필기 직후부터 면접 대비"
+ },
+ {
+  "cat": "공공기관",
+  "job": "공공기관·공기업",
+  "exam": null,
+  "result": null,
+  "season": "기관별 수시(필기 후 1~3주 안에 면접)",
+  "src": "기관별 채용 공고",
+  "focus": "NCS 기반 자기소개서, 블라인드 면접"
+ }
 ];
 (function(){
   var box=document.getElementById('examList'); if(!box) return;
-  var now=new Date();
-  box.innerHTML=window.NW_EXAMS.map(function(e){
-    var when=e.season, badge='사전예약 중';
-    if(e.end){
-      var end=new Date(e.end+'T18:00:00+09:00'), d=Math.ceil((end-now)/864e5);
-      when=e.end.replace(/-/g,'.')+' 시험';
-      badge=d>0?('시험까지 D-'+d):(d>-21?'지금 바로 시작 가능':'상시 진행');
+  var now=new Date(), cat=box.getAttribute('data-cat');
+  function fmt(s){ return s.replace(/^(\d+)-(\d+)-(\d+)$/,function(_,y,m,dd){return y+'.'+(+m)+'.'+(+dd)+'.';}); }
+  var list=window.NW_EXAMS.filter(function(e){ return !cat||e.cat===cat; });
+  box.innerHTML=list.map(function(e){
+    var when=e.season||'', badge='사전예약 접수 중';
+    if(e.exam){
+      var end=new Date(e.exam+'T18:00:00+09:00'), dd=Math.ceil((end-now)/864e5);
+      when='시험 '+fmt(e.exam)+(e.result?' · 발표 '+fmt(e.result):'')+(e.season?' · '+e.season:'');
+      badge=dd>0?('시험까지 D-'+dd):(dd>-28?'지금 시작 가능':'상시 진행');
     }
-    return '<div class="card exam"><span class="tagb">'+badge+'</span><h3>'+e.job+'</h3><p>'+when+'</p><a class="btn g" href="#reserve" data-job="'+e.job+'">시험 끝나고 바로 시작 예약</a></div>';
+    return '<div class="card exam"><span class="tagb">'+badge+'</span><h3>'+e.job+'</h3><p>'+when+'</p><p style="font-size:.85rem;color:var(--mut)">'+e.focus+'</p><a class="btn g" href="/consulting/after-exam/#reserve" data-job="'+e.job+'">시험 다음 날 시작 예약</a></div>';
   }).join('');
   box.addEventListener('click',function(ev){
     var a=ev.target.closest('[data-job]'); if(!a) return;
-    var s=document.getElementById('r-job'); if(s){ for(var i=0;i<s.options.length;i++) if(s.options[i].text===a.getAttribute('data-job')) s.selectedIndex=i; }
+    var s=document.getElementById('r-job'); if(!s) return;
+    var j=a.getAttribute('data-job'), hit=false;
+    for(var i=0;i<s.options.length;i++) if(s.options[i].text===j){ s.selectedIndex=i; hit=true; }
+    if(!hit){ var o=document.createElement('option'); o.text=j; s.add(o); s.selectedIndex=s.options.length-1; }
   });
 })();
