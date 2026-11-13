@@ -12,7 +12,9 @@ expected={  # (차액, 퍼센트) 허용 조합
  (won(combo-TRIO),pct(combo,TRIO)),(won(MKT_ACAD-TRIO),pct(MKT_ACAD,TRIO))}
 must={won(combo):'시중 조합 합계',won(MKT_ITEM*MKT_ITEMS):'문항 첨삭 합계',won(MKT_INT30*2):'모의면접 60분',won(TRIO//2):'시간당 금액'}
 ok_pct={'95.4','57.4','42.7','80.3'}|{str(p) for _,p in expected}
-pages=['index.html','consulting/index.html','consulting/process/index.html','consulting/after-exam/index.html','colleges/index.html','references/index.html','calendar/index.html','keyword/index.html']
+pages=['index.html','consulting/index.html','consulting/process/index.html','consulting/after-exam/index.html','colleges/index.html','references/index.html','calendar/index.html','keyword/index.html','fields/social-work/index.html','fields/teacher/index.html','fields/corporate/index.html']
+# 분야별 페이지의 출처 있는 통계: 사회복지사 1급 제23회 합격률, 경총 2026 신규채용 실태조사, 한경협 2026 하반기 조사
+ok_pct|={'39.4','66.6','54.8','35.0','22.6','10.2','67.6','9.2','7.0','6.0','54.9','30.6','14.5','23.4','18.4','12.4'}
 bad=0
 for f in pages:
     s=re.sub(r'<style.*?</style>|<script(?! type="application/ld).*?</script>|style="[^"]*"','',open(f,encoding='utf-8').read(),flags=re.S)
