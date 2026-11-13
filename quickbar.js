@@ -5,7 +5,7 @@
   var items=[
     {t:'신청',s:'10만원~',h:'/consulting/#apply',k:'apply',p:1},
     {t:'가격',s:'연말 할인',h:'/consulting/#price',k:'price'},
-    {t:'진행 과정',s:'실제 사례',h:'/consulting/process/',k:'process'},
+    {t:'진행 과정',s:'순서·가격',h:'/consulting/process/',k:'process'},
     {t:'지원 기관',s:'목록 보기',h:'/references/',k:'refs'},
     {t:'국시 직후',s:'사전예약',h:'/consulting/after-exam/',k:'exam'},
     {t:'학교·기관',s:'견적 요청',h:'/colleges/#quote',k:'b2b'},
